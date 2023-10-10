@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tremor/react": "^3.8.2",
     "dayjs": "^1.11.10",
     "next": "13.5.4",
     "next-auth": "^4.23.2",
