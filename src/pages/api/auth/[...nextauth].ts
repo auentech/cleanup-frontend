@@ -15,23 +15,30 @@ export const authOptions: AuthOptions = {
                 password: { label: 'Password', type: 'password' }
             },
             authorize: async credentials => {
-                const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
-                    method: 'POST',
-                    body: JSON.stringify(credentials),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
+                try {
+                    const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            email: credentials?.email,
+                            password: credentials?.password
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
 
-                const data: LoginResponse = await response.json()
-                if (response.ok && data) {
-                    return {
-                        ...data.data,
-                        token: data.meta.token
+                    const data: LoginResponse = await response.json()
+                    if (response.ok && data) {
+                        return {
+                            ...data.data,
+                            token: data.meta.token
+                        }
                     }
+
+                    throw new Error('Invalid credentials')
+                } catch {
+                    throw new Error('Unable to log you in')
                 }
-
-                throw new Error('Invalid credentials')
             },
         }),
     ],
@@ -54,7 +61,7 @@ export const authOptions: AuthOptions = {
                     ...params.user
                 }
 
-                return token;
+                return token
             }
 
             return params.token
