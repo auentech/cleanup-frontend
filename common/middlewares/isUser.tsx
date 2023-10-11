@@ -12,6 +12,7 @@ const isUser = (ChildComponent: ComponentType, roles: Role[] = []) => () => {
     useEffect(() => {
         if (session.status === 'unauthenticated') {
             router.push('/auth/login')
+            return
         }
 
         if (roles.length > 0 && session.status == 'authenticated') {
@@ -19,8 +20,16 @@ const isUser = (ChildComponent: ComponentType, roles: Role[] = []) => () => {
 
             const user = session.data?.user as UserData
             if (!roles.includes(user.role)) {
-                router.push('/khfkfrkjf')
+                router.push('/redirector')
+
+                return
             }
+
+            return
+        }
+
+        if (session.status == 'authenticated') {
+            setLoading(false)
         }
     }, [session.status])
 

@@ -10,7 +10,7 @@ const isGuest = (ChildComponent: ComponentType) => () => {
 
     useEffect(() => {
         if (session.status == 'authenticated') {
-            router.push('/')
+            router.push('/redirector')
             return
         }
 

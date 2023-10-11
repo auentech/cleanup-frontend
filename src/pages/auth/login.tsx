@@ -1,7 +1,7 @@
 import { Card, Col, Grid, Title, Text, TextInput, Flex, Button, Callout } from "@tremor/react"
 import { EnvelopeIcon, LockClosedIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
-import { signIn, useSession } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import isEmail from 'validator/lib/isEmail'
 import isStrongPassword from 'validator/lib/isStrongPassword'
@@ -9,7 +9,6 @@ import isGuest from "@/common/middlewares/isGuest"
 
 const Login = () => {
     const router = useRouter()
-    const session = useSession()
 
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
@@ -51,7 +50,7 @@ const Login = () => {
 
         if (response?.ok) {
             setLoading(false)
-            router.push('/')
+            router.push('/redirector')
 
             return
         }
