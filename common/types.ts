@@ -5,7 +5,7 @@ type Geography = {
     updated_at: Date
 }
 
-type UserProfile = {
+type Profile = {
     id: number
     address: string
     pincode: number
@@ -23,7 +23,7 @@ export type UserData = {
     email: string
     phone: number
     role: 'admin' | 'operator' | 'washer' | 'ironer' | 'packer'
-    profile?: UserProfile
+    profile?: Profile
     created_at: Date
     updated_at: Date
 }
@@ -36,3 +36,40 @@ export type LoginResponse = {
 }
 
 export type Role = 'admin' | 'operator' | 'washer' | 'packer' | 'ironer'
+
+type Links = {
+    first: string
+    last: string
+    prev: any
+    next: any
+}
+
+type Meta = {
+    current_page: number
+    from: number
+    last_page: number
+    links: {
+        url?: string
+        label: string
+        active: boolean
+    }[]
+    path: string
+    per_page: number
+    to: number
+    total: number
+}
+
+type Stores = {
+    id: number
+    code: string
+    name: string
+    profile: Profile
+    created_at: string
+    updated_at: string
+}
+
+export type StoresResponse = {
+    data: Stores[],
+    links: Links
+    meta: Meta
+}
