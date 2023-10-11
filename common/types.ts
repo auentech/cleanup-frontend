@@ -17,7 +17,7 @@ type UserProfile = {
     updated_at: Date
 }
 
-type UserData = {
+export type UserData = {
     id: string
     name: string
     email: string
@@ -34,3 +34,5 @@ export type LoginResponse = {
         token: string
     }
 }
+
+export type Role = 'admin' | 'operator' | 'washer' | 'packer' | 'ironer'
