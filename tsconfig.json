@@ -23,6 +23,9 @@
       ],
       "@/common/*": [
         "./common/*"
+      ],
+      "@/components/*": [
+        "./components/*"
       ]
     }
   },

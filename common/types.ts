@@ -73,3 +73,34 @@ export type StoresResponse = {
     links: Links
     meta: Meta
 }
+
+export type StatesResponse = {
+    data: Geography[]
+}
+
+export type DistrictsResponse = {
+    data: {
+        districts: Geography[]
+    } & Geography
+}
+
+export type FreeOperatorsResponse = {
+    data: UserData[]
+}
+
+export type CreateStoreError = {
+    errors: {
+        operator?: string[]
+        custom_code?: string[]
+        name?: string[]
+        'profile.address'?: string[]
+        'profile.pincode'?: string[]
+        'profile.district'?: string[]
+        'profile.state'?: string[]
+    }
+}
+
+export type BackendGeneralResponse = {
+    type: string
+    message: string
+}
