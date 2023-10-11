@@ -9,7 +9,6 @@ const Redirector = () => {
     const { data } = useSession()
 
     const user = data?.user as UserData
-    console.log('reidrector', user)
 
     useEffect(() => {
         if (user.role == 'admin') {

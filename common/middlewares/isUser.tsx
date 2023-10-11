@@ -16,8 +16,6 @@ const isUser = (ChildComponent: ComponentType, roles: Role[] = []) => () => {
         }
 
         if (roles.length > 0 && session.status == 'authenticated') {
-            setLoading(false)
-
             const user = session.data?.user as UserData
             if (!roles.includes(user.role)) {
                 router.push('/redirector')
@@ -25,6 +23,7 @@ const isUser = (ChildComponent: ComponentType, roles: Role[] = []) => () => {
                 return
             }
 
+            setLoading(false)
             return
         }
 
