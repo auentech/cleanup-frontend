@@ -1,12 +1,26 @@
-import { Button, Card, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Title } from "@tremor/react";
-import { Text } from "@tremor/react";
+import { Button, Card, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Title } from '@tremor/react'
+import { Text } from '@tremor/react'
 import { BuildingStorefrontIcon } from '@heroicons/react/24/outline'
+import isUser from '@/common/middlewares/isUser'
+import { useSession } from 'next-auth/react'
+import useAxios from '@/common/axios'
+import { useEffect } from 'react'
 
 const Home = () => {
+    const session = useSession()
+    const axios = useAxios()
+
+    useEffect(() => {
+        (async () => {
+            const res = await axios.get('/stores?include=profile,profile.state,profile.district')
+            console.log(res.data)
+        })()
+    }, [session.status])
+
     return (
         <main className="p-12">
             <Title>Admin Dashboard</Title>
-            <Text>Welcome to your dashboard, <strong>Karan</strong></Text>
+            <Text>Welcome to your dashboard, <strong>{session.data?.user?.name}</strong></Text>
 
             <Card className="mt-6">
                 <Title>Stores</Title>
@@ -58,4 +72,4 @@ const Home = () => {
     )
 }
 
-export default Home
+export default isUser(Home, ['admin'])
