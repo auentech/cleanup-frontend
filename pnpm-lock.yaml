@@ -20,9 +20,6 @@ dependencies:
   dayjs:
     specifier: ^1.11.10
     version: 1.11.10
-  js-md5:
-    specifier: ^0.8.3
-    version: 0.8.3
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
@@ -1947,10 +1944,6 @@ packages:
 
   /jose@4.15.2:
     resolution: {integrity: sha512-IY73F228OXRl9ar3jJagh7Vnuhj/GzBunPiZP13K0lOl7Am9SoWW3kEzq3MCllJMTtZqHTiDXQvoRd4U95aU6A==}
-    dev: false
-
-  /js-md5@0.8.3:
-    resolution: {integrity: sha512-qR0HB5uP6wCuRMrWPTrkMaev7MJZwJuuw4fnwAzRgP4J4/F8RwtodOKpGp4XpqsLBFzzgqIO42efFAyz2Et6KQ==}
     dev: false
 
   /js-tokens@4.0.0:

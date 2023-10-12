@@ -3,17 +3,30 @@ import Logout from "@/common/logout"
 import isUser from "@/common/middlewares/isUser"
 import { UserData, UsersResponse } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
-import { Title, Italic, Text, Card, TabGroup, TabList, Tab, TabPanels, TabPanel, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button } from "@tremor/react"
+import { Title, Italic, Text, Card, TabGroup, TabList, Tab, TabPanels, TabPanel, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button, Flex } from "@tremor/react"
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
-import { md5 } from 'js-md5'
 import { UserIcon } from "@heroicons/react/24/outline"
+import { Waveform } from "@uiball/loaders"
+import dynamic from "next/dynamic"
+
+const LazyCreateWorker = dynamic(() => import('@/components/admin/create-worker'), {
+    loading: () => (
+        <Flex alignItems="center" justifyContent="center">
+            <Waveform
+                size={20}
+                color="#3b82f6"
+            />
+        </Flex>
+    )
+})
 
 const Workers = () => {
     const axios = useAxios()
     const { data } = useSession()
     const user = data?.user as UserData
 
+    const [theIndex, setTheIndex] = useState<number>(0)
     const [workers, setWorkers] = useState<UsersResponse>()
 
     useEffect(() => {
@@ -44,7 +57,7 @@ const Workers = () => {
                 <Title>Workers</Title>
                 <Text>All workers in your company</Text>
 
-                <TabGroup className="mt-4">
+                <TabGroup className="mt-4" onIndexChange={setTheIndex}>
                     <TabList>
                         <Tab>List workers</Tab>
                         <Tab>Create workers</Tab>
@@ -54,7 +67,6 @@ const Workers = () => {
                             <Table className="mt-4">
                                 <TableHead>
                                     <TableRow>
-                                        <TableHeaderCell>Profile</TableHeaderCell>
                                         <TableHeaderCell>Name</TableHeaderCell>
                                         <TableHeaderCell>Role</TableHeaderCell>
                                         <TableHeaderCell>Email</TableHeaderCell>
@@ -66,9 +78,6 @@ const Workers = () => {
                                 <TableBody>
                                     {workers?.data.map(worker => (
                                         <TableRow key={worker.id}>
-                                            <TableCell>
-                                                <img className="rounded-full w-10 h-10" src={process.env.NEXT_PUBLIC_BACKEND_URL + 'storage/avatars/' + md5(worker.email) + '.jpg'} alt="" />
-                                            </TableCell>
                                             <TableCell>{worker.name}</TableCell>
                                             <TableCell>
                                                 <Badge style={{ textTransform: 'capitalize' }}>
@@ -85,6 +94,9 @@ const Workers = () => {
                                     ))}
                                 </TableBody>
                             </Table>
+                        </TabPanel>
+                        <TabPanel>
+                            {theIndex == 1 && <LazyCreateWorker />}
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>

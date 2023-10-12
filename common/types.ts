@@ -163,6 +163,23 @@ export type UsersResponse = {
     meta: Meta
 }
 
+export type CreateWorkerErrors = {
+    errors: {
+        name?: string[]
+        email?: string[]
+        password?: string[]
+        phone?: string[]
+        avatar?: string[]
+        role?: string[]
+        'profile.address'?: string[]
+        'profile.pincode'?: string[]
+        'profile.district'?: string[]
+        'profile.state'?: string[]
+        'profile.aadhaar'?: string[]
+        'profile.emergency_contact'?: string[]
+    }
+}
+
 export type BackendGeneralResponse = {
     type: string
     message: string
