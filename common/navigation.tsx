@@ -2,6 +2,7 @@ import { Tab, TabGroup, TabList } from "@tremor/react"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import _ from 'lodash'
+import Link from "next/link"
 
 type NavigationItem = {
     icon?: any
@@ -19,10 +20,6 @@ const Navigation = ({ data, className }: NavigationProps) => {
     const router = useRouter()
     const [theIndex, setTheIndex] = useState<number>(0)
 
-    const handleIndexChange = (index: number) => {
-        router.push(data[index].path)
-    }
-
     useEffect(() => {
         const index = _.findIndex(data, (item) => {
             const isSubPath = !!item.subPath?.includes(router.pathname)
@@ -38,10 +35,12 @@ const Navigation = ({ data, className }: NavigationProps) => {
     }, [router.pathname])
 
     return (
-        <TabGroup className={className} index={theIndex} onIndexChange={handleIndexChange}>
+        <TabGroup className={className} index={theIndex}>
             <TabList>
                 {data.map((item, index) => (
-                    <Tab key={index} icon={item.icon}>{item.text}</Tab>
+                    <Link href={data[index].path}>
+                        <Tab key={index} icon={item.icon}>{item.text}</Tab>
+                    </Link>
                 ))}
             </TabList>
         </TabGroup>
