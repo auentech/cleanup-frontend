@@ -1,7 +1,7 @@
 import useAxios from "@/common/axios"
 import { BackendGeneralResponse, CreateStoreError, DistrictsResponse, FreeOperatorsResponse, StatesResponse } from "@/common/types"
 import { ArrowPathIcon, CheckCircleIcon, GlobeAsiaAustraliaIcon, UsersIcon } from "@heroicons/react/24/outline"
-import { Text, Select, SelectItem, TextInput, SearchSelect, SearchSelectItem, Flex, Button, Callout } from "@tremor/react"
+import { Text, Select, SelectItem, TextInput, SearchSelect, SearchSelectItem, Flex, Button, Callout, Divider } from "@tremor/react"
 import { AxiosError } from "axios"
 import { useEffect, useState } from "react"
 import Axios from 'axios'
@@ -183,7 +183,9 @@ const CreateStore = () => {
                 )}
             </div>
 
-            <Flex justifyContent="end" className="space-x-2 border-t pt-4 mt-8">
+            <Divider />
+
+            <Flex justifyContent="end" className="space-x-2">
                 <Button
                     size="xs"
                     loading={loading}
