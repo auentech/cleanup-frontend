@@ -38,8 +38,8 @@ const Navigation = ({ data, className }: NavigationProps) => {
         <TabGroup className={className} index={theIndex}>
             <TabList>
                 {data.map((item, index) => (
-                    <Link href={data[index].path}>
-                        <Tab key={index} icon={item.icon}>{item.text}</Tab>
+                    <Link href={data[index].path} key={index}>
+                        <Tab icon={item.icon}>{item.text}</Tab>
                     </Link>
                 ))}
             </TabList>
