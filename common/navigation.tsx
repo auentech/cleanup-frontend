@@ -7,6 +7,7 @@ type NavigationItem = {
     icon?: any
     text: string
     path: string
+    subPath?: string[]
 }
 
 type NavigationProps = {
@@ -23,8 +24,17 @@ const Navigation = ({ data, className }: NavigationProps) => {
     }
 
     useEffect(() => {
-        const index = _.findIndex(data, (item) => item.path == router.pathname)
-        setTheIndex(index)
+        const index = _.findIndex(data, (item) => {
+            const isSubPath = !!item.subPath?.includes(router.pathname)
+            return (item.path == router.pathname) || isSubPath
+        })
+
+        if (index >= 0) {
+            setTheIndex(index)
+            return
+        }
+
+        setTheIndex(0)
     }, [router.pathname])
 
     return (

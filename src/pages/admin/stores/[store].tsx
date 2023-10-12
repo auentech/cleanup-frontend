@@ -1,8 +1,8 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { StoreResponse } from "@/common/types"
-import { ArchiveBoxIcon, BeakerIcon, BuildingStorefrontIcon, HomeIcon, NewspaperIcon, ReceiptPercentIcon, ShoppingCartIcon, UserIcon } from "@heroicons/react/24/outline"
-import { AreaChart, Badge, Card, Flex, Grid, Icon, Metric, Text, Title } from "@tremor/react"
+import { ArchiveBoxIcon, BeakerIcon, BuildingStorefrontIcon, HomeIcon, NewspaperIcon, PencilIcon, ReceiptPercentIcon, ShoppingCartIcon, TrashIcon, UserIcon } from "@heroicons/react/24/outline"
+import { AreaChart, Badge, Button, Card, Flex, Grid, Icon, Metric, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
@@ -92,15 +92,28 @@ const ShowStore = () => {
 
     const StoreBody = () => (
         <div>
-            <Flex justifyContent="start">
-                <Title>{store?.data.name} store</Title>
-                <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">{store?.data.code}</Badge>
+            <Flex justifyContent="between" className="space-x-6">
+                <div>
+                    <Flex>
+                        <Title>{store?.data.name} store</Title>
+                        <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">{store?.data.code}</Badge>
+                    </Flex>
+                </div>
+                <div className="space-x-4">
+                    <Button color="red" variant="secondary" icon={TrashIcon}>Delete</Button>
+                    <Button variant="secondary" icon={PencilIcon}>Edit</Button>
+                </div>
             </Flex>
             <Text>Store located at: {store?.data.profile.address}</Text>
 
             <Navigation className="mt-6" data={[
                 { icon: HomeIcon, text: 'Home', path: '/admin' },
-                { icon: BuildingStorefrontIcon, text: 'Stores', path: '/admin/stores' },
+                {
+                    icon: BuildingStorefrontIcon,
+                    text: 'Stores',
+                    path: '/admin/stores',
+                    subPath: ['/admin/stores/[store]']
+                },
                 { icon: BeakerIcon, text: 'Factories', path: '/factories' },
                 { icon: UserIcon, text: 'Workers', path: '/workers' },
                 { icon: NewspaperIcon, text: 'Reports', path: '/admin/reports' },
