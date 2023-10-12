@@ -232,7 +232,7 @@ const ShowStore = () => {
                                     <TableCell>{statusBadger(order.status)}</TableCell>
                                     <TableCell>₹ {order.cost}</TableCell>
                                     <TableCell>
-                                        <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>View order</Button>
+                                        <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
