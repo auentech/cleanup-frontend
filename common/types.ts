@@ -157,6 +157,12 @@ export type CreateFactoryError = {
     }
 }
 
+export type UsersResponse = {
+    data: UserData[]
+    links: Links
+    meta: Meta
+}
+
 export type BackendGeneralResponse = {
     type: string
     message: string
