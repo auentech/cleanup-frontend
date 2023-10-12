@@ -131,6 +131,32 @@ export type OrdersResponse = {
     meta: Meta
 }
 
+export type Factory = {
+    id: number
+    code: string
+    name: string
+    created_at: string
+    updated_at: string
+    profile?: Profile
+}
+
+export type FactoriesResponse = {
+    data: Factory[]
+    links: Links
+    meta: Meta
+}
+
+export type CreateFactoryError = {
+    errors: {
+        custom_code?: string[]
+        name?: string[]
+        'profile.address'?: string[]
+        'profile.pincode'?: string[]
+        'profile.district'?: string[]
+        'profile.state'?: string[]
+    }
+}
+
 export type BackendGeneralResponse = {
     type: string
     message: string
