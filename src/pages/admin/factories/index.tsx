@@ -1,11 +1,10 @@
 import Logout from "@/common/logout"
-import isUser from "@/common/middlewares/isUser"
 import { UserData } from "@/common/types"
-import { Title, Text, Italic } from "@tremor/react"
-import { useSession } from "next-auth/react"
 import AdminNavigation from "@/components/admin/admin-navigation"
+import { Title, Italic, Text } from "@tremor/react"
+import { useSession } from "next-auth/react"
 
-const AdminIndex = () => {
+const Factories = () => {
     const { data } = useSession()
     const user = data?.user as UserData
 
@@ -24,4 +23,4 @@ const AdminIndex = () => {
     )
 }
 
-export default isUser(AdminIndex, ['admin'])
+export default Factories

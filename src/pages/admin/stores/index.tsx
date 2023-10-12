@@ -1,15 +1,15 @@
 import useAxios from "@/common/axios"
 import Logout from "@/common/logout"
 import isUser from "@/common/middlewares/isUser"
-import Navigation from "@/common/navigation"
 import { StoresResponse, UserData } from "@/common/types"
-import { BeakerIcon, BuildingStorefrontIcon, HomeIcon, NewspaperIcon, UserIcon } from "@heroicons/react/24/outline"
-import { Button, Card, Flex, Italic, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, TextInput, Title } from "@tremor/react"
+import { BuildingStorefrontIcon } from "@heroicons/react/24/outline"
+import { Button, Card, Flex, Italic, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
+import AdminNavigation from "@/components/admin/admin-navigation"
 
 const LazyCreateStore = dynamic(() => import('@/components/admin/create-store'), {
     loading: () => (
@@ -49,13 +49,7 @@ const StoreIndex = () => {
                 </Italic>
             </Text>
 
-            <Navigation className="mt-6" data={[
-                { icon: HomeIcon, text: 'Home', path: '/admin' },
-                { icon: BuildingStorefrontIcon, text: 'Stores', path: '/admin/stores' },
-                { icon: BeakerIcon, text: 'Factories', path: '/factories' },
-                { icon: UserIcon, text: 'Workers', path: '/workers' },
-                { icon: NewspaperIcon, text: 'Reports', path: '/admin/reports' },
-            ]} />
+            <AdminNavigation />
 
             <Card className="mt-6" decoration="top">
                 <Title>Stores</Title>

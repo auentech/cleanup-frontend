@@ -1,14 +1,14 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { OrdersResponse, StatusEnum, StoreResponse } from "@/common/types"
-import { ArchiveBoxIcon, ArrowLeftIcon, ArrowPathIcon, BeakerIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, HomeIcon, NewspaperIcon, PencilIcon, ReceiptPercentIcon, ShoppingCartIcon, TrashIcon, UserIcon } from "@heroicons/react/24/outline"
+import { ArchiveBoxIcon, ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, PencilIcon, ReceiptPercentIcon, ShoppingCartIcon, TrashIcon, UserIcon } from "@heroicons/react/24/outline"
 import { AreaChart, Badge, Button, Card, Flex, Grid, Icon, Metric, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import _ from 'lodash'
-import Navigation from "@/common/navigation"
 import dayjs from "dayjs"
+import AdminNavigation from "@/components/admin/admin-navigation"
 
 type SalesMetricType = {
     date: string,
@@ -135,18 +135,7 @@ const ShowStore = () => {
             </Flex>
             <Text>Store located at: {store?.data.profile.address}</Text>
 
-            <Navigation className="mt-6" data={[
-                { icon: HomeIcon, text: 'Home', path: '/admin' },
-                {
-                    icon: BuildingStorefrontIcon,
-                    text: 'Stores',
-                    path: '/admin/stores',
-                    subPath: ['/admin/stores/[store]']
-                },
-                { icon: BeakerIcon, text: 'Factories', path: '/factories' },
-                { icon: UserIcon, text: 'Workers', path: '/workers' },
-                { icon: NewspaperIcon, text: 'Reports', path: '/admin/reports' },
-            ]} />
+            <AdminNavigation />
 
             <div className="mt-6">
                 <Grid numItemsLg={3} className="gap-6">
