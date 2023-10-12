@@ -68,7 +68,7 @@ type Store = {
     updated_at: string
 }
 
-type StatusEnum = 'received'
+export type StatusEnum = 'received' | 'in_process' | 'processed' | 'in_store' | 'delivered'
 
 type Order = {
     id: number
@@ -76,7 +76,8 @@ type Order = {
     count: number
     cost: number
     discount: number
-    status: StatusEnum,
+    status: StatusEnum
+    customer?: UserData
     created_at: Date
     updated_at: Date
 }
@@ -122,6 +123,12 @@ export type CreateStoreError = {
         'profile.district'?: string[]
         'profile.state'?: string[]
     }
+}
+
+export type OrdersResponse = {
+    data: Order[],
+    links: Links
+    meta: Meta
 }
 
 export type BackendGeneralResponse = {

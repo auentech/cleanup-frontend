@@ -1,13 +1,14 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
-import { StoreResponse } from "@/common/types"
-import { ArchiveBoxIcon, BeakerIcon, BuildingStorefrontIcon, HomeIcon, NewspaperIcon, PencilIcon, ReceiptPercentIcon, ShoppingCartIcon, TrashIcon, UserIcon } from "@heroicons/react/24/outline"
-import { AreaChart, Badge, Button, Card, Flex, Grid, Icon, Metric, Text, Title } from "@tremor/react"
+import { OrdersResponse, StatusEnum, StoreResponse } from "@/common/types"
+import { ArchiveBoxIcon, ArrowLeftIcon, ArrowPathIcon, BeakerIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, HomeIcon, NewspaperIcon, PencilIcon, ReceiptPercentIcon, ShoppingCartIcon, TrashIcon, UserIcon } from "@heroicons/react/24/outline"
+import { AreaChart, Badge, Button, Card, Flex, Grid, Icon, Metric, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import _ from 'lodash'
 import Navigation from "@/common/navigation"
+import dayjs from "dayjs"
 
 type SalesMetricType = {
     date: string,
@@ -30,6 +31,7 @@ const ShowStore = () => {
 
     const [store, setStore] = useState<StoreResponse>()
     const [loading, setLoading] = useState<boolean>(true)
+    const [orders, setOrders] = useState<OrdersResponse>()
 
     const [salesMetrics, setSalesMetrics] = useState<SalesMetricType[]>()
     const [ordersMetrics, setOrdersMetrics] = useState<OrdersMetricType[]>()
@@ -58,7 +60,7 @@ const ShowStore = () => {
                 }
             })
 
-            setSalesMetrics(data)
+            setSalesMetrics(_.sortBy(data, 'date'))
         }
 
         const calculateOrdersMetrics = () => {
@@ -70,7 +72,7 @@ const ShowStore = () => {
                 }
             })
 
-            setOrdersMetrics(data)
+            setOrdersMetrics(_.sortBy(data, 'date'))
         }
 
         const calculateClothesMetrics = () => {
@@ -82,7 +84,7 @@ const ShowStore = () => {
                 }
             })
 
-            setClothesMetrics(data)
+            setClothesMetrics(_.sortBy(data, 'date'))
         }
 
         calculateSalesMetrics()
@@ -90,11 +92,38 @@ const ShowStore = () => {
         calculateClothesMetrics()
     }, [store])
 
+    useEffect(() => {
+        (async () => {
+            const response = await axios.get<OrdersResponse>('/stores/' + router.query.store + '/orders', {
+                params: {
+                    include: ['customer']
+                },
+            })
+
+            setOrders(response.data)
+        })()
+    }, [])
+
+    const statusBadger = (status: StatusEnum) => {
+        switch (status) {
+            case 'received':
+                return <Badge color="red" size="sm" icon={ExclamationTriangleIcon}>Unprocessed</Badge>
+            case 'in_process':
+                return <Badge color="blue" size="sm" icon={ArrowPathIcon}>In Factory</Badge>
+            case 'in_store':
+            case 'processed':
+                return <Badge color="yellow" size="sm" icon={BuildingStorefrontIcon}>In store</Badge>
+            case 'delivered':
+                return <Badge color="green" size="sm" icon={UserIcon}>Delivered</Badge>
+        }
+    }
+
     const StoreBody = () => (
         <div>
             <Flex justifyContent="between" className="space-x-6">
                 <div>
                     <Flex>
+                        <Icon icon={ArrowLeftIcon} onClick={() => router.back()} style={{ cursor: 'pointer' }}></Icon>
                         <Title>{store?.data.name} store</Title>
                         <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">{store?.data.code}</Badge>
                     </Flex>
@@ -185,6 +214,42 @@ const ShowStore = () => {
                         />
                     </Card>
                 </Grid>
+            </div>
+
+            <div className="mt-6">
+                <Card>
+                    <Title>Orders</Title>
+                    <Text>All the orders in your store</Text>
+
+                    <Table className="mt-4">
+                        <TableHead>
+                            <TableRow>
+                                <TableHeaderCell>Order Code</TableHeaderCell>
+                                <TableHeaderCell>Customer</TableHeaderCell>
+                                <TableHeaderCell>Order date</TableHeaderCell>
+                                <TableHeaderCell>Garments</TableHeaderCell>
+                                <TableHeaderCell>Status</TableHeaderCell>
+                                <TableHeaderCell>Amount</TableHeaderCell>
+                                <TableHeaderCell>Action</TableHeaderCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {orders?.data.map(order => (
+                                <TableRow key={order.id}>
+                                    <TableCell>{order.code}</TableCell>
+                                    <TableCell>{order.customer?.name}</TableCell>
+                                    <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
+                                    <TableCell>{order.count}</TableCell>
+                                    <TableCell>{statusBadger(order.status)}</TableCell>
+                                    <TableCell>₹ {order.cost}</TableCell>
+                                    <TableCell>
+                                        <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>View order</Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Card>
             </div>
         </div>
     )
