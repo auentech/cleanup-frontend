@@ -59,7 +59,7 @@ type Meta = {
     total: number
 }
 
-type Stores = {
+type Store = {
     id: number
     code: string
     name: string
@@ -68,10 +68,34 @@ type Stores = {
     updated_at: string
 }
 
+type StatusEnum = 'received'
+
+type Order = {
+    id: number
+    code: string
+    count: number
+    cost: number
+    discount: number
+    status: StatusEnum,
+    created_at: Date
+    updated_at: Date
+}
+
 export type StoresResponse = {
-    data: Stores[],
+    data: Store[],
     links: Links
     meta: Meta
+}
+
+type StoreMetrics = {
+    ordersSevenDays: {
+        [date: string]: Order[]
+    }
+}
+
+export type StoreResponse = {
+    data: Store
+    metrics?: StoreMetrics
 }
 
 export type StatesResponse = {

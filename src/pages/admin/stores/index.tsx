@@ -89,7 +89,7 @@ const StoreIndex = () => {
                                             <TableCell>{store.profile.state.name}</TableCell>
                                             <TableCell>{store.profile.district.name}</TableCell>
                                             <TableCell>
-                                                <Link href={'/admin/stores/' + store.code}>
+                                                <Link href={'/admin/stores/' + store.id}>
                                                     <Button icon={BuildingStorefrontIcon} size="xs" variant="secondary" color="gray">
                                                         Show store
                                                     </Button>
