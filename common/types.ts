@@ -59,11 +59,22 @@ type Meta = {
     total: number
 }
 
+type StoreOperator = {
+    id: number
+    user_id: number
+    store_id: number
+    user: UserData
+    store: Store
+    created_at: string
+    updated_at: string
+}
+
 type Store = {
     id: number
     code: string
     name: string
-    profile: Profile
+    profile?: Profile
+    operators?: StoreOperator[]
     created_at: string
     updated_at: string
 }

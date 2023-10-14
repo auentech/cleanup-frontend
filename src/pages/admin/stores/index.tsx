@@ -78,10 +78,10 @@ const StoreIndex = () => {
                                         <TableRow key={store.id}>
                                             <TableCell>{store.code}</TableCell>
                                             <TableCell>{store.name}</TableCell>
-                                            <TableCell>{store.profile.address}</TableCell>
-                                            <TableCell>{store.profile.pincode}</TableCell>
-                                            <TableCell>{store.profile.state.name}</TableCell>
-                                            <TableCell>{store.profile.district.name}</TableCell>
+                                            <TableCell>{store?.profile?.address}</TableCell>
+                                            <TableCell>{store?.profile?.pincode}</TableCell>
+                                            <TableCell>{store?.profile?.state.name}</TableCell>
+                                            <TableCell>{store?.profile?.district.name}</TableCell>
                                             <TableCell>
                                                 <Link href={'/admin/stores/' + store.id}>
                                                     <Button icon={BuildingStorefrontIcon} size="xs" variant="secondary" color="gray">
