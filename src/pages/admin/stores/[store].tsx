@@ -2,13 +2,14 @@ import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { OrdersResponse, StatusEnum, StoreResponse } from "@/common/types"
 import { ArchiveBoxIcon, ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, PencilIcon, ReceiptPercentIcon, ShoppingCartIcon, TrashIcon, UserIcon } from "@heroicons/react/24/outline"
-import { AreaChart, Badge, Button, Card, Flex, Grid, Icon, Metric, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
+import { AreaChart, Badge, Button, Card, Flex, Grid, Icon, Metric, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import _ from 'lodash'
 import dayjs from "dayjs"
 import AdminNavigation from "@/components/admin/admin-navigation"
+import dynamic from "next/dynamic"
 
 type SalesMetricType = {
     date: string,
@@ -25,10 +26,22 @@ type ClothsMetricType = {
     Count: number
 }
 
+const LazyEditStore = dynamic(() => import('@/components/admin/edit-store'), {
+    loading: () => (
+        <Flex alignItems="center" justifyContent="center">
+            <Waveform
+                size={20}
+                color="#3b82f6"
+            />
+        </Flex>
+    )
+})
+
 const ShowStore = () => {
     const axios = useAxios()
     const router = useRouter()
 
+    const [theIndex, setTheIndex] = useState<number>(0)
     const [store, setStore] = useState<StoreResponse>()
     const [loading, setLoading] = useState<boolean>(true)
     const [orders, setOrders] = useState<OrdersResponse>()
@@ -41,7 +54,14 @@ const ShowStore = () => {
         (async () => {
             const response = await axios.get<StoreResponse>('/stores/' + router.query.store, {
                 params: {
-                    include: ['profile.state', 'profile.district']
+                    include: [
+                        'profile.state',
+                        'profile.district',
+
+                        'operators.user',
+                        'operators.user.profile.state',
+                        'operators.user.profile.district'
+                    ]
                 }
             })
 
@@ -133,7 +153,7 @@ const ShowStore = () => {
                     <Button variant="secondary" icon={PencilIcon}>Edit</Button>
                 </div>
             </Flex>
-            <Text>Store located at: {store?.data.profile.address}</Text>
+            <Text>Store located at: {store?.data?.profile?.address}</Text>
 
             <AdminNavigation />
 
@@ -207,37 +227,54 @@ const ShowStore = () => {
 
             <div className="mt-6">
                 <Card>
-                    <Title>Orders</Title>
-                    <Text>All the orders in your store</Text>
+                    <TabGroup index={theIndex} onIndexChange={setTheIndex}>
+                        <TabList variant="solid">
+                            <Tab icon={ReceiptPercentIcon}>Orders</Tab>
+                            <Tab icon={PencilIcon}>Settings</Tab>
+                        </TabList>
+                        <TabPanels>
+                            <TabPanel className="mt-6">
+                                <Title>Orders</Title>
+                                <Text>All the orders in your store</Text>
 
-                    <Table className="mt-4">
-                        <TableHead>
-                            <TableRow>
-                                <TableHeaderCell>Order Code</TableHeaderCell>
-                                <TableHeaderCell>Customer</TableHeaderCell>
-                                <TableHeaderCell>Order date</TableHeaderCell>
-                                <TableHeaderCell>Garments</TableHeaderCell>
-                                <TableHeaderCell>Status</TableHeaderCell>
-                                <TableHeaderCell>Amount</TableHeaderCell>
-                                <TableHeaderCell>Action</TableHeaderCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {orders?.data.map(order => (
-                                <TableRow key={order.id}>
-                                    <TableCell>{order.code}</TableCell>
-                                    <TableCell>{order.customer?.name}</TableCell>
-                                    <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
-                                    <TableCell>{order.count}</TableCell>
-                                    <TableCell>{statusBadger(order.status)}</TableCell>
-                                    <TableCell>₹ {order.cost}</TableCell>
-                                    <TableCell>
-                                        <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                <Table className="mt-4">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableHeaderCell>Code</TableHeaderCell>
+                                            <TableHeaderCell>Customer</TableHeaderCell>
+                                            <TableHeaderCell>Order date</TableHeaderCell>
+                                            <TableHeaderCell>Garments</TableHeaderCell>
+                                            <TableHeaderCell>Status</TableHeaderCell>
+                                            <TableHeaderCell>Amount</TableHeaderCell>
+                                            <TableHeaderCell>Action</TableHeaderCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {orders?.data.map(order => (
+                                            <TableRow key={order.id}>
+                                                <TableCell>{order.code}</TableCell>
+                                                <TableCell>{order.customer?.name}</TableCell>
+                                                <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
+                                                <TableCell>{order.count}</TableCell>
+                                                <TableCell>{statusBadger(order.status)}</TableCell>
+                                                <TableCell>₹ {order.cost}</TableCell>
+                                                <TableCell>
+                                                    <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TabPanel>
+
+                            <TabPanel className="mt-6">
+                                <Title>Edit store</Title>
+                                <Text>Didn't like something? Let's change that</Text>
+
+                                {theIndex == 1 && <LazyEditStore />}
+                            </TabPanel>
+                        </TabPanels>
+                    </TabGroup>
                 </Card>
             </div>
         </div>
