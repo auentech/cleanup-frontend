@@ -2,16 +2,16 @@ import useAxios from "@/common/axios"
 import { CreateStoreError, StatesResponse, FreeOperatorsResponse, DistrictsResponse, StoreResponse } from "@/common/types"
 import { GlobeAsiaAustraliaIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
 import { Text, MultiSelect, MultiSelectItem, TextInput, SearchSelect, SearchSelectItem, Divider, Flex, Button } from "@tremor/react"
-import _ from "lodash"
+import lodashMap from 'lodash/map'
 import { useRouter } from "next/router"
 import { useState, useEffect } from "react"
 
 const EditStore = () => {
-    const cAxios = useAxios()
-    const cRouter = useRouter()
+    const axios = useAxios()
+    const router = useRouter()
 
-    const [cStore, setcStore] = useState<StoreResponse>()
-    const [cLoading, setcLoading] = useState<boolean>(false)
+    const [store, setStore] = useState<StoreResponse>()
+    const [loading, setLoading] = useState<boolean>(false)
     const [errors, setErrors] = useState<CreateStoreError>()
 
     const [currentStoreOps, setCurrentStoreOps] = useState<string[]>()
@@ -30,10 +30,10 @@ const EditStore = () => {
 
     useEffect(() => {
         const initOperators = async () => {
-            if (cStore == undefined) return
-            const opsResponse = await cAxios.get<FreeOperatorsResponse>('/workers/free-operators')
+            if (store == undefined) return
+            const opsResponse = await axios.get<FreeOperatorsResponse>('/workers/free-operators')
 
-            const currentOperators = _.map(cStore?.data.operators, ops => ops.user)
+            const currentOperators = lodashMap(store?.data.operators, ops => ops.user)
             if (opsResponse.data.data.length > 0) {
                 opsResponse.data.data.forEach(user => {
                     currentOperators.push(user)
@@ -50,20 +50,20 @@ const EditStore = () => {
         }
 
         initOperators()
-    }, [cStore])
+    }, [store])
 
     useEffect(() => {
         if (operators == undefined) return
-        setCurrentStoreOps(_.map(operators.data, ops => ops.id + ''))
-        setStoreOperators(_.map(operators.data, ops => ops.id + ''))
+        setCurrentStoreOps(lodashMap(operators.data, ops => ops.id + ''))
+        setStoreOperators(lodashMap(operators.data, ops => ops.id + ''))
     }, [operators])
 
     useEffect(() => {
         (async () => {
-            const response = await cAxios.get<StatesResponse>('/states/')
+            const response = await axios.get<StatesResponse>('/states/')
             setStates(response.data)
 
-            const storeResponse = await cAxios.get<StoreResponse>('/stores/' + cRouter.query.store, {
+            const storeResponse = await axios.get<StoreResponse>('/stores/' + router.query.store, {
                 params: {
                     include: [
                         'profile.state',
@@ -76,7 +76,7 @@ const EditStore = () => {
                 }
             })
 
-            setcStore(storeResponse.data)
+            setStore(storeResponse.data)
             setStoreName(storeResponse.data.data.name)
             setAddress(storeResponse.data.data.profile?.address as string)
             setCode(storeResponse.data.data.code.split('-')[1])
@@ -88,7 +88,7 @@ const EditStore = () => {
 
     useEffect(() => {
         const fetchDistricts = async () => {
-            const response = await cAxios.get<DistrictsResponse>('/states/' + state)
+            const response = await axios.get<DistrictsResponse>('/states/' + state)
             setDistricts(response.data)
         }
 
@@ -98,10 +98,10 @@ const EditStore = () => {
     }, [state])
 
     const handleStoreEdit = async () => {
-        setcLoading(true)
+        setLoading(true)
 
         try {
-            const response = await cAxios.patch('stores/' + cStore?.data.id, {
+            const response = await axios.patch('stores/' + store?.data.id, {
                 operators: storeOperators,
                 name: storeName,
                 code: code,
@@ -115,7 +115,7 @@ const EditStore = () => {
 
             console.log(response.data)
         } finally {
-            setcLoading(false)
+            setLoading(false)
         }
     }
 
@@ -143,7 +143,7 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store Name</Text>
                 <TextInput
-                    value={cStore?.data.name}
+                    value={store?.data.name}
                     onInput={e => setStoreName(e.currentTarget.value)}
                     error={errors?.errors.name != undefined}
                     errorMessage="Store name is required"
@@ -153,7 +153,7 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store Address</Text>
                 <TextInput
-                    value={cStore?.data?.profile?.address}
+                    value={store?.data?.profile?.address}
                     onInput={e => setAddress(e.currentTarget.value)}
                     error={errors?.errors["profile.address"] != undefined}
                     errorMessage="Store address is required"
@@ -163,7 +163,7 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store custom code</Text>
                 <TextInput
-                    value={cStore?.data.code.split('-')[1]}
+                    value={store?.data.code.split('-')[1]}
                     onInput={e => setCode(e.currentTarget.value)}
                     error={errors?.errors.custom_code != undefined}
                     errorMessage="Custom code for store is required"
@@ -173,18 +173,18 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store Pincode</Text>
                 <TextInput
-                    value={cStore?.data?.profile?.pincode + ''}
+                    value={store?.data?.profile?.pincode + ''}
                     onInput={e => setPincode(e.currentTarget.value)}
                     error={errors?.errors["profile.pincode"] != undefined}
                     errorMessage="Store pincode is required"
                     className="mt-2" />
             </div>
 
-            {(states != undefined && cStore != undefined) && (
+            {(states != undefined && store != undefined) && (
                 <div className="mt-4">
                     <Text>Store State</Text>
                     <SearchSelect
-                        defaultValue={cStore?.data?.profile?.state.id + ''}
+                        defaultValue={store?.data?.profile?.state.id + ''}
                         className="mt-2" onValueChange={value => setState(value)}>
                         {states.data.map(theState => (
                             <SearchSelectItem value={theState.id + ''} key={theState.id} icon={GlobeAsiaAustraliaIcon}>
@@ -201,7 +201,7 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store District</Text>
                 <SearchSelect
-                    defaultValue={cStore?.data?.profile?.district.id + ''}
+                    defaultValue={store?.data?.profile?.district.id + ''}
                     className="mt-2"
                     onValueChange={value => setDistrict(value)}>
                     {districts != undefined ? districts.data.districts.map(theDistrict => (
@@ -224,7 +224,7 @@ const EditStore = () => {
             <Flex justifyContent="end" className="space-x-2">
                 <Button
                     size="xs"
-                    loading={cLoading}
+                    loading={loading}
                     loadingText="Editing store..."
                     onClick={handleStoreEdit}
                 >Edit store</Button>

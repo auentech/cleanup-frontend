@@ -1,7 +1,7 @@
 import { Tab, TabGroup, TabList } from "@tremor/react"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
-import _ from 'lodash'
+import lodashFindIndex from "lodash/findIndex"
 import Link from "next/link"
 
 type NavigationItem = {
@@ -21,7 +21,7 @@ const Navigation = ({ data, className }: NavigationProps) => {
     const [theIndex, setTheIndex] = useState<number>(0)
 
     useEffect(() => {
-        const index = _.findIndex(data, (item) => {
+        const index = lodashFindIndex(data, (item) => {
             const isSubPath = !!item.subPath?.includes(router.pathname)
             return (item.path == router.pathname) || isSubPath
         })

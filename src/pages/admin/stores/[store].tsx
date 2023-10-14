@@ -6,7 +6,9 @@ import { AreaChart, Badge, Button, Card, Flex, Grid, Icon, Metric, Tab, TabGroup
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
-import _ from 'lodash'
+import lodashMap from 'lodash/map'
+import lodashSumBy from 'lodash/sumBy'
+import lodashSortBy from 'lodash/sortBy'
 import dayjs from "dayjs"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import dynamic from "next/dynamic"
@@ -73,38 +75,38 @@ const ShowStore = () => {
     useEffect(() => {
         const calculateSalesMetrics = () => {
             const theMetricOrders = store?.metrics?.ordersSevenDays
-            const data = _.map(theMetricOrders, (theOrders, date) => {
+            const data = lodashMap(theMetricOrders, (theOrders, date) => {
                 return {
                     date,
-                    Cost: _.sumBy(theOrders, 'cost')
+                    Cost: lodashSumBy(theOrders, 'cost')
                 }
             })
 
-            setSalesMetrics(_.sortBy(data, 'date'))
+            setSalesMetrics(lodashSortBy(data, 'date'))
         }
 
         const calculateOrdersMetrics = () => {
             const theOrdersMetrics = store?.metrics?.ordersSevenDays
-            const data = _.map(theOrdersMetrics, (theOrders, date) => {
+            const data = lodashMap(theOrdersMetrics, (theOrders, date) => {
                 return {
                     date,
                     Orders: theOrders.length
                 }
             })
 
-            setOrdersMetrics(_.sortBy(data, 'date'))
+            setOrdersMetrics(lodashSortBy(data, 'date'))
         }
 
         const calculateClothesMetrics = () => {
             const theOrdersMetrics = store?.metrics?.ordersSevenDays
-            const data = _.map(theOrdersMetrics, (theOrders, date) => {
+            const data = lodashMap(theOrdersMetrics, (theOrders, date) => {
                 return {
                     date,
-                    Count: _.sumBy(theOrders, 'count')
+                    Count: lodashSumBy(theOrders, 'count')
                 }
             })
 
-            setClothesMetrics(_.sortBy(data, 'date'))
+            setClothesMetrics(lodashSortBy(data, 'date'))
         }
 
         calculateSalesMetrics()
@@ -164,7 +166,7 @@ const ShowStore = () => {
                             <Icon icon={ReceiptPercentIcon} variant="light" color="blue" size="xl"></Icon>
                             <div className="truncate">
                                 <Title>Sales</Title>
-                                <Metric>₹ {_.sumBy(salesMetrics, 'Cost')}</Metric>
+                                <Metric>₹ {lodashSumBy(salesMetrics, 'Cost')}</Metric>
                             </div>
                         </Flex>
                         <AreaChart
@@ -185,7 +187,7 @@ const ShowStore = () => {
                             <Icon icon={ShoppingCartIcon} variant="light" color="cyan" size="xl"></Icon>
                             <div className="truncate">
                                 <Title>Orders</Title>
-                                <Metric>{_.sumBy(ordersMetrics, 'Orders')}</Metric>
+                                <Metric>{lodashSumBy(ordersMetrics, 'Orders')}</Metric>
                             </div>
                         </Flex>
                         <AreaChart
@@ -206,7 +208,7 @@ const ShowStore = () => {
                             <Icon icon={ArchiveBoxIcon} variant="light" color="pink" size="xl"></Icon>
                             <div className="truncate">
                                 <Title>Clothes</Title>
-                                <Metric>{_.sumBy(clothesMetrics, 'Count')}</Metric>
+                                <Metric>{lodashSumBy(clothesMetrics, 'Count')}</Metric>
                             </div>
                         </Flex>
                         <AreaChart
@@ -269,7 +271,7 @@ const ShowStore = () => {
 
                             <TabPanel className="mt-6">
                                 <Title>Edit store</Title>
-                                <Text>Didn't like something? Let's change that</Text>
+                                <Text>Did not like something? Time to change that</Text>
 
                                 {theIndex == 1 && <LazyEditStore />}
                             </TabPanel>
