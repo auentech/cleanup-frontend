@@ -66,7 +66,7 @@ const ShowOrder = () => {
                     <Title>{store?.data.name} store</Title>
                     <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">{store?.data.code}</Badge>
                 </Flex>
-                <Subtitle>{order?.data.customer?.name}'s order from {order?.data.customer?.profile?.address}</Subtitle>
+                <Subtitle>{order?.data.customer?.name}&lsquo;s order from {order?.data.customer?.profile?.address}</Subtitle>
 
             </div>
 
