@@ -4,12 +4,13 @@ import { OrderResponse, OrderStatusesResponse, StoreResponse } from "@/common/ty
 import AdminNavigation from "@/components/admin/admin-navigation"
 import Timeline from "@/components/timeline/timeline"
 import TimelineItem from "@/components/timeline/timelineItem"
-import { ArchiveBoxIcon, ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, ChartPieIcon, CurrencyRupeeIcon, PencilIcon, ReceiptPercentIcon, ReceiptRefundIcon } from "@heroicons/react/24/outline"
-import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, Metric, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
+import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, PencilIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
+import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import dayjs from "dayjs"
+import OrderKPICards from "@/components/store/order/order-kpi-cards"
 
 const ShowOrder = () => {
     const axios = useAxios()
@@ -72,42 +73,7 @@ const ShowOrder = () => {
             <AdminNavigation />
 
             <Grid numItemsSm={2} numItemsLg={4} className="gap-6 mt-6">
-                <Card decoration="top" decorationColor="blue">
-                    <Flex justifyContent="start" className="space-x-6">
-                        <Icon icon={CurrencyRupeeIcon} variant="light" color="blue" size="xl" />
-                        <div className="truncate">
-                            <Title>Cost</Title>
-                            <Metric>₹ {order?.data.cost}</Metric>
-                        </div>
-                    </Flex>
-                </Card>
-                <Card decoration="top" decorationColor="orange">
-                    <Flex justifyContent="start" className="space-x-6">
-                        <Icon icon={ArchiveBoxIcon} variant="light" color="orange" size="xl" />
-                        <div className="truncate">
-                            <Title>Clothes</Title>
-                            <Metric>{order?.data.count}</Metric>
-                        </div>
-                    </Flex>
-                </Card>
-                <Card decoration="top" decorationColor="fuchsia">
-                    <Flex justifyContent="start" className="space-x-6">
-                        <Icon icon={ReceiptRefundIcon} variant="light" color="fuchsia" size="xl" />
-                        <div className="truncate">
-                            <Title>Balance</Title>
-                            <Metric>₹ {order?.data.cost as number - 200}</Metric>
-                        </div>
-                    </Flex>
-                </Card>
-                <Card decoration="top" decorationColor="teal">
-                    <Flex justifyContent="start" className="space-x-6">
-                        <Icon icon={ChartPieIcon} variant="light" color="teal" size="xl" />
-                        <div className="truncate">
-                            <Title>Discount</Title>
-                            <Metric>₹ {order?.data.discount}</Metric>
-                        </div>
-                    </Flex>
-                </Card>
+                <OrderKPICards order={order} />
             </Grid>
 
             <div className="mt-6">
