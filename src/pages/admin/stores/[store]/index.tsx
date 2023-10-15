@@ -12,6 +12,7 @@ import lodashSortBy from 'lodash/sortBy'
 import dayjs from "dayjs"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import dynamic from "next/dynamic"
+import Link from "next/link"
 
 type SalesMetricType = {
     date: string,
@@ -261,7 +262,9 @@ const ShowStore = () => {
                                                 <TableCell>{statusBadger(order.status)}</TableCell>
                                                 <TableCell>₹ {order.cost}</TableCell>
                                                 <TableCell>
-                                                    <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
+                                                    <Link href={'/admin/stores/' + store?.data.id + '/orders/' + order.code}>
+                                                        <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
+                                                    </Link>
                                                 </TableCell>
                                             </TableRow>
                                         ))}

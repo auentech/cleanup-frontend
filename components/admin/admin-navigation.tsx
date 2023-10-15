@@ -9,7 +9,10 @@ const AdminNavigation = () => {
                 icon: BuildingStorefrontIcon,
                 text: 'Stores',
                 path: '/admin/stores',
-                subPath: ['/admin/stores/[store]']
+                subPath: [
+                    '/admin/stores/[store]',
+                    '/admin/stores/[store]/orders/[order]',
+                ]
             },
             { icon: BeakerIcon, text: 'Factories', path: '/admin/factories' },
             { icon: UserIcon, text: 'Workers', path: '/admin/workers' },

@@ -191,6 +191,66 @@ export type CreateWorkerErrors = {
     }
 }
 
+type OrderRemarks = {
+    brand?: string
+    color?: string
+    texture?: string
+}
+
+type OrderService = {
+    id: number
+    service: string
+    created_at: string
+    updated_at: string
+}
+
+type OrderGarment = {
+    id: number
+    name: string
+    price_min: number
+    price_max: number
+    created_at: string
+    updated_at: string
+}
+
+type OrderItem = {
+    id: number
+    cost: number
+    remarks: OrderRemarks
+    created_at: string
+    updated_at: string
+    service: OrderService
+    garment: OrderGarment
+}
+
+export type OrderResponse = {
+    data: {
+        id: number
+        code: string
+        count: number
+        cost: number
+        status: string
+        discount: number
+        customer?: UserData
+        items: OrderItem[]
+        created_at: string
+        updated_at: string
+    }
+}
+
+type OrderStatus = {
+    id: number
+    action: string
+    performer?: UserData
+    order_id: number
+    created_at: string
+    updated_at: string
+}
+
+export type OrderStatusesResponse = {
+    data: OrderStatus[]
+}
+
 export type BackendGeneralResponse = {
     type: string
     message: string
