@@ -1,16 +1,15 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
-import { OrdersResponse, StatusEnum, StoreResponse } from "@/common/types"
-import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, PencilIcon, ReceiptPercentIcon, TrashIcon, UserIcon } from "@heroicons/react/24/outline"
-import { Badge, Button, Card, Flex, Grid, Icon, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
+import { OrdersResponse, StoreResponse } from "@/common/types"
+import { ArrowLeftIcon, BuildingStorefrontIcon, PencilIcon, ReceiptPercentIcon, TrashIcon } from "@heroicons/react/24/outline"
+import { Badge, Button, Card, Flex, Grid, Icon, Tab, TabGroup, TabList, TabPanel, TabPanels, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
-import dayjs from "dayjs"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import dynamic from "next/dynamic"
-import Link from "next/link"
 import StoreKPICards from "@/components/store/store-kpi-cards"
+import StoreOrders from "@/components/store/store-orders"
 
 const LazyEditStore = dynamic(() => import('@/components/admin/edit-store'), {
     loading: () => (
@@ -60,20 +59,6 @@ const ShowStore = () => {
         })()
     }, [])
 
-    const statusBadger = (status: StatusEnum) => {
-        switch (status) {
-            case 'received':
-                return <Badge color="red" size="sm" icon={ExclamationTriangleIcon}>Unprocessed</Badge>
-            case 'in_process':
-                return <Badge color="blue" size="sm" icon={ArrowPathIcon}>In Factory</Badge>
-            case 'in_store':
-            case 'processed':
-                return <Badge color="yellow" size="sm" icon={BuildingStorefrontIcon}>In store</Badge>
-            case 'delivered':
-                return <Badge color="green" size="sm" icon={UserIcon}>Delivered</Badge>
-        }
-    }
-
     const StoreBody = () => (
         <div>
             <Flex justifyContent="between" className="space-x-6">
@@ -111,36 +96,9 @@ const ShowStore = () => {
                                 <Title>Orders</Title>
                                 <Text>All the orders in your store</Text>
 
-                                <Table className="mt-4">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableHeaderCell>Code</TableHeaderCell>
-                                            <TableHeaderCell>Customer</TableHeaderCell>
-                                            <TableHeaderCell>Order date</TableHeaderCell>
-                                            <TableHeaderCell>Garments</TableHeaderCell>
-                                            <TableHeaderCell>Status</TableHeaderCell>
-                                            <TableHeaderCell>Amount</TableHeaderCell>
-                                            <TableHeaderCell>Action</TableHeaderCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {orders?.data.map(order => (
-                                            <TableRow key={order.id}>
-                                                <TableCell>{order.code}</TableCell>
-                                                <TableCell>{order.customer?.name}</TableCell>
-                                                <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
-                                                <TableCell>{order.count}</TableCell>
-                                                <TableCell>{statusBadger(order.status)}</TableCell>
-                                                <TableCell>₹ {order.cost}</TableCell>
-                                                <TableCell>
-                                                    <Link href={'/admin/stores/' + store?.data.id + '/orders/' + order.code}>
-                                                        <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
-                                                    </Link>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                <div className="mt-4">
+                                    <StoreOrders store={store} orders={orders} />
+                                </div>
                             </TabPanel>
 
                             <TabPanel className="mt-6">
