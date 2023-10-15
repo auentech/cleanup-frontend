@@ -1,4 +1,4 @@
-import { Card, Col, Grid, Title, Text, TextInput, Flex, Button, Callout } from "@tremor/react"
+import { Card, Col, Grid, Title, Text, TextInput, Flex, Button, Callout, Divider } from "@tremor/react"
 import { EnvelopeIcon, LockClosedIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
@@ -98,7 +98,9 @@ const Login = () => {
                                 errorMessage={passwordError} />
                         </div>
 
-                        <Flex justifyContent="end" className="space-x-2 border-t pt-4 mt-8">
+                        <Divider />
+
+                        <Flex justifyContent="end" className="space-x-2 pt-4 mt-8">
                             <Button
                                 size="xs"
                                 loadingText="Logging you in..."
