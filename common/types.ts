@@ -32,7 +32,12 @@ export type LoginResponse = {
     data: UserData
     meta: {
         token: string
+        store_id?: number
     }
+}
+
+export type UserSearchResponse = {
+    data: UserData[]
 }
 
 export type Role = 'admin' | 'operator' | 'washer' | 'packer' | 'ironer'
@@ -197,14 +202,15 @@ type OrderRemarks = {
     texture?: string
 }
 
-type OrderService = {
+export type OrderService = {
     id: number
     service: string
     created_at: string
     updated_at: string
+    garments?: OrderGarment[]
 }
 
-type OrderGarment = {
+export type OrderGarment = {
     id: number
     name: string
     price_min: number
@@ -249,6 +255,10 @@ type OrderStatus = {
 
 export type OrderStatusesResponse = {
     data: OrderStatus[]
+}
+
+export type ServicesResponse = {
+    data: OrderService[]
 }
 
 export type BackendGeneralResponse = {

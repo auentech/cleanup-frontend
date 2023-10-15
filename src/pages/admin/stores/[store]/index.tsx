@@ -80,7 +80,7 @@ const ShowStore = () => {
 
             <div className="mt-6">
                 <Grid numItemsLg={3} className="gap-6">
-                    <StoreKPICards store={store} />
+                    {store != undefined && <StoreKPICards store={store} />}
                 </Grid>
             </div>
 

@@ -90,10 +90,7 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                         </Flex>
                         <AreaChart
                             className="mt-6 h-28"
-                            data={(() => {
-                                console.log('salesMetrics', salesMetrics)
-                                return salesMetrics as SalesMetricType[]
-                            })()}
+                            data={salesMetrics as SalesMetricType[]}
                             index="date"
                             categories={['Cost']}
                             colors={["blue"]}
