@@ -153,9 +153,6 @@ const ShowOrder = () => {
               <Button className="w-full" variant="secondary" icon={CameraIcon}>
                 Download QR Codes
               </Button>
-              <Button className="w-full" variant="secondary" icon={PencilIcon}>
-                Edit order
-              </Button>
               <Button className="w-full" variant="secondary" icon={ArrowPathIcon}>
                 Scan status
               </Button>
