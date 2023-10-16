@@ -1,7 +1,6 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { OrderResponse, OrderStatusesResponse, StoreResponse } from "@/common/types"
-import AdminNavigation from "@/components/admin/admin-navigation"
 import Timeline from "@/components/timeline/timeline"
 import TimelineItem from "@/components/timeline/timelineItem"
 import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, PencilIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
@@ -11,8 +10,9 @@ import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import dayjs from "dayjs"
 import OrderKPICards from "@/components/store/order/order-kpi-cards"
+import OperatorNavigation from "@/components/operator/operator-navigation"
 
-const ShowOrder = () => {
+const ShowOrderInfo = () => {
     const axios = useAxios()
     const router = useRouter()
 
@@ -70,7 +70,7 @@ const ShowOrder = () => {
 
             </div>
 
-            <AdminNavigation />
+            <OperatorNavigation />
 
             <Grid numItemsSm={2} numItemsLg={4} className="gap-6 mt-6">
                 <OrderKPICards order={order} />
@@ -199,4 +199,4 @@ const ShowOrder = () => {
     )
 }
 
-export default isUser(ShowOrder, ['admin'])
+export default isUser(ShowOrderInfo, ['operator'])
