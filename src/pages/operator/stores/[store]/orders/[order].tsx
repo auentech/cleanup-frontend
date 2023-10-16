@@ -11,6 +11,7 @@ import { useEffect, useState } from "react"
 import dayjs from "dayjs"
 import OrderKPICards from "@/components/store/order/order-kpi-cards"
 import OperatorNavigation from "@/components/operator/operator-navigation"
+import OrderRemarks from "@/components/store/order/remarks"
 
 const ShowOrderInfo = () => {
     const axios = useAxios()
@@ -90,7 +91,7 @@ const ShowOrderInfo = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {order?.data.items.map(item => (
+                            {order?.data.items?.map(item => (
                                 <TableRow key={item.id}>
                                     <TableCell>{item.service.service}</TableCell>
                                     <TableCell>{item.garment.name}</TableCell>
@@ -163,6 +164,10 @@ const ShowOrderInfo = () => {
                     </div>
                 </Card>
             </Grid>
+
+            <div className="mt-6">
+                <OrderRemarks order={order as OrderResponse} />
+            </div>
 
             <div className="mt-6">
                 <Card>
