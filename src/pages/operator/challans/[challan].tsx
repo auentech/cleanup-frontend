@@ -110,7 +110,7 @@ const ShowChallan = () => {
                                     <TableCell>{order.cost}</TableCell>
                                     <TableCell>
                                         <Link href={'/operator/stores/' + challan.data.store?.id + '/orders/' + order.code}>
-                                            <Button icon={ArchiveBoxIcon}>
+                                            <Button icon={ArchiveBoxIcon} variant="secondary">
                                                 Show order
                                             </Button>
                                         </Link>
