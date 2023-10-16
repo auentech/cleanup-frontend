@@ -4,13 +4,27 @@ import { DeliveryChallansResponse, LoginResponse } from "@/common/types"
 import OperatorNavigation from "@/components/operator/operator-navigation"
 import { BeakerIcon, BuildingStorefrontIcon, PlusCircleIcon, TruckIcon } from "@heroicons/react/24/outline"
 import { Badge, Button, Card, Flex, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
+import Waveform from "@uiball/loaders/dist/components/Waveform"
 import dayjs from "dayjs"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+
+const LazyCreateChallan = dynamic(() => import('@/components/store/create-challan'), {
+    loading: () => (
+        <Flex alignItems="center" justifyContent="center">
+            <Waveform
+                size={20}
+                color="#3b82f6"
+            />
+        </Flex>
+    )
+})
 
 const ShowChallans = () => {
     const axios = useAxios()
 
+    const [theIndex, setTheIndex] = useState<number>()
     const [challans, setChallans] = useState<DeliveryChallansResponse>()
 
     useEffect(() => {
@@ -39,7 +53,7 @@ const ShowChallans = () => {
                 <Card>
                     <Title>Delivery challans</Title>
                     <Text>All delivery challans for your store</Text>
-                    <TabGroup className="mt-4">
+                    <TabGroup className="mt-4" onIndexChange={setTheIndex}>
                         <TabList>
                             <Tab icon={TruckIcon}>List challans</Tab>
                             <Tab icon={PlusCircleIcon}>Create challans</Tab>
@@ -58,7 +72,7 @@ const ShowChallans = () => {
                                     </TableHead>
                                     <TableBody>
                                         {challans?.data.map(challan => (
-                                            <TableRow>
+                                            <TableRow key={challan.id}>
                                                 <TableCell>{challan.code}</TableCell>
                                                 <TableCell>
                                                     <Flex justifyContent="start" className="gap-2">
@@ -85,7 +99,7 @@ const ShowChallans = () => {
                             </TabPanel>
 
                             <TabPanel>
-
+                                {theIndex == 1 && <LazyCreateChallan />}
                             </TabPanel>
                         </TabPanels>
                     </TabGroup>
