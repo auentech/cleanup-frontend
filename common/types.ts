@@ -91,11 +91,13 @@ type Order = {
     code: string
     count: number
     cost: number
+    remarks?: string
     discount: number
     status: StatusEnum
     customer?: UserData
-    created_at: Date
-    updated_at: Date
+    items?: OrderItem[]
+    created_at: string
+    updated_at: string
 }
 
 export type StoresResponse = {
@@ -196,12 +198,6 @@ export type CreateWorkerErrors = {
     }
 }
 
-type OrderRemarks = {
-    brand?: string
-    color?: string
-    texture?: string
-}
-
 export type OrderService = {
     id: number
     service: string
@@ -222,7 +218,6 @@ export type OrderGarment = {
 type OrderItem = {
     id: number
     cost: number
-    remarks: OrderRemarks
     created_at: string
     updated_at: string
     service: OrderService
@@ -230,18 +225,7 @@ type OrderItem = {
 }
 
 export type OrderResponse = {
-    data: {
-        id: number
-        code: string
-        count: number
-        cost: number
-        status: string
-        discount: number
-        customer?: UserData
-        items: OrderItem[]
-        created_at: string
-        updated_at: string
-    }
+    data: Order
 }
 
 type OrderStatus = {
@@ -262,6 +246,6 @@ export type ServicesResponse = {
 }
 
 export type BackendGeneralResponse = {
-    type: string
+    type: 'SUCCESS' | 'ERROR' | 'AUTH_ERROR'
     message: string
 }
