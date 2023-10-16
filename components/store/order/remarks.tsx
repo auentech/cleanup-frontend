@@ -13,7 +13,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
     const axios = useAxios()
     const router = useRouter()
 
-    const storeID = router.query.store;
+    const storeID = router.query.store
 
     const [remarks, setRemarks] = useState<string>(order.data.remarks || '')
     const [showForm, setShowForm] = useState<boolean>(false)
