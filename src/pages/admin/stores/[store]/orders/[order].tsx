@@ -11,6 +11,7 @@ import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import dayjs from "dayjs"
 import OrderKPICards from "@/components/store/order/order-kpi-cards"
+import OrderRemarks from "@/components/store/order/remarks"
 
 const ShowOrder = () => {
   const axios = useAxios()
@@ -160,6 +161,10 @@ const ShowOrder = () => {
           </div>
         </Card>
       </Grid>
+
+      <div className="mt-6">
+        <OrderRemarks order={order as OrderResponse} />
+      </div>
 
       <div className="mt-6">
         <Card>
