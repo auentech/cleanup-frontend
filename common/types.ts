@@ -245,6 +245,25 @@ export type ServicesResponse = {
     data: OrderService[]
 }
 
+export type DeliveryChallan = {
+    factory?: Factory
+    code: string
+    created_at: string
+    updated_at: string
+    id: number
+    store?: Store
+    orders?: Order[]
+}
+
+export type DeliveryChallansResponse = {
+    data: DeliveryChallan[]
+    meta: Meta
+}
+
+export type DeliveryChallanResponse = {
+    data: DeliveryChallan
+}
+
 export type BackendGeneralResponse = {
     type: 'SUCCESS' | 'ERROR' | 'AUTH_ERROR'
     message: string
