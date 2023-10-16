@@ -2,6 +2,7 @@ import useAxios from "@/common/axios"
 import { OrderGarment, OrderService, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
 import { ArchiveBoxArrowDownIcon, CheckIcon, PlusCircleIcon, ShoppingCartIcon, UserIcon, UserPlusIcon } from "@heroicons/react/24/outline"
 import { Button, Callout, Col, Divider, Flex, Grid, List, ListItem, NumberInput, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
+import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
 type LocalOrders = {
@@ -16,6 +17,7 @@ type CreateOrderType = {
 
 const CreateOrder = ({ store }: CreateOrderType) => {
     const axios = useAxios()
+    const router = useRouter()
 
     const [showCustomerForm, setShowCustomerForm] = useState(false)
     const [customers, setCustomers] = useState<UserSearchResponse>()
@@ -157,26 +159,26 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     pincode: customerpincode as number,
                 }
 
-                const orderResponse = await axios.post('/stores/' + store.data.id + '/orders', {
+                await axios.post('/stores/' + store.data.id + '/orders', {
                     cost,
                     orders,
                     discount,
                     new_customer,
                 })
 
-                console.log(orderResponse.data)
+                router.reload()
 
                 return
             }
 
-            const orderResponse = await axios.post('/stores/' + store.data.id + '/orders', {
+            await axios.post('/stores/' + store.data.id + '/orders', {
                 cost,
                 orders,
                 discount,
                 customer_id: selectedCustomer?.id,
             })
 
-            console.log(orderResponse.data)
+            router.reload()
         } catch {
 
         } finally {
@@ -350,7 +352,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                 </ListItem>
                                 <ListItem>
                                     <Title>First installment</Title>
-                                    <Title>₹ {(cost - discount) / 2}</Title>
+                                    <Title>₹ {((cost - discount) / 2).toFixed(2)}</Title>
                                 </ListItem>
                             </>
                         )}
