@@ -48,7 +48,10 @@ const ShowStore = () => {
 
             const ordersResponse = await axios.get<OrdersResponse>('/stores/' + router.query.store + '/orders', {
                 params: {
-                    include: ['customer']
+                    include: ['customer'],
+                    filter: {
+                        originals: 'yes'
+                    }
                 },
             })
 

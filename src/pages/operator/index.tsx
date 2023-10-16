@@ -51,7 +51,10 @@ const OperatorIndex = () => {
 
             const ordersResponse = await axios.get<OrdersResponse>('/stores/' + storeID + '/orders', {
                 params: {
-                    include: ['customer']
+                    include: ['customer'],
+                    filter: {
+                        originals: 'yes'
+                    }
                 },
             })
 
