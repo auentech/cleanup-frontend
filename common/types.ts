@@ -96,6 +96,7 @@ type Order = {
     status: StatusEnum
     customer?: UserData
     items?: OrderItem[]
+    rewash?: Order
     created_at: string
     updated_at: string
 }
