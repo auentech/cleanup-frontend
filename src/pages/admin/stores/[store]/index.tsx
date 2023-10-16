@@ -97,7 +97,7 @@ const ShowStore = () => {
                                 <Text>All the orders in your store</Text>
 
                                 <div className="mt-4">
-                                    <StoreOrders store={store} orders={orders} />
+                                    <StoreOrders store={store} orders={orders} role="admin" />
                                 </div>
                             </TabPanel>
 

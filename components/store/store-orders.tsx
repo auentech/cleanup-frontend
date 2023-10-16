@@ -7,6 +7,7 @@ import Link from "next/link"
 type StoreOrdersType = {
     orders: OrdersResponse | undefined
     store: StoreResponse | undefined
+    role?: 'admin' | 'operator'
 }
 
 const statusBadger = (status: StatusEnum) => {
@@ -23,7 +24,7 @@ const statusBadger = (status: StatusEnum) => {
     }
 }
 
-const StoreOrders = ({ orders, store }: StoreOrdersType) => {
+const StoreOrders = ({ orders, store, role }: StoreOrdersType) => {
     return (
         <Table>
             <TableHead>
@@ -47,7 +48,7 @@ const StoreOrders = ({ orders, store }: StoreOrdersType) => {
                         <TableCell>{statusBadger(order.status)}</TableCell>
                         <TableCell>₹ {order.cost}</TableCell>
                         <TableCell>
-                            <Link href={'/admin/stores/' + store?.data.id + '/orders/' + order.code}>
+                            <Link href={'/' + role + '/stores/' + store?.data.id + '/orders/' + order.code}>
                                 <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
                             </Link>
                         </TableCell>

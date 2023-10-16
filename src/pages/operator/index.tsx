@@ -90,7 +90,7 @@ const OperatorIndex = () => {
                     </TabList>
                     <TabPanels>
                         <TabPanel>
-                            <StoreOrders store={store} orders={orders} />
+                            <StoreOrders store={store} orders={orders} role="operator" />
                         </TabPanel>
                         <TabPanel>
                             {index == 1 && <LazyCreateOrder store={store as StoreResponse} />}
