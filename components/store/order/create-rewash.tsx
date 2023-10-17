@@ -106,7 +106,7 @@ const CreateRewash = ({ user }: CreateRewashType) => {
                             </TableHead>
                             <TableBody>
                                 {selectedOrder.items?.map(item => (
-                                    <TableRow>
+                                    <TableRow key={item.id}>
                                         <TableCell>{item.service?.service}</TableCell>
                                         <TableCell>
                                             <Flex justifyContent="center">
