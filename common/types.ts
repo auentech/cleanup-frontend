@@ -160,6 +160,7 @@ export type Factory = {
     name: string
     created_at: string
     updated_at: string
+    challans?: DeliveryChallan[]
     profile?: Profile
 }
 
@@ -167,6 +168,10 @@ export type FactoriesResponse = {
     data: Factory[]
     links: Links
     meta: Meta
+}
+
+export type FactoryResponse = {
+    data: Factory
 }
 
 export type CreateFactoryError = {

@@ -14,7 +14,15 @@ const AdminNavigation = () => {
                     '/admin/stores/[store]/orders/[order]',
                 ]
             },
-            { icon: BeakerIcon, text: 'Factories', path: '/admin/factories' },
+            {
+                icon: BeakerIcon,
+                text: 'Factories',
+                path: '/admin/factories',
+                subPath: [
+                    '/admin/factories/[factory]',
+                    '/admin/stores/[store]/challans/[challan]'
+                ]
+            },
             { icon: UserIcon, text: 'Workers', path: '/admin/workers' },
             { icon: NewspaperIcon, text: 'Reports', path: '/admin/reports' },
         ]} />
