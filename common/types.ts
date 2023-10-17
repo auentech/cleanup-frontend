@@ -86,7 +86,7 @@ type Store = {
 
 export type StatusEnum = 'received' | 'in_process' | 'processed' | 'in_store' | 'delivered'
 
-type Order = {
+export type Order = {
     id: number
     code: string
     count: number
@@ -97,6 +97,7 @@ type Order = {
     customer?: UserData
     items?: OrderItem[]
     rewash?: Order
+    rewash_parent_id: number
     created_at: string
     updated_at: string
 }
@@ -216,7 +217,7 @@ export type OrderGarment = {
     updated_at: string
 }
 
-type OrderItem = {
+export type OrderItem = {
     id: number
     cost: number
     created_at: string

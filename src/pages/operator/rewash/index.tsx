@@ -3,14 +3,28 @@ import isUser from "@/common/middlewares/isUser"
 import { LoginResponse, OrdersResponse } from "@/common/types"
 import OperatorNavigation from "@/components/operator/operator-navigation"
 import { ReceiptPercentIcon } from "@heroicons/react/24/outline"
-import { Button, Card, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
+import { Button, Card, Flex, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
+import { Waveform } from "@uiball/loaders"
 import dayjs from "dayjs"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+
+const LazyCreateRewash = dynamic(() => import('@/components/store/order/create-rewash'), {
+    loading: () => (
+        <Flex alignItems="center" justifyContent="center">
+            <Waveform
+                size={20}
+                color="#3b82f6"
+            />
+        </Flex>
+    )
+})
 
 const ListRewash = () => {
     const axios = useAxios()
 
+    const [index, setIndex] = useState<number>(0)
     const [user, setUser] = useState<LoginResponse>()
     const [orders, setOrders] = useState<OrdersResponse>()
 
@@ -47,7 +61,7 @@ const ListRewash = () => {
                 <Card>
                     <Title>Rewashes</Title>
                     <Text>List of all rewashes</Text>
-                    <TabGroup className="mt-4">
+                    <TabGroup className="mt-4" onIndexChange={setIndex}>
                         <TabList>
                             <Tab>List rewashes</Tab>
                             <Tab>Create rewash</Tab>
@@ -90,7 +104,9 @@ const ListRewash = () => {
                                     </TableBody>
                                 </Table>
                             </TabPanel>
-                            <TabPanel></TabPanel>
+                            <TabPanel>
+                                {index == 1 && <LazyCreateRewash user={user as LoginResponse} />}
+                            </TabPanel>
                         </TabPanels>
                     </TabGroup>
                 </Card>
