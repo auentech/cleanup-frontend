@@ -74,11 +74,12 @@ type StoreOperator = {
     updated_at: string
 }
 
-type Store = {
+export type Store = {
     id: number
     code: string
     name: string
     profile?: Profile
+    orders: Order[]
     operators?: StoreOperator[]
     created_at: string
     updated_at: string
@@ -96,6 +97,7 @@ export type Order = {
     status: StatusEnum
     customer?: UserData
     items?: OrderItem[]
+    store?: Store
     rewash?: Order
     paid: number
     rewash_parent_id: number
@@ -265,6 +267,19 @@ export type DeliveryChallansResponse = {
 
 export type DeliveryChallanResponse = {
     data: DeliveryChallan
+}
+
+export type AdminDashboardResponse = {
+    data: Order[]
+    metrics: {
+        [date: string]: {
+            id: number
+            cost: number
+            paid: number
+            discount: number
+            created_at: string
+        }[]
+    }
 }
 
 export type BackendGeneralResponse = {
