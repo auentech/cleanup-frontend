@@ -89,7 +89,8 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                             </div>
                         </Flex>
                         <AreaChart
-                            className="mt-6 h-28"
+                            className="mt-6"
+                            style={{ height: 150 }}
                             data={salesMetrics as SalesMetricType[]}
                             index="date"
                             categories={['Cost']}
@@ -110,7 +111,8 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                             </div>
                         </Flex>
                         <AreaChart
-                            className="mt-6 h-28"
+                            className="mt-6"
+                            style={{ height: 150 }}
                             data={ordersMetrics as OrdersMetricType[]}
                             index="date"
                             categories={['Orders']}
@@ -131,7 +133,8 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                             </div>
                         </Flex>
                         <AreaChart
-                            className="mt-6 h-28"
+                            className="mt-6"
+                            style={{ height: 150 }}
                             data={clothesMetrics as ClothsMetricType[]}
                             index="date"
                             categories={['Count']}
