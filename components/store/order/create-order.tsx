@@ -24,6 +24,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [customerSearch, setCustomerSearch] = useState<string>()
     const [selectedCustomer, setSelectedCustomer] = useState<UserData>()
 
+    const [installment, setInstallment] = useState<'full' | 'half'>()
     const [serviceAvailed, setServiceAvailed] = useState<number>(1)
     const [services, setServices] = useState<ServicesResponse>()
 
@@ -163,6 +164,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     cost,
                     orders,
                     discount,
+                    installment,
                     new_customer,
                 })
 
@@ -175,6 +177,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                 cost,
                 orders,
                 discount,
+                installment,
                 customer_id: selectedCustomer?.id,
             })
 
@@ -351,9 +354,32 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                     <Title>₹ {cost - discount}</Title>
                                 </ListItem>
                                 <ListItem>
-                                    <Title>First installment</Title>
-                                    <Title>₹ {((cost - discount) / 2).toFixed(2)}</Title>
+                                    <Flex justifyContent="between" className="gap-6">
+                                        <Title>First installment</Title>
+                                        <div>
+                                            <Button
+                                                color={installment == 'half' ? 'blue' : 'gray'}
+                                                onClick={e => setInstallment('half')}
+                                                variant="secondary"
+                                                className="ml-2"
+                                            >Half</Button>
+                                            <Button
+                                                color={installment == 'full' ? 'blue' : 'gray'}
+                                                onClick={e => setInstallment('full')}
+                                                variant="secondary"
+                                                className="ml-2"
+                                            >Full</Button>
+                                        </div>
+                                    </Flex>
                                 </ListItem>
+                                {installment != undefined && (
+                                    <ListItem>
+                                        <Title>To pay now</Title>
+                                        <Title>
+                                            ₹ {installment == 'full' ? (cost - discount) : ((cost - discount) / 2)}
+                                        </Title>
+                                    </ListItem>
+                                )}
                             </>
                         )}
                     </List>
@@ -366,6 +392,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             <Button
                                 icon={ShoppingCartIcon}
                                 loading={loading}
+                                disabled={installment == undefined}
                                 loadingText="Creating order..."
                                 onClick={handleOrderCreate}
                             >Create order</Button>
