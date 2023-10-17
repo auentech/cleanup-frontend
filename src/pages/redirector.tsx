@@ -18,6 +18,18 @@ const Redirector = () => {
         if (user.role == 'operator') {
             router.push('/operator')
         }
+
+        if (user.role == 'washer') {
+            router.push('/washer')
+        }
+
+        if (user.role == 'packer') {
+            router.push('/packer')
+        }
+
+        if (user.role == 'ironer') {
+            router.push('/ironer')
+        }
     }, [user.role])
 
     return <h1>Redirecting you...</h1>
