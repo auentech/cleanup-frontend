@@ -32,7 +32,7 @@ const OrderKPICards = ({ order }: OrderKPICardsType) => {
                     <Icon icon={ReceiptRefundIcon} variant="light" color="fuchsia" size="xl" />
                     <div className="truncate">
                         <Title>Balance</Title>
-                        <Metric>₹ {order?.data.cost as number - 200}</Metric>
+                        <Metric>₹ {(order?.data.cost as number) - (order?.data.paid as number)}</Metric>
                     </div>
                 </Flex>
             </Card>

@@ -97,6 +97,7 @@ export type Order = {
     customer?: UserData
     items?: OrderItem[]
     rewash?: Order
+    paid: number
     rewash_parent_id: number
     created_at: string
     updated_at: string
