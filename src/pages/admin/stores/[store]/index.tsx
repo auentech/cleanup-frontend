@@ -82,7 +82,7 @@ const ShowStore = () => {
             <AdminNavigation />
 
             <div className="mt-6">
-                <Grid numItemsLg={3} className="gap-6">
+                <Grid numItemsLg={4} numItemsMd={2} className="gap-6">
                     {store != undefined && <StoreKPICards store={store} />}
                 </Grid>
             </div>

@@ -1,5 +1,5 @@
 import { StoreResponse } from "@/common/types"
-import { ReceiptPercentIcon, ShoppingCartIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline"
+import { ReceiptPercentIcon, ShoppingCartIcon, ArchiveBoxIcon, CurrencyRupeeIcon } from "@heroicons/react/24/outline"
 import { Card, Flex, Icon, Title, Metric, AreaChart } from "@tremor/react"
 import lodashSumBy from "lodash/sumBy"
 import lodashSortBy from "lodash/sortBy"
@@ -30,6 +30,7 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
 
     const [salesMetrics, setSalesMetrics] = useState<SalesMetricType[]>()
     const [ordersMetrics, setOrdersMetrics] = useState<OrdersMetricType[]>()
+    const [balanceMetrics, setBalanceMetrics] = useState<SalesMetricType[]>()
     const [clothesMetrics, setClothesMetrics] = useState<ClothsMetricType[]>()
 
     useEffect(() => {
@@ -69,9 +70,25 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
             setClothesMetrics(lodashSortBy(data, 'date'))
         }
 
+        const calculateBalanceMetrics = () => {
+            const theOrdersMetrics = store?.metrics?.ordersSevenDays
+            const data: SalesMetricType[] = lodashMap(theOrdersMetrics, (theOrders, date) => {
+                const totalCost = lodashSumBy(theOrders, 'cost')
+                const totalPaid = lodashSumBy(theOrders, 'paid')
+
+                return {
+                    date,
+                    Cost: totalCost - totalPaid
+                }
+            })
+
+            setBalanceMetrics(data)
+        }
+
         calculateSalesMetrics()
         calculateOrdersMetrics()
         calculateClothesMetrics()
+        calculateBalanceMetrics()
 
         setLoading(false)
     }, [store])
@@ -139,6 +156,28 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                             index="date"
                             categories={['Count']}
                             colors={["pink"]}
+                            showXAxis={true}
+                            showGridLines={false}
+                            startEndOnly={true}
+                            showYAxis={false}
+                            showLegend={false}
+                        />
+                    </Card>
+                    <Card decoration="top" decorationColor="lime">
+                        <Flex justifyContent="start" className="space-x-6">
+                            <Icon icon={CurrencyRupeeIcon} variant="light" color="lime" size="xl"></Icon>
+                            <div className="truncate">
+                                <Title>Balance</Title>
+                                <Metric>₹ {lodashSumBy(balanceMetrics, 'Cost')}</Metric>
+                            </div>
+                        </Flex>
+                        <AreaChart
+                            className="mt-6"
+                            style={{ height: 150 }}
+                            data={balanceMetrics as SalesMetricType[]}
+                            index="date"
+                            categories={['Cost']}
+                            colors={["lime"]}
                             showXAxis={true}
                             showGridLines={false}
                             startEndOnly={true}

@@ -78,7 +78,7 @@ const OperatorIndex = () => {
             <OperatorNavigation />
 
             <div className="mt-6">
-                <Grid numItemsMd={3} className="gap-6">
+                <Grid numItemsLg={4} numItemsMd={2} className="gap-6">
                     <StoreKPICards store={store} />
                 </Grid>
             </div>
