@@ -136,14 +136,19 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
     useEffect(() => {
         const speedInt: number = parseInt(speed)
+        console.log('speed changed to', speedInt)
 
         if (speedInt == 1) {
+            console.log('speed 1', ogCost, ogCost + ogCost)
             setCost(ogCost + ogCost)
         } else if (speedInt == 2) {
+            console.log('speed 2', ogCost, (ogCost * (50 / 100)) + ogCost)
             setCost((ogCost * (50 / 100)) + ogCost)
         } else if (speedInt == 3) {
+            console.log('speed 3', (ogCost * (25 / 100)) + ogCost)
             setCost((ogCost * (25 / 100)) + ogCost)
         } else {
+            console.log('speed 4', ogCost, ogCost)
             setCost(ogCost)
         }
     }, [speed])
