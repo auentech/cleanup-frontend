@@ -61,7 +61,7 @@ const AdminReports = () => {
 
     const handleExcelExport = async () => {
         setExcelExportLoading(true)
-        const response = await axios.get('reports/exports/stores', {
+        const response = await axios.post('reports/exports/stores', {
             responseType: 'blob',
             params: {
                 store_id: selectedStore?.id,
