@@ -69,9 +69,8 @@ const CreateStore = () => {
             })
 
             setSuccess(response.data)
-            setInterval(() => {
-                router.push('/admin/stores')
-            }, 3000)
+            alert(response.data.message)
+            router.reload()
         } catch (e) {
             if (Axios.isAxiosError(e)) {
                 const error = e as AxiosError

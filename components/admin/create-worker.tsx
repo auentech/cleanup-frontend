@@ -4,9 +4,11 @@ import { GlobeAsiaAustraliaIcon, ArrowPathIcon, CheckCircleIcon } from "@heroico
 import { Button, Callout, Divider, Flex, NumberInput, SearchSelect, SearchSelectItem, Select, SelectItem, Text, TextInput } from "@tremor/react"
 import { useEffect, useState } from "react"
 import Axios, { AxiosError } from 'axios'
+import { useRouter } from "next/router"
 
 const CreateWorker = () => {
     const axios = useAxios()
+    const router = useRouter()
 
     const [loading, setLoading] = useState<boolean>(false)
     const [success, setSuccess] = useState<BackendGeneralResponse>()
@@ -66,6 +68,8 @@ const CreateWorker = () => {
             })
 
             setSuccess(response.data)
+            alert(response.data)
+            router.reload()
         } catch (e) {
             if (Axios.isAxiosError(e)) {
                 const error = e as AxiosError
