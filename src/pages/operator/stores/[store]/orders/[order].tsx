@@ -20,6 +20,9 @@ const ShowOrderInfo = () => {
     const storeID = router.query.store
     const orderID = router.query.order
 
+    const [invoiceLoading, setInvoiceLoading] = useState<boolean>(false)
+    const [qrLoading, setQrLoading] = useState<boolean>(false)
+
     const [loading, setLoading] = useState<boolean>(true)
     const [order, setOrder] = useState<OrderResponse>()
     const [store, setStore] = useState<StoreResponse>()
@@ -58,6 +61,38 @@ const ShowOrderInfo = () => {
 
         getOrderDetails()
     }, [])
+
+    const handleInvoiceDownload = async () => {
+        setInvoiceLoading(true)
+        const response = await axios.get('stores/' + storeID + '/orders/' + orderID + '/invoice', {
+            responseType: 'blob'
+        })
+
+        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement('a')
+        link.href = blobURL
+        link.download = 'Invoice-' + orderID + '.pdf'
+        link.click()
+        window.URL.revokeObjectURL(blobURL)
+
+        setInvoiceLoading(false)
+    }
+
+    const handleQRDownload = async () => {
+        setQrLoading(true)
+        const response = await axios.get('stores/' + storeID + '/orders/' + orderID + '/qr', {
+            responseType: 'blob'
+        })
+
+        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement('a')
+        link.href = blobURL
+        link.download = 'QR-' + orderID + '.pdf'
+        link.click()
+        window.URL.revokeObjectURL(blobURL)
+
+        setQrLoading(false)
+    }
 
     const OrderDisplay = () => (
         <>
@@ -148,10 +183,24 @@ const ShowOrderInfo = () => {
 
                     <div className="mt-4">
                         <Flex flexDirection="col" className="gap-y-6">
-                            <Button className="w-full" variant="secondary" icon={ReceiptPercentIcon}>
+                            <Button
+                                className="w-full"
+                                variant="secondary"
+                                icon={ReceiptPercentIcon}
+                                onClick={handleInvoiceDownload}
+                                loading={invoiceLoading}
+                                loadingText="Downloading Invoice..."
+                            >
                                 Download Invoice
                             </Button>
-                            <Button className="w-full" variant="secondary" icon={CameraIcon}>
+                            <Button
+                                className="w-full"
+                                variant="secondary"
+                                icon={CameraIcon}
+                                onClick={handleQRDownload}
+                                loading={qrLoading}
+                                loadingText="Downloading QR Codes..."
+                            >
                                 Download QR Codes
                             </Button>
                             <Button className="w-full" variant="secondary" icon={ArrowPathIcon}>
