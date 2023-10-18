@@ -2,7 +2,7 @@ import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { Store, StoresResponse } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
-import { ArchiveBoxArrowDownIcon, ArchiveBoxIcon, BeakerIcon, BuildingStorefrontIcon, CheckIcon, ClockIcon, CurrencyRupeeIcon, GiftIcon, ReceiptRefundIcon, TicketIcon } from "@heroicons/react/24/outline"
+import { ArchiveBoxArrowDownIcon, ArchiveBoxIcon, ArrowDownTrayIcon, BeakerIcon, BuildingStorefrontIcon, CheckIcon, ClockIcon, CurrencyRupeeIcon, GiftIcon, ReceiptRefundIcon, TicketIcon } from "@heroicons/react/24/outline"
 import { Button, Callout, Card, Col, Flex, Grid, Icon, List, ListItem, Metric, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
 import _ from "lodash"
 import { useEffect, useState } from "react"
@@ -23,6 +23,8 @@ type StoreReportsResponse = {
 
 const AdminReports = () => {
     const axios = useAxios()
+
+    const [excelExportLoading, setExcelExportLoading] = useState<boolean>(false)
 
     const [stores, setStores] = useState<Store[]>()
     const [search, setSearch] = useState<string>('')
@@ -57,9 +59,24 @@ const AdminReports = () => {
         initData()
     }, [selectedStore, selectedRange])
 
-    useEffect(() => {
-        console.log(metrics?.numbers)
-    }, [metrics])
+    const handleExcelExport = async () => {
+        setExcelExportLoading(true)
+        const response = await axios.get('reports/exports/stores', {
+            responseType: 'blob',
+            params: {
+                store_id: selectedStore?.id,
+                date: selectedRange
+            }
+        })
+
+        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement('a')
+        link.href = blobURL
+        link.download = 'store-reports.xlsx'
+        link.click()
+        window.URL.revokeObjectURL(blobURL)
+        setExcelExportLoading(false)
+    }
 
     return (
         <div className="p-12">
@@ -204,6 +221,21 @@ const AdminReports = () => {
                             </Card>
                         </Grid>
                     </div>
+
+                    {selectedRange != '1' && (
+                        <Card className="mt-4">
+                            <Button
+                                className="w-full"
+                                variant="secondary"
+                                icon={ArrowDownTrayIcon}
+                                onClick={handleExcelExport}
+                                loading={excelExportLoading}
+                                loadingText="Generating excel report..."
+                            >
+                                Download report
+                            </Button>
+                        </Card>
+                    )}
                 </>
             )}
         </div>
