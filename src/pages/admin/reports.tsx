@@ -2,8 +2,8 @@ import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { Store, StoresResponse } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
-import { ArchiveBoxArrowDownIcon, ArchiveBoxIcon, ArrowDownTrayIcon, BeakerIcon, BuildingStorefrontIcon, CheckIcon, ClockIcon, CurrencyRupeeIcon, GiftIcon, ReceiptRefundIcon, TicketIcon } from "@heroicons/react/24/outline"
-import { Button, Callout, Card, Col, Flex, Grid, Icon, List, ListItem, Metric, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
+import { ArchiveBoxArrowDownIcon, ArchiveBoxIcon, ArrowDownTrayIcon, ArrowPathIcon, BeakerIcon, BuildingStorefrontIcon, CheckIcon, ClockIcon, CurrencyRupeeIcon, GiftIcon, ReceiptRefundIcon, TicketIcon } from "@heroicons/react/24/outline"
+import { Accordion, AccordionBody, AccordionHeader, AccordionList, Button, Callout, Card, Col, Flex, Grid, Icon, List, ListItem, Metric, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
 import _ from "lodash"
 import { useEffect, useState } from "react"
 
@@ -12,13 +12,20 @@ type StoreCount = {
     status_count: number
 }
 
+type FactoryCount = {
+    action: 'washed' | 'ironed' | 'packed'
+    action_count: number
+}
+
 type StoreReportsResponse = {
     count: StoreCount[]
+    status: FactoryCount[]
     numbers: {
         total_cost: string
         total_paid: string
         total_discount: string
     }[]
+    rewash: number
 }
 
 const AdminReports = () => {
@@ -54,6 +61,7 @@ const AdminReports = () => {
             })
 
             setMetrics(response.data)
+            console.log(response.data)
         }
 
         initData()
@@ -134,12 +142,12 @@ const AdminReports = () => {
                 <>
                     <div className="mt-6">
                         <Title>Order details</Title>
-                        <Grid numItemsLg={4} className="gap-6 mt-4">
+                        <Grid numItemsLg={5} numItemsMd={3} className="gap-6 mt-4">
                             <Card decoration="top" decorationColor="blue">
                                 <Flex justifyContent="start" className="space-x-6">
                                     <Icon icon={ClockIcon} variant="light" color="blue" size="xl" />
                                     <div className="truncate">
-                                        <Title>Unprocessed orders</Title>
+                                        <Title>In Store</Title>
                                         <Metric>{_.filter(metrics?.count, count => count.status == 'received')?.[0]?.status_count || 0}</Metric>
                                     </div>
                                 </Flex>
@@ -149,7 +157,7 @@ const AdminReports = () => {
                                 <Flex justifyContent="start" className="space-x-6">
                                     <Icon icon={BuildingStorefrontIcon} variant="light" color="orange" size="xl" />
                                     <div className="truncate">
-                                        <Title>In Store orders</Title>
+                                        <Title>Undelivered</Title>
                                         <Metric>{_.filter(metrics?.count, count => count.status == 'processed')?.[0]?.status_count || 0}</Metric>
                                     </div>
                                 </Flex>
@@ -159,7 +167,7 @@ const AdminReports = () => {
                                 <Flex justifyContent="start" className="space-x-6">
                                     <Icon icon={BeakerIcon} variant="light" color="fuchsia" size="xl" />
                                     <div className="truncate">
-                                        <Title>In Factory orders</Title>
+                                        <Title>In Factory</Title>
                                         <Metric>{_.filter(metrics?.count, count => count.status == 'in_process')?.[0]?.status_count || 0}</Metric>
                                     </div>
                                 </Flex>
@@ -169,8 +177,18 @@ const AdminReports = () => {
                                 <Flex justifyContent="start" className="space-x-6">
                                     <Icon icon={ArchiveBoxArrowDownIcon} variant="light" color="teal" size="xl" />
                                     <div className="truncate">
-                                        <Title>Delivered orders</Title>
+                                        <Title>Delivered</Title>
                                         <Metric>{_.filter(metrics?.count, count => count.status == 'delivered')?.[0]?.status_count || 0}</Metric>
+                                    </div>
+                                </Flex>
+                            </Card>
+
+                            <Card decoration="top" decorationColor="indigo">
+                                <Flex justifyContent="start" className="space-x-6">
+                                    <Icon icon={ReceiptRefundIcon} variant="light" color="indigo" size="xl" />
+                                    <div className="truncate">
+                                        <Title>Rewashes</Title>
+                                        <Metric>{metrics.rewash}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -179,12 +197,12 @@ const AdminReports = () => {
 
                     <div className="mt-6">
                         <Title>Order totals</Title>
-                        <Grid numItemsLg={4} className="gap-6 mt-4">
+                        <Grid numItemsLg={5} numItemsMd={3} className="gap-6 mt-4">
                             <Card decoration="top" decorationColor="blue">
                                 <Flex justifyContent="start" className="space-x-6">
                                     <Icon icon={ArchiveBoxIcon} variant="light" color="blue" size="xl" />
                                     <div className="truncate">
-                                        <Title>Total orders</Title>
+                                        <Title>Orders</Title>
                                         <Metric>{_.sumBy(metrics.count, 'status_count')}</Metric>
                                     </div>
                                 </Flex>
@@ -194,7 +212,7 @@ const AdminReports = () => {
                                 <Flex justifyContent="start" className="space-x-6">
                                     <Icon icon={CurrencyRupeeIcon} variant="light" color="orange" size="xl" />
                                     <div className="truncate">
-                                        <Title>Total billing</Title>
+                                        <Title>Billing</Title>
                                         <Metric>₹ {metrics.numbers[0].total_cost || 0}</Metric>
                                     </div>
                                 </Flex>
@@ -204,7 +222,7 @@ const AdminReports = () => {
                                 <Flex justifyContent="start" className="space-x-6">
                                     <Icon icon={TicketIcon} variant="light" color="fuchsia" size="xl" />
                                     <div className="truncate">
-                                        <Title>Total collected</Title>
+                                        <Title>Collected</Title>
                                         <Metric>₹ {metrics.numbers[0].total_paid || 0}</Metric>
                                     </div>
                                 </Flex>
@@ -214,12 +232,67 @@ const AdminReports = () => {
                                 <Flex justifyContent="start" className="space-x-6">
                                     <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
                                     <div className="truncate">
-                                        <Title>Total discount</Title>
+                                        <Title>Discount</Title>
                                         <Metric>₹ {metrics.numbers[0].total_discount || 0}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
+
+                            <Card decoration="top" decorationColor="indigo">
+                                <Flex justifyContent="start" className="space-x-6">
+                                    <Icon icon={ArrowPathIcon} variant="light" color="indigo" size="xl" />
+                                    <div className="truncate">
+                                        <Title>Balance</Title>
+                                        <Metric>₹ {(() => {
+                                            const total = parseInt(metrics.numbers[0].total_cost) || 0
+                                            const paid = parseInt(metrics.numbers[0].total_paid) || 0
+                                            return total - paid
+                                        })()}</Metric>
+                                    </div>
+                                </Flex>
+                            </Card>
                         </Grid>
+                    </div>
+
+                    <div className="mt-6">
+                        <AccordionList>
+                            <Accordion>
+                                <AccordionHeader>Factory reports</AccordionHeader>
+                                <AccordionBody>
+                                    <Grid numItemsLg={3} className="gap-6 mt-4 mb-4">
+                                        <Card decoration="top" decorationColor="teal">
+                                            <Flex justifyContent="start" className="space-x-6">
+                                                <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
+                                                <div className="truncate">
+                                                    <Title>Washed</Title>
+                                                    <Metric>{_.filter(metrics?.status, count => count.action == 'washed')?.[0]?.action_count || 0}</Metric>
+                                                </div>
+                                            </Flex>
+                                        </Card>
+
+                                        <Card decoration="top" decorationColor="teal">
+                                            <Flex justifyContent="start" className="space-x-6">
+                                                <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
+                                                <div className="truncate">
+                                                    <Title>Ironed</Title>
+                                                    <Metric>{_.filter(metrics?.status, count => count.action == 'ironed')?.[0]?.action_count || 0}</Metric>
+                                                </div>
+                                            </Flex>
+                                        </Card>
+
+                                        <Card decoration="top" decorationColor="teal">
+                                            <Flex justifyContent="start" className="space-x-6">
+                                                <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
+                                                <div className="truncate">
+                                                    <Title>Packed</Title>
+                                                    <Metric>{_.filter(metrics?.status, count => count.action == 'packed')?.[0]?.action_count || 0}</Metric>
+                                                </div>
+                                            </Flex>
+                                        </Card>
+                                    </Grid>
+                                </AccordionBody>
+                            </Accordion>
+                        </AccordionList>
                     </div>
 
                     {selectedRange != '1' && (
