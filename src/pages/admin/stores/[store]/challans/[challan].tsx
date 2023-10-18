@@ -18,6 +18,9 @@ const ShowChallan = () => {
 
     const [challan, setChallan] = useState<DeliveryChallanResponse>()
 
+    const [pdfLoading, setPdfLoading] = useState<boolean>(false)
+    const [excelLoading, setExcelLoading] = useState<boolean>(false)
+
     useEffect(() => {
         const fetchData = async () => {
             const challanResponse = await axios.get<DeliveryChallanResponse>('/stores/' + storeID + '/challans/' + challanID, {
@@ -31,6 +34,36 @@ const ShowChallan = () => {
 
         fetchData()
     }, [])
+
+    const handleExcelExport = async () => {
+        setExcelLoading(true)
+        const response = await axios.get('stores/' + storeID + '/challans/' + challanID + '/excel', {
+            responseType: 'blob'
+        })
+
+        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement('a')
+        link.href = blobURL
+        link.download = 'DeliveryChallan-' + challanID + '.xlsx'
+        link.click()
+        window.URL.revokeObjectURL(blobURL)
+        setExcelLoading(false)
+    }
+
+    const handlePdfExport = async () => {
+        setPdfLoading(true)
+        const response = await axios.get('stores/' + storeID + '/challans/' + challanID + '/pdf', {
+            responseType: 'blob'
+        })
+
+        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement('a')
+        link.href = blobURL
+        link.download = 'DeliveryChallan-' + challanID + '.pdf'
+        link.click()
+        window.URL.revokeObjectURL(blobURL)
+        setPdfLoading(false)
+    }
 
     return (
         <div className="p-12">
@@ -118,12 +151,21 @@ const ShowChallan = () => {
                     <Divider />
 
                     <Flex justifyContent="end" className="gap-6">
-                        <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + 'stores/' + storeID + '/delivery-challans/' + challan?.data.id + '/export'}>
-                            <Button icon={ReceiptPercentIcon} variant="secondary" color="gray">Export excel</Button>
-                        </Link>
-                        <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + 'stores/' + storeID + '/delivery-challans/' + challan?.data.id + '/print'}>
-                            <Button icon={PrinterIcon} variant="secondary">Export print</Button>
-                        </Link>
+                        <Button
+                            color="gray"
+                            variant="secondary"
+                            loading={excelLoading}
+                            icon={ReceiptPercentIcon}
+                            onClick={handleExcelExport}
+                            loadingText="Generating excel..."
+                        >Export excel</Button>
+                        <Button
+                            icon={PrinterIcon}
+                            variant="secondary"
+                            loading={pdfLoading}
+                            onClick={handlePdfExport}
+                            loadingText="Generating print..."
+                        >Export print</Button>
                     </Flex>
                 </Card>
             </div>
