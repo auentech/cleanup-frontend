@@ -37,7 +37,8 @@ export const authOptions: AuthOptions = {
                     }
 
                     throw new Error('Invalid credentials')
-                } catch {
+                } catch (e) {
+                    console.error(e)
                     throw new Error('Unable to log you in')
                 }
             },
