@@ -16,7 +16,8 @@ export const authOptions: AuthOptions = {
             },
             authorize: async credentials => {
                 try {
-                    const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
+                    const domain = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`
+                    const response = await fetch(domain, {
                         method: 'POST',
                         body: JSON.stringify({
                             email: credentials?.email,
