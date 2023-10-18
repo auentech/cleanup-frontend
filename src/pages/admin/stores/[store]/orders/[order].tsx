@@ -64,7 +64,7 @@ const ShowOrder = () => {
 
   const handleInvoiceDownload = async () => {
     setInvoiceLoading(true)
-    const response = await axios.get('stores/' + storeID + '/orders/' + orderID + '/invoice', {
+    const response = await axios.post('stores/' + storeID + '/orders/' + orderID + '/invoice', {
       responseType: 'blob'
     })
 
@@ -80,7 +80,7 @@ const ShowOrder = () => {
 
   const handleQRDownload = async () => {
     setQrLoading(true)
-    const response = await axios.get('stores/' + storeID + '/orders/' + orderID + '/qr', {
+    const response = await axios.post('stores/' + storeID + '/orders/' + orderID + '/qr', {
       responseType: 'blob'
     })
 

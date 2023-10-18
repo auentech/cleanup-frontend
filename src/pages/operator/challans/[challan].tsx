@@ -42,7 +42,7 @@ const ShowChallan = () => {
 
     const handleExcelExport = async () => {
         setExcelLoading(true)
-        const response = await axios.get('stores/' + user?.meta.store_id + '/challans/' + challanID + '/excel', {
+        const response = await axios.post('stores/' + user?.meta.store_id + '/challans/' + challanID + '/excel', {
             responseType: 'blob'
         })
 
@@ -57,7 +57,7 @@ const ShowChallan = () => {
 
     const handlePdfExport = async () => {
         setPdfLoading(true)
-        const response = await axios.get('stores/' + user?.meta.store_id + '/challans/' + challanID + '/pdf', {
+        const response = await axios.post('stores/' + user?.meta.store_id + '/challans/' + challanID + '/pdf', {
             responseType: 'blob'
         })
 
