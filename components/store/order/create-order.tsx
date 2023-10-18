@@ -24,6 +24,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [customerSearch, setCustomerSearch] = useState<string>()
     const [selectedCustomer, setSelectedCustomer] = useState<UserData>()
 
+    const [speed, setSpeed] = useState<string>('4')
     const [installment, setInstallment] = useState<'full' | 'half'>()
     const [serviceAvailed, setServiceAvailed] = useState<number>(1)
     const [services, setServices] = useState<ServicesResponse>()
@@ -39,6 +40,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [customerpincode, setCustomerPincode] = useState<number>()
 
     const [cost, setCost] = useState<number>(0)
+    const [ogCost, setOGCost] = useState<number>(0)
     const [discount, setDiscount] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(false)
     const [reviewStage, setReviewStage] = useState<boolean>(false)
@@ -128,8 +130,23 @@ const CreateOrder = ({ store }: CreateOrderType) => {
             const garment = service.garments?.filter(garment => garment.id + '' === garmentID)[0] as OrderGarment
 
             setCost(oldCost => (garment.price_max * pieces) + oldCost)
+            setOGCost(oldCost => (garment.price_max * pieces) + oldCost)
         })
     }, [selectedPieces])
+
+    useEffect(() => {
+        const speedInt: number = parseInt(speed)
+
+        if (speedInt == 1) {
+            setCost(ogCost + ogCost)
+        } else if (speedInt == 2) {
+            setCost((ogCost * (50 / 100)) + ogCost)
+        } else if (speedInt == 3) {
+            setCost((ogCost * (25 / 100)) + ogCost)
+        } else {
+            setCost(ogCost)
+        }
+    }, [speed])
 
     const handleReview = () => {
         if ((selectedServices.length != selectedGarments.length) || (selectedGarments.length != selectedPieces.length)) {
@@ -161,6 +178,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                 await axios.post('/stores/' + store.data.id + '/orders', {
                     cost,
+                    speed,
                     orders,
                     discount,
                     installment,
@@ -174,6 +192,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
             await axios.post('/stores/' + store.data.id + '/orders', {
                 cost,
+                speed,
                 orders,
                 discount,
                 installment,
@@ -382,6 +401,18 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             </>
                         )}
                     </List>
+
+                    {reviewStage && (
+                        <>
+                            <Title>Delivery speed</Title>
+                            <Select value={speed} onValueChange={setSpeed} className="mt-2">
+                                <SelectItem value="1">1 Day delivery</SelectItem>
+                                <SelectItem value="2">2 Day delivery</SelectItem>
+                                <SelectItem value="3">3 Day delivery</SelectItem>
+                                <SelectItem value="4">General delivery</SelectItem>
+                            </Select>
+                        </>
+                    )}
 
                     <Flex justifyContent="end" className="gap-6 mt-4">
                         <Button variant="secondary" disabled={reviewStage} icon={PlusCircleIcon} onClick={() => setServiceAvailed(count => count + 1)}>Add service</Button>
