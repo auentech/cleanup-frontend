@@ -56,6 +56,7 @@ const CreateRewash = ({ user }: CreateRewashType) => {
             items: selectedItems,
         })
 
+        alert(response.data.message)
         router.reload()
     }
 
