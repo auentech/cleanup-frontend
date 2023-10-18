@@ -113,7 +113,6 @@ const EditStore = () => {
                 }
             })
 
-            console.log(response.data)
         } finally {
             setLoading(false)
         }

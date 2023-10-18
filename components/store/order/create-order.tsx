@@ -133,7 +133,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
     const handleReview = () => {
         if ((selectedServices.length != selectedGarments.length) || (selectedGarments.length != selectedPieces.length)) {
-            console.log('yo wtf')
             return
         }
 
