@@ -1,8 +1,9 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
-import { LoginResponse } from "@/common/types"
+import { BackendGeneralResponse, LoginResponse } from "@/common/types"
 import OperatorNavigation from "@/components/operator/operator-navigation"
 import { Title, Text, Card, Select, SelectItem, Grid, Col } from "@tremor/react"
+import { AxiosError } from "axios"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import { QrReader } from 'react-qr-reader'
@@ -41,9 +42,22 @@ const ScannerPage = () => {
 
         if (option == 'view') {
             router.push('/operator/stores/' + user.meta.store_id + '/orders/' + code)
+            return
         }
 
-        console.log(user?.meta.store_id, code, option)
+        (async () => {
+            try {
+                const response = await axios.post<BackendGeneralResponse>('/orders/' + code + '/status', {
+                    action: option
+                })
+
+                alert(response.data.message)
+                router.reload()
+            } catch (e) {
+                alert('Unable to record action')
+                router.reload()
+            }
+        })()
     }, [code])
 
     return (

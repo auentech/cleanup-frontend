@@ -1,10 +1,12 @@
-import { Title, Card, Grid, Col, Text } from "@tremor/react"
+import { Title, Card, Grid, Col, Text, Italic } from "@tremor/react"
 import { QrReader } from "react-qr-reader"
 import useAxios from "@/common/axios"
-import { UserData } from "@/common/types"
+import { BackendGeneralResponse, UserData } from "@/common/types"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
+import Logout from "@/common/logout"
+import { AxiosError } from "axios"
 
 type WorkerHomeType = {
     role: 'washer' | 'packer' | 'ironer'
@@ -49,18 +51,30 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
         }
 
         (async () => {
-            const response = await axios.post('/orders/' + code + '/status', {
-                action
-            })
+            try {
+                const response = await axios.post<BackendGeneralResponse>('/orders/' + code + '/status', {
+                    action
+                })
 
-            router.reload()
+                alert(response.data.message)
+                router.reload()
+            } catch (e) {
+                const error = e as AxiosError
+                alert('Unable to record action')
+                router.reload()
+            }
         })()
     }, [code])
 
     return (
         <div className="p-12">
             <Title>Welcome {user.name}</Title>
-            <Text>Ready to update some orders?</Text>
+            <Text>
+                Ready to update some orders? {' '}
+                <Italic style={{ color: '#ef4444', cursor: 'pointer' }}>
+                    <Logout />
+                </Italic>
+            </Text>
 
             <div className="mt-6">
                 <Card>
