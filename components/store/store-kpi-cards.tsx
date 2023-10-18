@@ -82,7 +82,7 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                 }
             })
 
-            setBalanceMetrics(data)
+            setBalanceMetrics(lodashSortBy(data, 'date'))
         }
 
         calculateSalesMetrics()
