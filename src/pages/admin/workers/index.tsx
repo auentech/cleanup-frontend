@@ -72,7 +72,7 @@ const Workers = () => {
                                         <TableHeaderCell>Email</TableHeaderCell>
                                         <TableHeaderCell>Phone</TableHeaderCell>
                                         <TableHeaderCell>State</TableHeaderCell>
-                                        <TableHeaderCell>Action</TableHeaderCell>
+                                        {/* <TableHeaderCell>Action</TableHeaderCell> */}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -87,9 +87,9 @@ const Workers = () => {
                                             <TableCell>{worker.email}</TableCell>
                                             <TableCell>{worker.phone}</TableCell>
                                             <TableCell>{worker?.profile?.state.name}</TableCell>
-                                            <TableCell>
+                                            {/* <TableCell>
                                                 <Button icon={UserIcon} variant="secondary" color="gray">Show worker</Button>
-                                            </TableCell>
+                                            </TableCell> */}
                                         </TableRow>
                                     ))}
                                 </TableBody>
