@@ -87,12 +87,19 @@ export type Store = {
 
 export type StatusEnum = 'received' | 'in_process' | 'processed' | 'in_store' | 'delivered'
 
+export type RemarkItem = {
+    item_id: number
+    color: string
+    texture: string
+    brand: string
+}
+
 export type Order = {
     id: number
     code: string
     count: number
     cost: number
-    remarks?: string
+    remarks?: RemarkItem[]
     discount: number
     status: StatusEnum
     customer?: UserData
