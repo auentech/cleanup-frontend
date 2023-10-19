@@ -68,7 +68,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
             <Title>Remarks</Title>
 
             {order.data.items?.map(item => (
-                <div className="mt-6">
+                <div className="mt-6" key={item.id}>
                     <Title className="mb-2">{item.garment.name} - {item.service.service}</Title>
                     <Grid numItemsLg={3} className="gap-6">
                         <Col>
