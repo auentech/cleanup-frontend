@@ -1,9 +1,7 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { OrderResponse, OrderStatusesResponse, StoreResponse } from "@/common/types"
-import Timeline from "@/components/timeline/timeline"
-import TimelineItem from "@/components/timeline/timelineItem"
-import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, PencilIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
+import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
 import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
@@ -218,16 +216,24 @@ const ShowOrderInfo = () => {
             <div className="mt-6">
                 <Card>
                     <Title>Order timeline</Title>
-                    <Timeline className="mt-4">
+
+                    <ol className="relative border-l border-gray-200 dark:border-gray-700 mt-4">
                         {statuses?.data.map(status => (
-                            <TimelineItem
-                                key={status.id}
-                                title={status.performer?.name + ' ' + status.action + ' the order'}
-                                date={dayjs(status.created_at).format('DD, MMMM YY')}
-                                text={'Action was performed at ' + dayjs(status.created_at).format('hh:mm A') + ' by ' + status.performer?.name + ' who\'s role is ' + status.performer?.role}
-                            />
+                            <li className="ml-4">
+                                <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1.5 -left-1.5 border border-white dark:border-gray-900 dark:bg-gray-700"></div>
+                                <time className="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                    {dayjs(status.created_at).format('DD, MMMM YY')}
+                                </time>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {status.performer?.name + ' ' + status.action + ' the order'}
+                                </h3>
+                                <p className="text-base font-normal text-gray-500 dark:text-gray-400">
+                                    {'Action was performed at ' + dayjs(status.created_at).format('hh:mm A') + ' by ' + status.performer?.name + ' who\'s role is ' + status.performer?.role}
+                                </p>
+                            </li>
                         ))}
-                    </Timeline>
+                    </ol>
+
                 </Card>
             </div>
         </>
