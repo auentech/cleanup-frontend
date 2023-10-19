@@ -2,7 +2,7 @@ import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { DeliveryChallansResponse, LoginResponse } from "@/common/types"
 import OperatorNavigation from "@/components/operator/operator-navigation"
-import { BeakerIcon, BuildingStorefrontIcon, PlusCircleIcon, TruckIcon } from "@heroicons/react/24/outline"
+import { BeakerIcon, BuildingStorefrontIcon, PlusCircleIcon, ReceiptRefundIcon, TruckIcon } from "@heroicons/react/24/outline"
 import { Badge, Button, Card, Flex, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import Waveform from "@uiball/loaders/dist/components/Waveform"
 import dayjs from "dayjs"
@@ -11,6 +11,16 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 
 const LazyCreateChallan = dynamic(() => import('@/components/store/create-challan'), {
+    loading: () => (
+        <Flex alignItems="center" justifyContent="center">
+            <Waveform
+                size={20}
+                color="#3b82f6"
+            />
+        </Flex>
+    )
+})
+const LazyRewashChallan = dynamic(() => import('@/components/store/rewash-challan'), {
     loading: () => (
         <Flex alignItems="center" justifyContent="center">
             <Waveform
@@ -57,6 +67,7 @@ const ShowChallans = () => {
                         <TabList>
                             <Tab icon={TruckIcon}>List challans</Tab>
                             <Tab icon={PlusCircleIcon}>Create challans</Tab>
+                            <Tab icon={ReceiptRefundIcon}>DC for rewash</Tab>
                         </TabList>
                         <TabPanels>
                             <TabPanel className="mt-4">
@@ -100,6 +111,10 @@ const ShowChallans = () => {
 
                             <TabPanel>
                                 {theIndex == 1 && <LazyCreateChallan />}
+                            </TabPanel>
+
+                            <TabPanel>
+                                {theIndex == 2 && <LazyRewashChallan />}
                             </TabPanel>
                         </TabPanels>
                     </TabGroup>

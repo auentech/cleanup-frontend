@@ -44,7 +44,8 @@ const CreateChallan = () => {
             const challanlessOrderResponse = await axios.get<OrdersResponse>('/stores/' + storeID + '/orders', {
                 params: {
                     filter: {
-                        no_challans: 'lol'
+                        no_challans: 'lol',
+                        originals: 'lol'
                     },
                     include: ['customer']
                 }
@@ -77,6 +78,7 @@ const CreateChallan = () => {
             orders: selectedOrders,
         })
 
+        alert('Delivery challan created successfully')
         setLoading(false)
         router.reload()
     }
