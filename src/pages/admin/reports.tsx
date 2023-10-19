@@ -4,7 +4,8 @@ import { Store, StoresResponse } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import { ArchiveBoxArrowDownIcon, ArchiveBoxIcon, ArrowDownTrayIcon, ArrowPathIcon, BeakerIcon, BuildingStorefrontIcon, CheckIcon, ClockIcon, CurrencyRupeeIcon, GiftIcon, ReceiptRefundIcon, TicketIcon } from "@heroicons/react/24/outline"
 import { Accordion, AccordionBody, AccordionHeader, AccordionList, Button, Callout, Card, Col, Flex, Grid, Icon, List, ListItem, Metric, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
-import _ from "lodash"
+import loFilter from 'lodash/filter'
+import loSumBy from 'lodash/sumBy'
 import { useEffect, useState } from "react"
 
 type StoreCount = {
@@ -148,7 +149,7 @@ const AdminReports = () => {
                                     <Icon icon={ClockIcon} variant="light" color="blue" size="xl" />
                                     <div className="truncate">
                                         <Title>In Store</Title>
-                                        <Metric>{_.filter(metrics?.count, count => count.status == 'received')?.[0]?.status_count || 0}</Metric>
+                                        <Metric>{loFilter(metrics?.count, count => count.status == 'received')?.[0]?.status_count || 0}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -158,7 +159,7 @@ const AdminReports = () => {
                                     <Icon icon={BuildingStorefrontIcon} variant="light" color="orange" size="xl" />
                                     <div className="truncate">
                                         <Title>Undelivered</Title>
-                                        <Metric>{_.filter(metrics?.count, count => count.status == 'processed')?.[0]?.status_count || 0}</Metric>
+                                        <Metric>{loFilter(metrics?.count, count => count.status == 'processed')?.[0]?.status_count || 0}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -168,7 +169,7 @@ const AdminReports = () => {
                                     <Icon icon={BeakerIcon} variant="light" color="fuchsia" size="xl" />
                                     <div className="truncate">
                                         <Title>In Factory</Title>
-                                        <Metric>{_.filter(metrics?.count, count => count.status == 'in_process')?.[0]?.status_count || 0}</Metric>
+                                        <Metric>{loFilter(metrics?.count, count => count.status == 'in_process')?.[0]?.status_count || 0}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -178,7 +179,7 @@ const AdminReports = () => {
                                     <Icon icon={ArchiveBoxArrowDownIcon} variant="light" color="teal" size="xl" />
                                     <div className="truncate">
                                         <Title>Delivered</Title>
-                                        <Metric>{_.filter(metrics?.count, count => count.status == 'delivered')?.[0]?.status_count || 0}</Metric>
+                                        <Metric>{loFilter(metrics?.count, count => count.status == 'delivered')?.[0]?.status_count || 0}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -203,7 +204,7 @@ const AdminReports = () => {
                                     <Icon icon={ArchiveBoxIcon} variant="light" color="blue" size="xl" />
                                     <div className="truncate">
                                         <Title>Orders</Title>
-                                        <Metric>{_.sumBy(metrics.count, 'status_count')}</Metric>
+                                        <Metric>{loSumBy(metrics.count, 'status_count')}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -265,7 +266,7 @@ const AdminReports = () => {
                                                 <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
                                                 <div className="truncate">
                                                     <Title>Washed</Title>
-                                                    <Metric>{_.filter(metrics?.status, count => count.action == 'washed')?.[0]?.action_count || 0}</Metric>
+                                                    <Metric>{loFilter(metrics?.status, count => count.action == 'washed')?.[0]?.action_count || 0}</Metric>
                                                 </div>
                                             </Flex>
                                         </Card>
@@ -275,7 +276,7 @@ const AdminReports = () => {
                                                 <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
                                                 <div className="truncate">
                                                     <Title>Ironed</Title>
-                                                    <Metric>{_.filter(metrics?.status, count => count.action == 'ironed')?.[0]?.action_count || 0}</Metric>
+                                                    <Metric>{loFilter(metrics?.status, count => count.action == 'ironed')?.[0]?.action_count || 0}</Metric>
                                                 </div>
                                             </Flex>
                                         </Card>
@@ -285,7 +286,7 @@ const AdminReports = () => {
                                                 <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
                                                 <div className="truncate">
                                                     <Title>Packed</Title>
-                                                    <Metric>{_.filter(metrics?.status, count => count.action == 'packed')?.[0]?.action_count || 0}</Metric>
+                                                    <Metric>{loFilter(metrics?.status, count => count.action == 'packed')?.[0]?.action_count || 0}</Metric>
                                                 </div>
                                             </Flex>
                                         </Card>
