@@ -1,5 +1,5 @@
 import useAxios from "@/common/axios"
-import { BackendGeneralResponse, LoginResponse, Order, OrderItem, OrdersResponse } from "@/common/types"
+import { BackendGeneralResponse, LoginResponse, Order, OrderItem, OrderResponse, OrdersResponse } from "@/common/types"
 import { CheckBadgeIcon, ReceiptPercentIcon, ReceiptRefundIcon } from "@heroicons/react/24/outline"
 import { Button, Callout, Divider, Flex, List, ListItem, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, TextInput } from "@tremor/react"
 import { useRouter } from "next/router"
@@ -9,9 +9,15 @@ type CreateRewashType = {
     user: LoginResponse
 }
 
+type CreateRewashQuery = {
+    order: string
+}
+
 const CreateRewash = ({ user }: CreateRewashType) => {
     const router = useRouter()
     const axios = useAxios()
+
+    const query = router.query as CreateRewashQuery
 
     const [search, setSearch] = useState<string>()
     const [orders, setOrders] = useState<OrdersResponse>()
@@ -36,6 +42,30 @@ const CreateRewash = ({ user }: CreateRewashType) => {
 
         fetchOrders()
     }, [search])
+
+    useEffect(() => {
+        if (!query?.order) {
+            return
+        }
+
+        try {
+            const fetchOrder = async () => {
+                const orderResponse = await axios.get<OrderResponse>('/stores/' + user?.meta?.store_id + '/orders/' + query.order, {
+                    params: {
+                        include: [
+                            'orderItems.garment',
+                            'orderItems.service'
+                        ]
+                    }
+                })
+                setSelectedOrder(orderResponse.data.data)
+            }
+
+            fetchOrder()
+        } catch {
+            //
+        }
+    }, [query.order])
 
     const handleItemSelection = (item: OrderItem) => {
         if (selectedItems.includes(item.id)) {

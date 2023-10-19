@@ -3,10 +3,11 @@ import isUser from "@/common/middlewares/isUser"
 import { BackendGeneralResponse, LoginResponse } from "@/common/types"
 import OperatorNavigation from "@/components/operator/operator-navigation"
 import { Title, Text, Card, Select, SelectItem, Grid, Col } from "@tremor/react"
-import { AxiosError } from "axios"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import { QrReader } from 'react-qr-reader'
+
+type Options = 'view' | 'rewash' | 'processed' | 'delivered'
 
 const ScannerPage = () => {
     const axios = useAxios()
@@ -14,7 +15,7 @@ const ScannerPage = () => {
 
     const [code, setCode] = useState<string>()
     const [user, setUser] = useState<LoginResponse>()
-    const [option, setOption] = useState<'view' | 'processed' | 'delivered'>()
+    const [option, setOption] = useState<Options>()
 
     const handleScan = (result: any, error: any) => {
         if (typeof result?.text == 'string') {
@@ -45,6 +46,11 @@ const ScannerPage = () => {
             return
         }
 
+        if (option == 'rewash') {
+            router.push('/operator/rewash?order=' + code)
+            return
+        }
+
         (async () => {
             try {
                 const response = await axios.post<BackendGeneralResponse>('/orders/' + code + '/status', {
@@ -70,8 +76,9 @@ const ScannerPage = () => {
             <div className="mt-6">
                 <Card>
                     <Text>What do you want to do?</Text>
-                    <Select className="mt-2" disabled={option != undefined} onValueChange={v => setOption(v as 'view' | 'processed' | 'delivered')}>
+                    <Select className="mt-2" disabled={option != undefined} onValueChange={v => setOption(v as Options)}>
                         <SelectItem value="view">View order information</SelectItem>
+                        <SelectItem value="rewash">Put order to rewash</SelectItem>
                         <SelectItem value="processed">Mark order as processed</SelectItem>
                         <SelectItem value="delivered">Mark order as delivered</SelectItem>
                     </Select>

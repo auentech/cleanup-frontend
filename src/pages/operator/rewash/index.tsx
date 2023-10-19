@@ -8,6 +8,7 @@ import { Waveform } from "@uiball/loaders"
 import dayjs from "dayjs"
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
 const LazyCreateRewash = dynamic(() => import('@/components/store/order/create-rewash'), {
@@ -21,8 +22,15 @@ const LazyCreateRewash = dynamic(() => import('@/components/store/order/create-r
     )
 })
 
+type RewashOrderQuery = {
+    order?: string
+}
+
 const ListRewash = () => {
     const axios = useAxios()
+    const router = useRouter()
+
+    const query = router.query as RewashOrderQuery
 
     const [index, setIndex] = useState<number>(0)
     const [user, setUser] = useState<LoginResponse>()
@@ -34,6 +42,13 @@ const ListRewash = () => {
 
             const storeID = userResponse.data.meta.store_id
             setUser(userResponse.data)
+
+            console.log('getting order query', query.order)
+            if (query.order) {
+                setIndex(1)
+                console.log('setting index to 1')
+                return
+            }
 
             const ordersResponse = await axios.get<OrdersResponse>('/stores/' + storeID + '/orders', {
                 params: {
@@ -61,7 +76,7 @@ const ListRewash = () => {
                 <Card>
                     <Title>Rewashes</Title>
                     <Text>List of all rewashes</Text>
-                    <TabGroup className="mt-4" onIndexChange={setIndex}>
+                    <TabGroup className="mt-4" index={index} onIndexChange={setIndex}>
                         <TabList>
                             <Tab>List rewashes</Tab>
                             <Tab>Create rewash</Tab>
