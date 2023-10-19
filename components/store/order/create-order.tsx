@@ -122,6 +122,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
         }
 
         setCost(0)
+        setOGCost(0)
         selectedServices.forEach((serviceID, index) => {
             const garmentID = selectedGarments[index]
             const pieces = selectedPieces[index]
