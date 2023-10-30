@@ -22,7 +22,7 @@ export type UserData = {
     name: string
     email: string
     phone: number
-    role: 'admin' | 'operator' | 'washer' | 'ironer' | 'packer'
+    role: Role
     profile?: Profile
     created_at: Date
     updated_at: Date
@@ -40,7 +40,7 @@ export type UserSearchResponse = {
     data: UserData[]
 }
 
-export type Role = 'admin' | 'operator' | 'washer' | 'packer' | 'ironer'
+export type Role = 'admin' | 'manager' | 'operator' | 'washer' | 'packer' | 'ironer'
 
 type Links = {
     first: string

@@ -15,6 +15,10 @@ const Redirector = () => {
             router.push('/admin')
         }
 
+        if (user.role == 'manager') {
+            router.push('/manager')
+        }
+
         if (user.role == 'operator') {
             router.push('/operator')
         }

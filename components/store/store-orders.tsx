@@ -7,7 +7,7 @@ import Link from "next/link"
 type StoreOrdersType = {
     orders: OrdersResponse | undefined
     store: StoreResponse | undefined
-    role?: 'admin' | 'operator'
+    role?: 'admin' | 'operator' | 'manager'
 }
 
 const statusBadger = (status: StatusEnum) => {
