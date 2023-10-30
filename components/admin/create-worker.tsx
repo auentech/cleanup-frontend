@@ -94,6 +94,7 @@ const CreateWorker = () => {
                 <Text>Worker role</Text>
                 <Select className="mt-2" onValueChange={setRole}>
                     <SelectItem value="operator">Operator</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
                     <SelectItem value="ironer">Ironer</SelectItem>
                     <SelectItem value="washer">Washer</SelectItem>
                     <SelectItem value="packer">Packer</SelectItem>
