@@ -378,6 +378,14 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                     <Title>₹ {cost - discount}</Title>
                                 </ListItem>
                                 <ListItem>
+                                    <Title>CGST</Title>
+                                    <Title>₹ {(cost * (9 / 100)).toFixed(2)}</Title>
+                                </ListItem>
+                                <ListItem>
+                                    <Title>SGST</Title>
+                                    <Title>₹ {(cost * (9 / 100)).toFixed(2)}</Title>
+                                </ListItem>
+                                <ListItem>
                                     <Flex justifyContent="between" className="gap-6">
                                         <Title>First installment</Title>
                                         <div>
