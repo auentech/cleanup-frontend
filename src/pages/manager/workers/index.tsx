@@ -2,12 +2,14 @@ import useAxios from "@/common/axios"
 import Logout from "@/common/logout"
 import isUser from "@/common/middlewares/isUser"
 import { UserData, UsersResponse } from "@/common/types"
-import { Title, Italic, Text, Card, TabGroup, TabList, Tab, TabPanels, TabPanel, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Flex } from "@tremor/react"
+import { Title, Italic, Text, Card, TabGroup, TabList, Tab, TabPanels, TabPanel, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Flex, Button, NumberInput, TextInput } from "@tremor/react"
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Waveform } from "@uiball/loaders"
 import dynamic from "next/dynamic"
 import ManagerNavigation from "@/components/manager/manager-navigation"
+import { DocumentCheckIcon, UserIcon, XMarkIcon } from "@heroicons/react/24/outline"
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/react";
 
 const LazyCreateWorker = dynamic(() => import('@/components/admin/create-worker'), {
     loading: () => (
@@ -27,6 +29,14 @@ const Workers = () => {
 
     const [theIndex, setTheIndex] = useState<number>(0)
     const [workers, setWorkers] = useState<UsersResponse>()
+    const [worker, setWorker] = useState<UserData>()
+
+    const { isOpen, onOpen, onOpenChange } = useDisclosure()
+
+    const editWorker = (workerData: UserData) => {
+        setWorker(workerData)
+        onOpen()
+    }
 
     useEffect(() => {
         (async () => {
@@ -71,7 +81,7 @@ const Workers = () => {
                                         <TableHeaderCell>Email</TableHeaderCell>
                                         <TableHeaderCell>Phone</TableHeaderCell>
                                         <TableHeaderCell>State</TableHeaderCell>
-                                        {/* <TableHeaderCell>Action</TableHeaderCell> */}
+                                        <TableHeaderCell>Action</TableHeaderCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -86,9 +96,11 @@ const Workers = () => {
                                             <TableCell>{worker.email}</TableCell>
                                             <TableCell>{worker.phone}</TableCell>
                                             <TableCell>{worker?.profile?.state.name}</TableCell>
-                                            {/* <TableCell>
-                                                <Button icon={UserIcon} variant="secondary" color="gray">Show worker</Button>
-                                            </TableCell> */}
+                                            <TableCell>
+                                                <Button icon={UserIcon} variant="secondary" color="gray" onClick={_ => editWorker(worker)}>
+                                                    Show worker
+                                                </Button>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -100,7 +112,83 @@ const Workers = () => {
                     </TabPanels>
                 </TabGroup>
             </Card>
-        </div>
+
+            <Modal backdrop="blur" scrollBehavior="inside" size="2xl" isOpen={isOpen} onOpenChange={onOpenChange}>
+                <ModalContent>
+                    <ModalHeader>
+                        <Title>Edit user</Title>
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className="pb-4">
+                            <div className="mt-4">
+                                <Text>Worker name</Text>
+                                <TextInput
+                                    className="mt-2"
+                                    value={worker?.name}
+                                />
+                            </div>
+
+                            <div className="mt-4">
+                                <Text>Worker email</Text>
+                                <TextInput
+                                    type="email"
+                                    className="mt-2"
+                                    value={worker?.email}
+                                />
+                            </div>
+
+                            <div className="mt-4">
+                                <Text>Worker phone</Text>
+                                <NumberInput
+                                    className="mt-2"
+                                    enableStepper={false}
+                                    value={worker?.phone}
+                                />
+                            </div>
+
+                            <div className="mt-4">
+                                <Text>Worker address</Text>
+                                <TextInput
+                                    className="mt-2"
+                                    value={worker?.profile?.address}
+                                />
+                            </div>
+
+                            <div className="mt-4">
+                                <Text>Worker pincode</Text>
+                                <NumberInput
+                                    className="mt-2"
+                                    enableStepper={false}
+                                    value={worker?.profile?.pincode}
+                                />
+                            </div>
+
+                            <div className="mt-4">
+                                <Text>Worker aadhaar</Text>
+                                <NumberInput
+                                    className="mt-2"
+                                    enableStepper={false}
+                                    value={worker?.profile?.aadhaar}
+                                />
+                            </div>
+
+                            <div className="mt-4">
+                                <Text>Worker emergency contact</Text>
+                                <NumberInput
+                                    className="mt-2"
+                                    enableStepper={false}
+                                    value={worker?.profile?.emergency_contact}
+                                />
+                            </div>
+                        </div>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="red" variant="secondary" icon={XMarkIcon}>Disable user</Button>
+                        <Button color="blue" variant="primary" icon={DocumentCheckIcon}>Save changes</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </div >
     )
 }
 
