@@ -247,6 +247,7 @@ export type OrderResponse = {
 
 type OrderStatus = {
     id: number
+    data?: any
     action: string
     performer?: UserData
     order_id: number

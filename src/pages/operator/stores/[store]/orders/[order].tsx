@@ -1,8 +1,8 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
-import { OrderResponse, OrderStatusesResponse, StoreResponse } from "@/common/types"
-import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
-import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
+import { BackendGeneralResponse, OrderResponse, OrderStatusesResponse, StoreResponse } from "@/common/types"
+import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, CurrencyRupeeIcon, ForwardIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
+import { Badge, Button, Callout, Card, Flex, Grid, Icon, List, ListItem, NumberInput, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
@@ -20,8 +20,10 @@ const ShowOrderInfo = () => {
     const orderID = router.query.order
 
     const [invoiceLoading, setInvoiceLoading] = useState<boolean>(false)
+    const [editLoading, setEditLoading] = useState<boolean>(false)
     const [qrLoading, setQrLoading] = useState<boolean>(false)
 
+    const [newCost, setNewCost] = useState<number>()
     const [loading, setLoading] = useState<boolean>(true)
     const [order, setOrder] = useState<OrderResponse>()
     const [store, setStore] = useState<StoreResponse>()
@@ -54,6 +56,7 @@ const ShowOrderInfo = () => {
             setOrder(orderResponse.data)
             setStore(storeResponse.data)
             setStatuses(statusResponse.data)
+            setNewCost(orderResponse.data.data.cost)
 
             setLoading(false)
         }
@@ -91,6 +94,22 @@ const ShowOrderInfo = () => {
         window.URL.revokeObjectURL(blobURL)
 
         setQrLoading(false)
+    }
+
+    const editOrder = async () => {
+        setEditLoading(true)
+
+        try {
+            await axios.put<BackendGeneralResponse>('/stores/' + storeID + '/orders/' + orderID + '/cost', {
+                cost: newCost
+            })
+
+            alert('Made changes to order cost')
+        } catch (e) {
+            alert('Unable to make change')
+        } finally {
+            setEditLoading(false)
+        }
     }
 
     const OrderDisplay = () => (
@@ -218,6 +237,35 @@ const ShowOrderInfo = () => {
 
             <div className="mt-6">
                 <Card>
+                    <Title>Change order cost</Title>
+                    <div className="mt-4">
+                        {editLoading ? (
+                            <Callout title="We're changing order cost">
+                                Please be aware that your name will be recorded when edits are made
+                            </Callout>
+                        ) : (
+                            <Grid numItems={2} className="gap-6">
+                                <NumberInput
+                                    icon={CurrencyRupeeIcon}
+                                    value={newCost}
+                                    onValueChange={setNewCost}
+                                    enableStepper={true} />
+
+                                <Button
+                                    variant="secondary"
+                                    icon={ForwardIcon}
+                                    loading={editLoading}
+                                    loadingText="Changing order cost..."
+                                    onClick={_ => editOrder()}
+                                >Change cost</Button>
+                            </Grid>
+                        )}
+                    </div>
+                </Card>
+            </div>
+
+            <div className="mt-6">
+                <Card>
                     <Title>Order timeline</Title>
 
                     <ol className="relative border-l border-gray-200 dark:border-gray-700 mt-4">
@@ -232,6 +280,10 @@ const ShowOrderInfo = () => {
                                 </h3>
                                 <p className="text-base font-normal text-gray-500 dark:text-gray-400">
                                     {'Action was performed at ' + dayjs(status.created_at).format('hh:mm A') + ' by ' + status.performer?.name + ' who\'s role is ' + status.performer?.role}
+                                    <br />
+                                    {status.data && (
+                                        'Old cost was: ' + status.data.old + ' and the new cost is: ' + status.data.new
+                                    )}
                                 </p>
                             </li>
                         ))}
