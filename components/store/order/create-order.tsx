@@ -85,7 +85,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
         service.garments?.forEach(garment => {
             elements.push(
                 <SelectItem key={garment.id} value={garment.id + ''}>
-                    {garment.name}
+                    {garment.name} - {garment.price_max} ₹
                 </SelectItem>
             )
         })
@@ -133,7 +133,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
             setCost(oldCost => (garment.price_max * pieces) + oldCost)
             setOGCost(oldCost => (garment.price_max * pieces) + oldCost)
         })
-    }, [selectedPieces])
+    }, [selectedPieces, selectedGarments])
 
     useEffect(() => {
         const speedInt: number = parseInt(speed)
@@ -153,14 +153,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
             setCost(ogCost)
         }
     }, [speed])
-
-    const handleReview = () => {
-        if ((selectedServices.length != selectedGarments.length) || (selectedGarments.length != selectedPieces.length)) {
-            return
-        }
-
-        setReviewStage(true)
-    }
 
     const handleOrderCreate = async () => {
         setLoading(true)
@@ -226,7 +218,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                 className="mt-2"
                                 onValueChange={value => handleServicesInput(i, value)}
                                 value={selectedServices?.[i] as string}
-                                disabled={reviewStage}
+                                enableClear={false}
                             >
                                 {services?.data.map(service => (
                                     <SelectItem key={service.id} value={service.id + ''}>{service.service}</SelectItem>
@@ -241,7 +233,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                 onValueChange={value => handleGarmentsInput(i, value)}
                                 value={selectedGarments?.[i] as string}
                                 className="mt-2"
-                                disabled={reviewStage}
+                                enableClear={false}
                             >
                                 {getGarments(i)}
                             </Select>
@@ -254,7 +246,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                 min={1}
                                 enableStepper={false}
                                 className="mt-2"
-                                disabled={reviewStage}
                             />
                         </Col>
                     </Grid>
@@ -308,7 +299,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <TextInput
                             type="text"
                             className="mt-2"
-                            disabled={reviewStage}
                             onInput={e => setCustomerName(e.currentTarget.value)} />
                     </div>
 
@@ -316,7 +306,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <Text>Customer phone</Text>
                         <NumberInput
                             className="mt-2"
-                            disabled={reviewStage}
                             onValueChange={setCustomerPhone} />
                     </div>
 
@@ -325,7 +314,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <TextInput
                             type="email"
                             className="mt-2"
-                            disabled={reviewStage}
                             onInput={e => setCustomerEmail(e.currentTarget.value)} />
                     </div>
 
@@ -334,7 +322,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <TextInput
                             type="email"
                             className="mt-2"
-                            disabled={reviewStage}
                             onInput={e => setCustomerAddress(e.currentTarget.value)} />
                     </div>
 
@@ -342,7 +329,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <Text>Customer pincode</Text>
                         <NumberInput
                             className="mt-2"
-                            disabled={reviewStage}
                             onValueChange={setCustomerPincode} />
                     </div>
                 </>
@@ -358,7 +344,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                     <div className="mt-4">
                         <Text>Discount</Text>
-                        <NumberInput disabled={reviewStage} onValueChange={setDiscount} className="mt-2" />
+                        <NumberInput onValueChange={setDiscount} className="mt-2" />
                     </div>
 
 
@@ -367,59 +353,55 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             <Title>Order Gross Total</Title>
                             <Title>₹ {cost}</Title>
                         </ListItem>
-                        {reviewStage && (
-                            <>
-                                <ListItem>
-                                    <Title>Discount given</Title>
-                                    <Title>₹ {discount}</Title>
-                                </ListItem>
-                                <ListItem>
-                                    <Title>Order Net Total</Title>
-                                    <Title>₹ {cost - discount}</Title>
-                                </ListItem>
-                                <ListItem>
-                                    <Title>CGST</Title>
-                                    <Title>₹ {(cost * (9 / 100)).toFixed(2)}</Title>
-                                </ListItem>
-                                <ListItem>
-                                    <Title>SGST</Title>
-                                    <Title>₹ {(cost * (9 / 100)).toFixed(2)}</Title>
-                                </ListItem>
-                                <ListItem>
-                                    <Flex justifyContent="between" className="gap-6">
-                                        <Title>First installment</Title>
-                                        <div>
-                                            <Button
-                                                color={installment == 'half' ? 'blue' : 'gray'}
-                                                onClick={e => setInstallment('half')}
-                                                variant="secondary"
-                                                className="ml-2"
-                                            >Half</Button>
-                                            <Button
-                                                color={installment == 'full' ? 'blue' : 'gray'}
-                                                onClick={e => setInstallment('full')}
-                                                variant="secondary"
-                                                className="ml-2"
-                                            >Full</Button>
-                                        </div>
-                                    </Flex>
-                                </ListItem>
-                                {installment != undefined && (
-                                    <ListItem>
-                                        <Title>To pay now</Title>
-                                        <Title>
-                                            ₹ {installment == 'full' ? (cost - discount) : ((cost - discount) / 2)}
-                                        </Title>
-                                    </ListItem>
-                                )}
-                            </>
+                        <ListItem>
+                            <Title>Discount given</Title>
+                            <Title>₹ {discount}</Title>
+                        </ListItem>
+                        <ListItem>
+                            <Title>Order Net Total</Title>
+                            <Title>₹ {cost - discount}</Title>
+                        </ListItem>
+                        <ListItem>
+                            <Title>CGST</Title>
+                            <Title>₹ {(cost * (9 / 100)).toFixed(2)}</Title>
+                        </ListItem>
+                        <ListItem>
+                            <Title>SGST</Title>
+                            <Title>₹ {(cost * (9 / 100)).toFixed(2)}</Title>
+                        </ListItem>
+                        <ListItem>
+                            <Flex justifyContent="between" className="gap-6">
+                                <Title>First installment</Title>
+                                <div>
+                                    <Button
+                                        color={installment == 'half' ? 'blue' : 'gray'}
+                                        onClick={e => setInstallment('half')}
+                                        variant="secondary"
+                                        className="ml-2"
+                                    >Half</Button>
+                                    <Button
+                                        color={installment == 'full' ? 'blue' : 'gray'}
+                                        onClick={e => setInstallment('full')}
+                                        variant="secondary"
+                                        className="ml-2"
+                                    >Full</Button>
+                                </div>
+                            </Flex>
+                        </ListItem>
+                        {installment != undefined && (
+                            <ListItem>
+                                <Title>To pay now</Title>
+                                <Title>
+                                    ₹ {installment == 'full' ? (cost - discount) : ((cost - discount) / 2)}
+                                </Title>
+                            </ListItem>
                         )}
                     </List>
 
                     {reviewStage && (
                         <>
                             <Title>Delivery speed</Title>
-                            <Select value={speed} onValueChange={setSpeed} className="mt-2">
+                            <Select value={speed} onValueChange={setSpeed} className="mt-2" enableClear={false}>
                                 <SelectItem value="1">1 Day delivery</SelectItem>
                                 <SelectItem value="2">2 Day delivery</SelectItem>
                                 <SelectItem value="3">3 Day delivery</SelectItem>
@@ -429,18 +411,14 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     )}
 
                     <Flex justifyContent="end" className="gap-6 mt-4">
-                        <Button variant="secondary" disabled={reviewStage} icon={PlusCircleIcon} onClick={() => setServiceAvailed(count => count + 1)}>Add service</Button>
-                        {!reviewStage ? (
-                            <Button icon={ArchiveBoxArrowDownIcon} onClick={handleReview}>Review order</Button>
-                        ) : (
-                            <Button
-                                icon={ShoppingCartIcon}
-                                loading={loading}
-                                disabled={installment == undefined}
-                                loadingText="Creating order..."
-                                onClick={handleOrderCreate}
-                            >Create order</Button>
-                        )}
+                        <Button variant="secondary" icon={PlusCircleIcon} onClick={() => setServiceAvailed(count => count + 1)}>Add service</Button>
+                        <Button
+                            icon={ShoppingCartIcon}
+                            loading={loading}
+                            disabled={installment == undefined}
+                            loadingText="Creating order..."
+                            onClick={handleOrderCreate}
+                        >Create order</Button>
                     </Flex>
                 </>
             )}
