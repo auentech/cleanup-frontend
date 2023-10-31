@@ -10,6 +10,7 @@ import dayjs from "dayjs"
 import OrderKPICards from "@/components/store/order/order-kpi-cards"
 import OperatorNavigation from "@/components/operator/operator-navigation"
 import OrderRemarks from "@/components/store/order/remarks"
+import Link from "next/link"
 
 const ShowOrderInfo = () => {
     const axios = useAxios()
@@ -201,9 +202,11 @@ const ShowOrderInfo = () => {
                             >
                                 Download QR Codes
                             </Button>
-                            <Button className="w-full" variant="secondary" icon={ArrowPathIcon}>
-                                Scan status
-                            </Button>
+                            <Link href="/operator/scanner" className="w-full">
+                                <Button className="w-full" variant="secondary" icon={ArrowPathIcon}>
+                                    Scan status
+                                </Button>
+                            </Link>
                         </Flex>
                     </div>
                 </Card>

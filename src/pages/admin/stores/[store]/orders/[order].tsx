@@ -4,7 +4,7 @@ import { OrderResponse, OrderStatusesResponse, StoreResponse } from "@/common/ty
 import AdminNavigation from "@/components/admin/admin-navigation"
 import Timeline from "@/components/timeline/timeline"
 import TimelineItem from "@/components/timeline/timelineItem"
-import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, PencilIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
+import { ArrowLeftIcon, BuildingStorefrontIcon, CameraIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
 import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
