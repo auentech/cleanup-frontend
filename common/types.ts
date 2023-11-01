@@ -23,6 +23,7 @@ export type UserData = {
     email: string
     phone: number
     role: Role
+    token?: string
     profile?: Profile
     created_at: Date
     updated_at: Date
@@ -293,6 +294,27 @@ export type AdminDashboardResponse = {
             created_at: string
         }[]
     }
+}
+
+type ReturnChallanOrder = {
+    code: string
+    bags: number
+}
+
+export type ReturnChallan = {
+    id: number
+    code: string
+    store?: Store
+    store_id: number
+    created_at: string
+    updated_at: string
+    orders: ReturnChallanOrder[]
+}
+
+export type ReturnChallansResponse = {
+    data: ReturnChallan[]
+    links: Links
+    meta: Meta
 }
 
 export type BackendGeneralResponse = {
