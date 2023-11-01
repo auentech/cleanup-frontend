@@ -1,6 +1,6 @@
 import useAxios from "@/common/axios"
 import { OrderGarment, OrderService, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
-import { ArchiveBoxArrowDownIcon, CheckIcon, PlusCircleIcon, ShoppingCartIcon, UserIcon, UserPlusIcon } from "@heroicons/react/24/outline"
+import { CheckIcon, PlusCircleIcon, ShoppingCartIcon, UserIcon, UserPlusIcon } from "@heroicons/react/24/outline"
 import { Button, Callout, Col, Divider, Flex, Grid, List, ListItem, NumberInput, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
@@ -43,7 +43,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [ogCost, setOGCost] = useState<number>(0)
     const [discount, setDiscount] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(false)
-    const [reviewStage, setReviewStage] = useState<boolean>(false)
 
     const handleCustomerSearch = (value: string) => {
         setCustomerSearch(value)
@@ -398,17 +397,13 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         )}
                     </List>
 
-                    {reviewStage && (
-                        <>
-                            <Title>Delivery speed</Title>
-                            <Select value={speed} onValueChange={setSpeed} className="mt-2" enableClear={false}>
-                                <SelectItem value="1">1 Day delivery</SelectItem>
-                                <SelectItem value="2">2 Day delivery</SelectItem>
-                                <SelectItem value="3">3 Day delivery</SelectItem>
-                                <SelectItem value="4">General delivery</SelectItem>
-                            </Select>
-                        </>
-                    )}
+                    <Title>Delivery speed</Title>
+                    <Select value={speed} onValueChange={setSpeed} className="mt-2" enableClear={false}>
+                        <SelectItem value="1">1 Day delivery</SelectItem>
+                        <SelectItem value="2">2 Day delivery</SelectItem>
+                        <SelectItem value="3">3 Day delivery</SelectItem>
+                        <SelectItem value="4">General delivery</SelectItem>
+                    </Select>
 
                     <Flex justifyContent="end" className="gap-6 mt-4">
                         <Button variant="secondary" icon={PlusCircleIcon} onClick={() => setServiceAvailed(count => count + 1)}>Add service</Button>
