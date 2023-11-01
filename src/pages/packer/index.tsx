@@ -95,7 +95,7 @@ const PackerHome = () => {
                                     </TableHead>
                                     <TableBody>
                                         {returnChallans.length > 0 && returnChallans.map(challan => (
-                                            <TableRow>
+                                            <TableRow key={challan.code}>
                                                 <TableCell>{challan.code}</TableCell>
                                                 <TableCell>{challan.store?.code}</TableCell>
                                                 <TableCell>{challan.store?.name}</TableCell>
