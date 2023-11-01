@@ -1,6 +1,6 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
-import { OrderResponse, OrderStatusesResponse, StoreResponse } from "@/common/types"
+import { OrderResponse, OrderStatusesResponse, StoreResponse, UserData } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import Timeline from "@/components/timeline/timeline"
 import TimelineItem from "@/components/timeline/timelineItem"
@@ -12,16 +12,17 @@ import { useEffect, useState } from "react"
 import dayjs from "dayjs"
 import OrderKPICards from "@/components/store/order/order-kpi-cards"
 import OrderRemarks from "@/components/store/order/remarks"
+import Link from "next/link"
+import { useSession } from "next-auth/react"
 
 const ShowOrder = () => {
     const axios = useAxios()
     const router = useRouter()
+    const { data } = useSession()
 
+    const user = data?.user as UserData
     const storeID = router.query.store
     const orderID = router.query.order
-
-    const [invoiceLoading, setInvoiceLoading] = useState<boolean>(false)
-    const [qrLoading, setQrLoading] = useState<boolean>(false)
 
     const [loading, setLoading] = useState<boolean>(true)
     const [order, setOrder] = useState<OrderResponse>()
@@ -61,38 +62,6 @@ const ShowOrder = () => {
 
         getOrderDetails()
     }, [])
-
-    const handleInvoiceDownload = async () => {
-        setInvoiceLoading(true)
-        const response = await axios.post('stores/' + storeID + '/orders/' + orderID + '/invoice', {
-            responseType: 'blob'
-        })
-
-        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
-        const link = document.createElement('a')
-        link.href = blobURL
-        link.download = 'Invoice-' + orderID + '.pdf'
-        link.click()
-        window.URL.revokeObjectURL(blobURL)
-
-        setInvoiceLoading(false)
-    }
-
-    const handleQRDownload = async () => {
-        setQrLoading(true)
-        const response = await axios.post('stores/' + storeID + '/orders/' + orderID + '/qr', {
-            responseType: 'blob'
-        })
-
-        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
-        const link = document.createElement('a')
-        link.href = blobURL
-        link.download = 'QR-' + orderID + '.pdf'
-        link.click()
-        window.URL.revokeObjectURL(blobURL)
-
-        setQrLoading(false)
-    }
 
     const OrderDisplay = () => (
         <>
@@ -183,26 +152,24 @@ const ShowOrder = () => {
 
                     <div className="mt-4">
                         <Flex flexDirection="col" className="gap-y-6">
-                            <Button
-                                className="w-full"
-                                variant="secondary"
-                                icon={ReceiptPercentIcon}
-                                onClick={handleInvoiceDownload}
-                                loading={invoiceLoading}
-                                loadingText="Downloading Invoice..."
-                            >
-                                Download Invoice
-                            </Button>
-                            <Button
-                                className="w-full"
-                                variant="secondary"
-                                icon={CameraIcon}
-                                onClick={handleQRDownload}
-                                loading={qrLoading}
-                                loadingText="Downloading QR Codes..."
-                            >
-                                Download QR Codes
-                            </Button>
+                            <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/invoice?token=' + user.token}>
+                                <Button
+                                    className="w-full"
+                                    variant="secondary"
+                                    icon={ReceiptPercentIcon}
+                                >
+                                    Download Invoice
+                                </Button>
+                            </Link>
+                            <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/qr?token=' + user.token}>
+                                <Button
+                                    className="w-full"
+                                    variant="secondary"
+                                    icon={CameraIcon}
+                                >
+                                    Download QR Codes
+                                </Button>
+                            </Link>
                         </Flex>
                     </div>
                 </Card>

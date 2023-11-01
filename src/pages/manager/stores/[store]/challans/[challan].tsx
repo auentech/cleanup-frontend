@@ -1,6 +1,6 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
-import { DeliveryChallanResponse } from "@/common/types"
+import { DeliveryChallanResponse, UserData } from "@/common/types"
 import { ArchiveBoxIcon, BuildingStorefrontIcon, CodeBracketIcon, CurrencyRupeeIcon, PrinterIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
 import { Title, Text, Grid, Card, Flex, Icon, Metric, Table, TableRow, Button, Divider, TableHead, TableHeaderCell, TableBody, TableCell } from "@tremor/react"
 import { useRouter } from "next/router"
@@ -8,18 +8,18 @@ import { useEffect, useState } from "react"
 import sumBy from "lodash/sumBy"
 import Link from "next/link"
 import ManagerNavigation from "@/components/manager/manager-navigation"
+import { useSession } from "next-auth/react"
 
 const ShowChallan = () => {
     const axios = useAxios()
     const router = useRouter()
+    const { data } = useSession()
 
+    const auth = data?.user as UserData
     const storeID = router.query.store
     const challanID = router.query.challan
 
     const [challan, setChallan] = useState<DeliveryChallanResponse>()
-
-    const [pdfLoading, setPdfLoading] = useState<boolean>(false)
-    const [excelLoading, setExcelLoading] = useState<boolean>(false)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -34,36 +34,6 @@ const ShowChallan = () => {
 
         fetchData()
     }, [])
-
-    const handleExcelExport = async () => {
-        setExcelLoading(true)
-        const response = await axios.post('stores/' + storeID + '/challans/' + challanID + '/excel', {
-            responseType: 'blob'
-        })
-
-        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
-        const link = document.createElement('a')
-        link.href = blobURL
-        link.download = 'DeliveryChallan-' + challanID + '.xlsx'
-        link.click()
-        window.URL.revokeObjectURL(blobURL)
-        setExcelLoading(false)
-    }
-
-    const handlePdfExport = async () => {
-        setPdfLoading(true)
-        const response = await axios.post('stores/' + storeID + '/challans/' + challanID + '/pdf', {
-            responseType: 'blob'
-        })
-
-        const blobURL = window.URL.createObjectURL(new Blob([response.data]))
-        const link = document.createElement('a')
-        link.href = blobURL
-        link.download = 'DeliveryChallan-' + challanID + '.pdf'
-        link.click()
-        window.URL.revokeObjectURL(blobURL)
-        setPdfLoading(false)
-    }
 
     return (
         <div className="p-12">
@@ -151,21 +121,19 @@ const ShowChallan = () => {
                     <Divider />
 
                     <Flex justifyContent="end" className="gap-6">
-                        <Button
-                            color="gray"
-                            variant="secondary"
-                            loading={excelLoading}
-                            icon={ReceiptPercentIcon}
-                            onClick={handleExcelExport}
-                            loadingText="Generating excel..."
-                        >Export excel</Button>
-                        <Button
-                            icon={PrinterIcon}
-                            variant="secondary"
-                            loading={pdfLoading}
-                            onClick={handlePdfExport}
-                            loadingText="Generating print..."
-                        >Export print</Button>
+                        <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/challans/' + challanID + '/excel?token=' + auth.token}>
+                            <Button
+                                color="gray"
+                                variant="secondary"
+                                icon={ReceiptPercentIcon}
+                            >Export excel</Button>
+                        </Link>
+                        <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/challans/' + challanID + '/pdf?token=' + auth.token}>
+                            <Button
+                                icon={PrinterIcon}
+                                variant="secondary"
+                            >Export print</Button>
+                        </Link>
                     </Flex>
                 </Card>
             </div>
