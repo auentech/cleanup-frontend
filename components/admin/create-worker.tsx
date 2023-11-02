@@ -68,7 +68,7 @@ const CreateWorker = () => {
             })
 
             setSuccess(response.data)
-            alert(response.data)
+            alert(response.data.message)
             router.reload()
         } catch (e) {
             if (Axios.isAxiosError(e)) {
