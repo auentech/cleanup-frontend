@@ -1,7 +1,7 @@
 import useAxios from "@/common/axios"
 import Logout from "@/common/logout"
 import isUser from "@/common/middlewares/isUser"
-import { UserData, UsersResponse } from "@/common/types"
+import { BackendGeneralResponse, UserData, UsersResponse } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import { Title, Italic, Text, Card, TabGroup, TabList, Tab, TabPanels, TabPanel, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button, Flex, NumberInput, TextInput } from "@tremor/react"
 import { useSession } from "next-auth/react"
@@ -10,6 +10,7 @@ import { DocumentCheckIcon, UserIcon, XMarkIcon } from "@heroicons/react/24/outl
 import { Waveform } from "@uiball/loaders"
 import dynamic from "next/dynamic"
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react"
+import { useRouter } from "next/router"
 
 const LazyCreateWorker = dynamic(() => import('@/components/admin/create-worker'), {
     loading: () => (
@@ -24,6 +25,7 @@ const LazyCreateWorker = dynamic(() => import('@/components/admin/create-worker'
 
 const Workers = () => {
     const axios = useAxios()
+    const router = useRouter()
     const { data } = useSession()
     const user = data?.user as UserData
 
@@ -36,6 +38,13 @@ const Workers = () => {
     const editWorker = (workerData: UserData) => {
         setWorker(workerData)
         onOpen()
+    }
+
+    const disableUser = async (theUser: UserData) => {
+        const disableUserResponse = await axios.delete<BackendGeneralResponse>('/user/' + theUser.id)
+
+        alert(disableUserResponse.data.message)
+        router.reload()
     }
 
     useEffect(() => {
@@ -183,7 +192,7 @@ const Workers = () => {
                         </div>
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="red" variant="secondary" icon={XMarkIcon}>Disable user</Button>
+                        <Button color="red" variant="secondary" icon={XMarkIcon} onClick={_ => disableUser(worker as UserData)}>Disable user</Button>
                         <Button color="blue" variant="primary" icon={DocumentCheckIcon}>Save changes</Button>
                     </ModalFooter>
                 </ModalContent>
