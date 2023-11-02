@@ -54,7 +54,7 @@ const EditStore = () => {
 
     useEffect(() => {
         if (operators == undefined) return
-        setCurrentStoreOps(lodashMap(operators.data, ops => ops.id + ''))
+        setCurrentStoreOps(lodashMap(store?.data.operators, ops => ops.user_id + ''))
         setStoreOperators(lodashMap(operators.data, ops => ops.id + ''))
     }, [operators])
 
