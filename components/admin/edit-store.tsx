@@ -1,5 +1,5 @@
 import useAxios from "@/common/axios"
-import { CreateStoreError, StatesResponse, FreeOperatorsResponse, DistrictsResponse, StoreResponse } from "@/common/types"
+import { CreateStoreError, StatesResponse, FreeOperatorsResponse, DistrictsResponse, StoreResponse, BackendGeneralResponse } from "@/common/types"
 import { GlobeAsiaAustraliaIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
 import { Text, MultiSelect, MultiSelectItem, TextInput, SearchSelect, SearchSelectItem, Divider, Flex, Button } from "@tremor/react"
 import lodashMap from 'lodash/map'
@@ -101,7 +101,7 @@ const EditStore = () => {
         setLoading(true)
 
         try {
-            const response = await axios.patch('stores/' + store?.data.id, {
+            const storeEditResponse = await axios.patch<BackendGeneralResponse>('stores/' + store?.data.id, {
                 operators: storeOperators,
                 name: storeName,
                 code: code,
@@ -113,6 +113,8 @@ const EditStore = () => {
                 }
             })
 
+            alert(storeEditResponse.data.message)
+            router.reload()
         } finally {
             setLoading(false)
         }
@@ -142,7 +144,7 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store Name</Text>
                 <TextInput
-                    value={store?.data.name}
+                    value={storeName}
                     onInput={e => setStoreName(e.currentTarget.value)}
                     error={errors?.errors.name != undefined}
                     errorMessage="Store name is required"
@@ -152,7 +154,7 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store Address</Text>
                 <TextInput
-                    value={store?.data?.profile?.address}
+                    value={address}
                     onInput={e => setAddress(e.currentTarget.value)}
                     error={errors?.errors["profile.address"] != undefined}
                     errorMessage="Store address is required"
@@ -162,7 +164,7 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store custom code</Text>
                 <TextInput
-                    value={store?.data.code.split('-')[1]}
+                    value={code}
                     onInput={e => setCode(e.currentTarget.value)}
                     error={errors?.errors.custom_code != undefined}
                     errorMessage="Custom code for store is required"
@@ -172,7 +174,7 @@ const EditStore = () => {
             <div className="mt-4">
                 <Text>Store Pincode</Text>
                 <TextInput
-                    value={store?.data?.profile?.pincode + ''}
+                    value={pincode}
                     onInput={e => setPincode(e.currentTarget.value)}
                     error={errors?.errors["profile.pincode"] != undefined}
                     errorMessage="Store pincode is required"
