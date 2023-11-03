@@ -2,7 +2,7 @@ import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { Store, StoresResponse, UserData } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
-import { ArchiveBoxArrowDownIcon, ArchiveBoxIcon, ArrowDownTrayIcon, ArrowPathIcon, BeakerIcon, BuildingStorefrontIcon, CheckIcon, ClockIcon, CurrencyRupeeIcon, GiftIcon, ReceiptRefundIcon, TicketIcon } from "@heroicons/react/24/outline"
+import { ArchiveBoxArrowDownIcon, ArchiveBoxIcon, ArrowDownTrayIcon, ArrowPathIcon, BeakerIcon, BuildingStorefrontIcon, CheckIcon, ClockIcon, CurrencyRupeeIcon, GiftIcon, ReceiptRefundIcon, ShoppingBagIcon, TicketIcon, UsersIcon } from "@heroicons/react/24/outline"
 import { Accordion, AccordionBody, AccordionHeader, AccordionList, Button, Callout, Card, Col, Flex, Grid, Icon, List, ListItem, Metric, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
 import loFilter from 'lodash/filter'
 import loSumBy from 'lodash/sumBy'
@@ -246,7 +246,7 @@ const AdminReports = () => {
                                     <Grid numItemsLg={3} className="gap-6 mt-4 mb-4">
                                         <Card decoration="top" decorationColor="teal">
                                             <Flex justifyContent="start" className="space-x-6">
-                                                <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
+                                                <Icon icon={ArchiveBoxArrowDownIcon} variant="light" color="teal" size="xl" />
                                                 <div className="truncate">
                                                     <Title>Washed</Title>
                                                     <Metric>{loFilter(metrics?.status, count => count.action == 'washed')?.[0]?.action_count || 0}</Metric>
@@ -254,9 +254,9 @@ const AdminReports = () => {
                                             </Flex>
                                         </Card>
 
-                                        <Card decoration="top" decorationColor="teal">
+                                        <Card decoration="top" decorationColor="indigo">
                                             <Flex justifyContent="start" className="space-x-6">
-                                                <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
+                                                <Icon icon={CheckIcon} variant="light" color="indigo" size="xl" />
                                                 <div className="truncate">
                                                     <Title>Ironed</Title>
                                                     <Metric>{loFilter(metrics?.status, count => count.action == 'ironed')?.[0]?.action_count || 0}</Metric>
@@ -264,9 +264,9 @@ const AdminReports = () => {
                                             </Flex>
                                         </Card>
 
-                                        <Card decoration="top" decorationColor="teal">
+                                        <Card decoration="top" decorationColor="purple">
                                             <Flex justifyContent="start" className="space-x-6">
-                                                <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
+                                                <Icon icon={ShoppingBagIcon} variant="light" color="purple" size="xl" />
                                                 <div className="truncate">
                                                     <Title>Packed</Title>
                                                     <Metric>{loFilter(metrics?.status, count => count.action == 'packed')?.[0]?.action_count || 0}</Metric>
@@ -281,15 +281,27 @@ const AdminReports = () => {
 
                     {selectedRange != '1' && (
                         <Card className="mt-4">
-                            <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/reports/exports/stores?token=' + user.token}>
-                                <Button
-                                    className="w-full"
-                                    variant="secondary"
-                                    icon={ArrowDownTrayIcon}
-                                >
-                                    Download report
-                                </Button>
-                            </Link>
+                            <Title className="mb-2">Downloads</Title>
+                            <Grid numItems={2} className="gap-6">
+                                <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/reports/exports/stores?token=' + user.token} className="w-full" target="_blank">
+                                    <Button
+                                        className="w-full"
+                                        variant="secondary"
+                                        icon={ArrowDownTrayIcon}
+                                    >
+                                        Download report
+                                    </Button>
+                                </Link>
+                                <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/reports/exports/customers?token=' + user.token} className="w-full" target="_blank">
+                                    <Button
+                                        className="w-full"
+                                        variant="secondary"
+                                        icon={UsersIcon}
+                                    >
+                                        Download users
+                                    </Button>
+                                </Link>
+                            </Grid>
                         </Card>
                     )}
                 </>
