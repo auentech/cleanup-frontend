@@ -43,10 +43,8 @@ const ListRewash = () => {
             const storeID = userResponse.data.meta.store_id
             setUser(userResponse.data)
 
-            console.log('getting order query', query.order)
             if (query.order) {
                 setIndex(1)
-                console.log('setting index to 1')
                 return
             }
 

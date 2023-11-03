@@ -152,7 +152,7 @@ const ShowOrder = () => {
 
                     <div className="mt-4">
                         <Flex flexDirection="col" className="gap-y-6">
-                            <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/invoice?token=' + user.token}>
+                            <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/invoice?token=' + user.token} className="w-full">
                                 <Button
                                     className="w-full"
                                     variant="secondary"
@@ -161,7 +161,7 @@ const ShowOrder = () => {
                                     Download Invoice
                                 </Button>
                             </Link>
-                            <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/qr?token=' + user.token}>
+                            <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/qr?token=' + user.token} className="w-full">
                                 <Button
                                     className="w-full"
                                     variant="secondary"

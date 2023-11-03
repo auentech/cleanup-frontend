@@ -65,7 +65,6 @@ const AdminReports = () => {
             })
 
             setMetrics(response.data)
-            console.log(response.data)
         }
 
         initData()
