@@ -25,6 +25,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [selectedCustomer, setSelectedCustomer] = useState<UserData>()
 
     const [speed, setSpeed] = useState<string>('4')
+    const [thePackage, setThePackage] = useState<string>('1')
     const [installment, setInstallment] = useState<'full' | 'half'>()
     const [serviceAvailed, setServiceAvailed] = useState<number>(1)
     const [services, setServices] = useState<ServicesResponse>()
@@ -136,22 +137,30 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
     useEffect(() => {
         const speedInt: number = parseInt(speed)
-        console.log('speed changed to', speedInt)
 
         if (speedInt == 1) {
-            console.log('speed 1', ogCost, ogCost + ogCost)
             setCost(ogCost + ogCost)
         } else if (speedInt == 2) {
-            console.log('speed 2', ogCost, (ogCost * (50 / 100)) + ogCost)
             setCost((ogCost * (50 / 100)) + ogCost)
         } else if (speedInt == 3) {
-            console.log('speed 3', (ogCost * (25 / 100)) + ogCost)
             setCost((ogCost * (25 / 100)) + ogCost)
         } else {
-            console.log('speed 4', ogCost, ogCost)
             setCost(ogCost)
         }
     }, [speed])
+
+    useEffect(() => {
+        const packageInt: number = parseInt(thePackage)
+
+        switch (packageInt) {
+            case 1:
+                setCost(ogCost)
+                break
+            case 2:
+                setCost(theCost => theCost - (theCost * (20 / 100)))
+                break
+        }
+    }, [thePackage])
 
     const handleOrderCreate = async () => {
         setLoading(true)
@@ -397,13 +406,23 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         )}
                     </List>
 
-                    <Title>Delivery speed</Title>
-                    <Select value={speed} onValueChange={setSpeed} className="mt-2" enableClear={false}>
-                        <SelectItem value="1">1 Day delivery</SelectItem>
-                        <SelectItem value="2">2 Day delivery</SelectItem>
-                        <SelectItem value="3">3 Day delivery</SelectItem>
-                        <SelectItem value="4">General delivery</SelectItem>
-                    </Select>
+                    <div className="py-2">
+                        <Title>Delivery speed</Title>
+                        <Select value={speed} onValueChange={setSpeed} enableClear={false} className="mt-2">
+                            <SelectItem value="1">1 Day delivery</SelectItem>
+                            <SelectItem value="2">2 Day delivery</SelectItem>
+                            <SelectItem value="3">3 Day delivery</SelectItem>
+                            <SelectItem value="4">General delivery</SelectItem>
+                        </Select>
+                    </div>
+
+                    <div className="py-2">
+                        <Title>Package</Title>
+                        <Select value={thePackage} onValueChange={setThePackage} enableClear={false} className="mt-2">
+                            <SelectItem value="1">Executive package</SelectItem>
+                            <SelectItem value="2">General package</SelectItem>
+                        </Select>
+                    </div>
 
                     <Flex justifyContent="end" className="gap-6 mt-4">
                         <Button variant="secondary" icon={PlusCircleIcon} onClick={() => setServiceAvailed(count => count + 1)}>Add service</Button>
