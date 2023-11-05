@@ -3,6 +3,7 @@ import Logout from "@/common/logout"
 import isUser from "@/common/middlewares/isUser"
 import { FactoriesResponse, UserData } from "@/common/types"
 import ManagerNavigation from "@/components/manager/manager-navigation"
+import TableSkeleton from "@/components/table-skeleton"
 import { BeakerIcon } from "@heroicons/react/24/outline"
 import { Title, Italic, Text, Card, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell, Button, TabGroup, TabList, Tab, TabPanels, TabPanel, Flex } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
@@ -66,38 +67,44 @@ const Factories = () => {
                         </TabList>
                         <TabPanels>
                             <TabPanel>
-                                <Table className="mt-4">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableHeaderCell>Code</TableHeaderCell>
-                                            <TableHeaderCell>Name</TableHeaderCell>
-                                            <TableHeaderCell>Address</TableHeaderCell>
-                                            <TableHeaderCell>Pincode</TableHeaderCell>
-                                            <TableHeaderCell>State</TableHeaderCell>
-                                            <TableHeaderCell>District</TableHeaderCell>
-                                            <TableHeaderCell>Action</TableHeaderCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {factories?.data.map(factory => (
-                                            <TableRow key={factory.id}>
-                                                <TableCell>{factory.code}</TableCell>
-                                                <TableCell>{factory.name}</TableCell>
-                                                <TableCell>{factory.profile?.address}</TableCell>
-                                                <TableCell>{factory.profile?.pincode}</TableCell>
-                                                <TableCell>{factory.profile?.state.name}</TableCell>
-                                                <TableCell>{factory.profile?.district.name}</TableCell>
-                                                <TableCell>
-                                                    <Link href={'/manager/factories/' + factory.id}>
-                                                        <Button icon={BeakerIcon} size="xs" variant="secondary" color="gray">
-                                                            Show factory
-                                                        </Button>
-                                                    </Link>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                <div className="mt-4">
+                                    {factories == undefined ? (
+                                        <TableSkeleton numCols={7} numRows={5} />
+                                    ) : (
+                                        <Table>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableHeaderCell>Code</TableHeaderCell>
+                                                    <TableHeaderCell>Name</TableHeaderCell>
+                                                    <TableHeaderCell>Address</TableHeaderCell>
+                                                    <TableHeaderCell>Pincode</TableHeaderCell>
+                                                    <TableHeaderCell>State</TableHeaderCell>
+                                                    <TableHeaderCell>District</TableHeaderCell>
+                                                    <TableHeaderCell>Action</TableHeaderCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {factories.data.map(factory => (
+                                                    <TableRow key={factory.id}>
+                                                        <TableCell>{factory.code}</TableCell>
+                                                        <TableCell>{factory.name}</TableCell>
+                                                        <TableCell>{factory.profile?.address}</TableCell>
+                                                        <TableCell>{factory.profile?.pincode}</TableCell>
+                                                        <TableCell>{factory.profile?.state.name}</TableCell>
+                                                        <TableCell>{factory.profile?.district.name}</TableCell>
+                                                        <TableCell>
+                                                            <Link href={'/admin/factories/' + factory.id}>
+                                                                <Button icon={BeakerIcon} size="xs" variant="secondary" color="gray">
+                                                                    Show factory
+                                                                </Button>
+                                                            </Link>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    )}
+                                </div>
                             </TabPanel>
                             <TabPanel>
                                 {theIndex == 1 && <LazyCreateFactory />}

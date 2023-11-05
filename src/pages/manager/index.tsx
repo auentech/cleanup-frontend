@@ -12,6 +12,9 @@ import lodashSortBy from 'lodash/sortBy'
 import dayjs from "dayjs"
 import Link from "next/link"
 import ManagerNavigation from "@/components/manager/manager-navigation"
+import FormatNumber from "@/common/number-formatter"
+import TableSkeleton from "@/components/table-skeleton"
+import { Skeleton } from "@nextui-org/react"
 
 type SalesMetricType = {
     date: string,
@@ -48,6 +51,7 @@ const AdminIndex = () => {
     const [collected, setCollected] = useState<SalesMetricType[]>()
 
     const [search, setSearch] = useState<string>('')
+    const [loading, setLoading] = useState<boolean>(true)
     const [selectedStore, setSelectedStore] = useState<Store>()
     const [metrics, setMetrics] = useState<AdminDashboardResponse>()
 
@@ -102,6 +106,7 @@ const AdminIndex = () => {
 
             const dataResponse = await axios.get<AdminDashboardResponse>('dashboard/admin')
             setMetrics(dataResponse.data)
+            setLoading(false)
         }
 
         initData()
@@ -181,7 +186,11 @@ const AdminIndex = () => {
                             <Icon icon={ReceiptPercentIcon} variant="light" color="blue" size="xl"></Icon>
                             <div className="truncate">
                                 <Title>Billing</Title>
-                                <Metric>₹ {lodashSumBy(cost, 'Cost')}</Metric>
+                                <Metric>
+                                    {loading ? (
+                                        <Skeleton className="h-3 rounded-lg w-full" />
+                                    ) : '₹ ' + FormatNumber(lodashSumBy(cost, 'Cost'))}
+                                </Metric>
                             </div>
                         </Flex>
                         <AreaChart
@@ -204,7 +213,11 @@ const AdminIndex = () => {
                             <Icon icon={CurrencyRupeeIcon} variant="light" color="orange" size="xl"></Icon>
                             <div className="truncate">
                                 <Title>Collected</Title>
-                                <Metric>₹ {lodashSumBy(collected, 'Cost')}</Metric>
+                                <Metric>
+                                    {loading ? (
+                                        <Skeleton className="h-3 rounded-lg w-full" />
+                                    ) : '₹ ' + FormatNumber(lodashSumBy(collected, 'Cost'))}
+                                </Metric>
                             </div>
                         </Flex>
                         <AreaChart
@@ -227,7 +240,11 @@ const AdminIndex = () => {
                             <Icon icon={ArchiveBoxArrowDownIcon} variant="light" color="fuchsia" size="xl"></Icon>
                             <div className="truncate">
                                 <Title>Orders</Title>
-                                <Metric>{lodashSumBy(orders, 'Orders')}</Metric>
+                                <Metric>
+                                    {loading ? (
+                                        <Skeleton className="h-3 rounded-lg w-full" />
+                                    ) : lodashSumBy(orders, 'Orders')}
+                                </Metric>
                             </div>
                         </Flex>
                         <AreaChart
@@ -252,40 +269,47 @@ const AdminIndex = () => {
                     <Title>Live orders</Title>
                     <Text>Orders across stores will be displayed in realtime</Text>
 
-                    <Table className="mt-2">
-                        <TableHead>
-                            <TableRow>
-                                <TableHeaderCell>Code</TableHeaderCell>
-                                <TableHeaderCell>Customer</TableHeaderCell>
-                                <TableHeaderCell>Order date</TableHeaderCell>
-                                <TableHeaderCell>Store code</TableHeaderCell>
-                                <TableHeaderCell>Garments</TableHeaderCell>
-                                <TableHeaderCell>Status</TableHeaderCell>
-                                <TableHeaderCell>Amount</TableHeaderCell>
-                                <TableHeaderCell>Action</TableHeaderCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {metrics?.data.map(order => (
-                                <TableRow key={order.id}>
-                                    <TableCell>{order.code}</TableCell>
-                                    <TableCell>{order.customer?.name}</TableCell>
-                                    <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
-                                    <TableCell>{order.store?.code}</TableCell>
-                                    <TableCell>{order.count}</TableCell>
-                                    <TableCell>{statusBadger(order.status)}</TableCell>
-                                    <TableCell>₹ {order.cost}</TableCell>
-                                    <TableCell>
-                                        <Link href={'/manager/stores/' + order?.store?.id + '/orders/' + order.code}>
-                                            <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
-                                        </Link>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </Card>
-            </div>
+                    <div className="mt-2">
+                        {loading ? (
+                            <TableSkeleton numRows={5} numCols={8} />
+                        ) : (
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableHeaderCell>Code</TableHeaderCell>
+                                        <TableHeaderCell>Customer</TableHeaderCell>
+                                        <TableHeaderCell>Order date</TableHeaderCell>
+                                        <TableHeaderCell>Store code</TableHeaderCell>
+                                        <TableHeaderCell>Garments</TableHeaderCell>
+                                        <TableHeaderCell>Status</TableHeaderCell>
+                                        <TableHeaderCell>Amount</TableHeaderCell>
+                                        <TableHeaderCell>Action</TableHeaderCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {metrics?.data.map(order => (
+                                        <TableRow key={order.id}>
+                                            <TableCell>{order.code}</TableCell>
+                                            <TableCell>{order.customer?.name}</TableCell>
+                                            <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
+                                            <TableCell>{order.store?.code}</TableCell>
+                                            <TableCell>{order.count}</TableCell>
+                                            <TableCell>{statusBadger(order.status)}</TableCell>
+                                            <TableCell>₹ {FormatNumber(order.cost)}</TableCell>
+                                            <TableCell>
+                                                <Link href={'/admin/stores/' + order?.store?.id + '/orders/' + order.code}>
+                                                    <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
+                                                </Link>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        )
+                        }
+                    </div >
+                </Card >
+            </div >
         </div>
     )
 }

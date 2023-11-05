@@ -10,6 +10,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import ManagerNavigation from "@/components/manager/manager-navigation"
+import TableSkeleton from "@/components/table-skeleton"
 
 const LazyCreateStore = dynamic(() => import('@/components/admin/create-store'), {
     loading: () => (
@@ -61,49 +62,44 @@ const StoreIndex = () => {
                     </TabList>
                     <TabPanels>
                         <TabPanel>
-                            <Table className="mt-4">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableHeaderCell>Store Code</TableHeaderCell>
-                                        <TableHeaderCell>Name</TableHeaderCell>
-                                        <TableHeaderCell>Address</TableHeaderCell>
-                                        <TableHeaderCell>Pincode</TableHeaderCell>
-                                        <TableHeaderCell>State</TableHeaderCell>
-                                        <TableHeaderCell>District</TableHeaderCell>
-                                        <TableHeaderCell>Action</TableHeaderCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {stores != undefined ? stores.data.map(store => (
-                                        <TableRow key={store.id}>
-                                            <TableCell>{store.code}</TableCell>
-                                            <TableCell>{store.name}</TableCell>
-                                            <TableCell>{store?.profile?.address}</TableCell>
-                                            <TableCell>{store?.profile?.pincode}</TableCell>
-                                            <TableCell>{store?.profile?.state.name}</TableCell>
-                                            <TableCell>{store?.profile?.district.name}</TableCell>
-                                            <TableCell>
-                                                <Link href={'/manager/stores/' + store.id}>
-                                                    <Button icon={BuildingStorefrontIcon} size="xs" variant="secondary" color="gray">
-                                                        Show store
-                                                    </Button>
-                                                </Link>
-                                            </TableCell>
-                                        </TableRow>
-                                    )) : (
-                                        <TableRow>
-                                            <TableCell colSpan={7}>
-                                                <Flex alignItems="center" justifyContent="center">
-                                                    <Waveform
-                                                        size={20}
-                                                        color="#3b82f6"
-                                                    />
-                                                </Flex>
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                            <div className="mt-4">
+                                {stores === undefined ? (
+                                    <TableSkeleton numCols={7} numRows={5} />
+                                ) : (
+                                    <Table className="mt-4">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableHeaderCell>Store Code</TableHeaderCell>
+                                                <TableHeaderCell>Name</TableHeaderCell>
+                                                <TableHeaderCell>Address</TableHeaderCell>
+                                                <TableHeaderCell>Pincode</TableHeaderCell>
+                                                <TableHeaderCell>State</TableHeaderCell>
+                                                <TableHeaderCell>District</TableHeaderCell>
+                                                <TableHeaderCell>Action</TableHeaderCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {stores.data.map(store => (
+                                                <TableRow key={store.id}>
+                                                    <TableCell>{store.code}</TableCell>
+                                                    <TableCell>{store.name}</TableCell>
+                                                    <TableCell>{store?.profile?.address}</TableCell>
+                                                    <TableCell>{store?.profile?.pincode}</TableCell>
+                                                    <TableCell>{store?.profile?.state.name}</TableCell>
+                                                    <TableCell>{store?.profile?.district.name}</TableCell>
+                                                    <TableCell>
+                                                        <Link href={'/admin/stores/' + store.id}>
+                                                            <Button icon={BuildingStorefrontIcon} size="xs" variant="secondary" color="gray">
+                                                                Show store
+                                                            </Button>
+                                                        </Link>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </div>
                         </TabPanel>
                         <TabPanel>
                             {theIndex == 1 && <LazyCreateStore />}

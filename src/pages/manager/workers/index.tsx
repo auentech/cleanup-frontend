@@ -11,6 +11,7 @@ import ManagerNavigation from "@/components/manager/manager-navigation"
 import { DocumentCheckIcon, UserIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/react";
 import { useRouter } from "next/router"
+import TableSkeleton from "@/components/table-skeleton"
 
 const LazyCreateWorker = dynamic(() => import('@/components/admin/create-worker'), {
     loading: () => (
@@ -82,38 +83,44 @@ const Workers = () => {
                     </TabList>
                     <TabPanels>
                         <TabPanel>
-                            <Table className="mt-4">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableHeaderCell>Name</TableHeaderCell>
-                                        <TableHeaderCell>Role</TableHeaderCell>
-                                        <TableHeaderCell>Email</TableHeaderCell>
-                                        <TableHeaderCell>Phone</TableHeaderCell>
-                                        <TableHeaderCell>State</TableHeaderCell>
-                                        <TableHeaderCell>Action</TableHeaderCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {workers?.data.map(worker => (
-                                        <TableRow key={worker.id}>
-                                            <TableCell>{worker.name}</TableCell>
-                                            <TableCell>
-                                                <Badge style={{ textTransform: 'capitalize' }}>
-                                                    {worker.role}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>{worker.email}</TableCell>
-                                            <TableCell>{worker.phone}</TableCell>
-                                            <TableCell>{worker?.profile?.state.name}</TableCell>
-                                            <TableCell>
-                                                <Button icon={UserIcon} variant="secondary" color="gray" onClick={_ => editWorker(worker)}>
-                                                    Show worker
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                            <div className="mt-4">
+                                {workers == undefined ? (
+                                    <TableSkeleton numCols={6} numRows={5} />
+                                ) : (
+                                    <Table className="mt-4">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableHeaderCell>Name</TableHeaderCell>
+                                                <TableHeaderCell>Role</TableHeaderCell>
+                                                <TableHeaderCell>Email</TableHeaderCell>
+                                                <TableHeaderCell>Phone</TableHeaderCell>
+                                                <TableHeaderCell>State</TableHeaderCell>
+                                                <TableHeaderCell>Action</TableHeaderCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {workers.data.map(worker => (
+                                                <TableRow key={worker.id}>
+                                                    <TableCell>{worker.name}</TableCell>
+                                                    <TableCell>
+                                                        <Badge style={{ textTransform: 'capitalize' }}>
+                                                            {worker.role}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>{worker.email}</TableCell>
+                                                    <TableCell>{worker.phone}</TableCell>
+                                                    <TableCell>{worker?.profile?.state.name}</TableCell>
+                                                    <TableCell>
+                                                        <Button icon={UserIcon} variant="secondary" color="gray" onClick={_ => editWorker(worker)}>
+                                                            Show worker
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </div>
                         </TabPanel>
                         <TabPanel>
                             {theIndex == 1 && <LazyCreateWorker />}
