@@ -1,7 +1,7 @@
 import useAxios from "@/common/axios"
 import { OrderGarment, OrderService, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
 import { CheckIcon, PlusCircleIcon, ShoppingCartIcon, UserIcon, UserPlusIcon } from "@heroicons/react/24/outline"
-import { Button, Callout, Col, Divider, Flex, Grid, List, ListItem, NumberInput, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
+import { Button, Callout, Col, Divider, Flex, Grid, List, ListItem, NumberInput, SearchSelect, SearchSelectItem, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
@@ -157,7 +157,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                 setCost(ogCost)
                 break
             case 2:
-                setCost(theCost => theCost - (theCost * (20 / 100)))
+                setCost(theCost => theCost - (theCost * (15 / 100)))
                 break
         }
     }, [thePackage])
@@ -222,18 +222,18 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     <Grid numItemsMd={3} className="gap-6">
                         <Col>
                             <Text>Service</Text>
-                            <Select
+                            <SearchSelect
                                 className="mt-2"
                                 onValueChange={value => handleServicesInput(i, value)}
                                 value={selectedServices?.[i] as string}
                                 enableClear={false}
                             >
                                 {services?.data.map(service => (
-                                    <SelectItem key={service.id} value={service.id + ''}>{service.service}</SelectItem>
+                                    <SearchSelectItem key={service.id} value={service.id + ''}>{service.service}</SearchSelectItem>
                                 )) || (
-                                        <SelectItem value=''>Loading...</SelectItem>
+                                        <SearchSelectItem value=''>Loading...</SearchSelectItem>
                                     )}
-                            </Select>
+                            </SearchSelect>
                         </Col>
                         <Col>
                             <Text>Garment</Text>
@@ -350,6 +350,10 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                     <Divider />
 
+                    <Button variant="secondary" className="w-full" icon={PlusCircleIcon} onClick={() => setServiceAvailed(count => count + 1)}>Add service</Button>
+
+                    <Divider />
+
                     <div className="mt-4">
                         <Text>Discount</Text>
                         <NumberInput onValueChange={setDiscount} className="mt-2" />
@@ -420,12 +424,11 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <Title>Package</Title>
                         <Select value={thePackage} onValueChange={setThePackage} enableClear={false} className="mt-2">
                             <SelectItem value="1">Executive package</SelectItem>
-                            <SelectItem value="2">General package</SelectItem>
+                            <SelectItem value="2">Economic package</SelectItem>
                         </Select>
                     </div>
 
                     <Flex justifyContent="end" className="gap-6 mt-4">
-                        <Button variant="secondary" icon={PlusCircleIcon} onClick={() => setServiceAvailed(count => count + 1)}>Add service</Button>
                         <Button
                             icon={ShoppingCartIcon}
                             loading={loading}
