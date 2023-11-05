@@ -5,6 +5,7 @@ import lodashSumBy from "lodash/sumBy"
 import lodashSortBy from "lodash/sortBy"
 import lodashMap from "lodash/map"
 import { useEffect, useState } from "react"
+import FormatNumber from "@/common/number-formatter"
 
 type SalesMetricType = {
     date: string,
@@ -102,7 +103,7 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                             <Icon icon={ReceiptPercentIcon} variant="light" color="blue" size="xl"></Icon>
                             <div className="truncate">
                                 <Title>Sales</Title>
-                                <Metric>₹ {lodashSumBy(salesMetrics, 'Cost')}</Metric>
+                                <Metric>₹ {FormatNumber(lodashSumBy(salesMetrics, 'Cost'))}</Metric>
                             </div>
                         </Flex>
                         <AreaChart
@@ -168,7 +169,7 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                             <Icon icon={CurrencyRupeeIcon} variant="light" color="lime" size="xl"></Icon>
                             <div className="truncate">
                                 <Title>Collected</Title>
-                                <Metric>₹ {lodashSumBy(balanceMetrics, 'Cost')}</Metric>
+                                <Metric>₹ {FormatNumber(lodashSumBy(balanceMetrics, 'Cost'))}</Metric>
                             </div>
                         </Flex>
                         <AreaChart

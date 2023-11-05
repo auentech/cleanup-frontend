@@ -1,3 +1,4 @@
+import FormatNumber from "@/common/number-formatter"
 import { OrdersResponse, StatusEnum, StoreResponse } from "@/common/types"
 import { ArrowPathIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, ReceiptPercentIcon, UserIcon } from "@heroicons/react/24/outline"
 import { Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Button, Badge } from "@tremor/react"
@@ -46,7 +47,7 @@ const StoreOrders = ({ orders, store, role }: StoreOrdersType) => {
                         <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
                         <TableCell>{order.count}</TableCell>
                         <TableCell>{statusBadger(order.status)}</TableCell>
-                        <TableCell>₹ {order.cost}</TableCell>
+                        <TableCell>₹ {FormatNumber(order.cost)}</TableCell>
                         <TableCell>
                             <Link href={'/' + role + '/stores/' + store?.data.id + '/orders/' + order.code}>
                                 <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
