@@ -50,8 +50,8 @@ const AdminIndex = () => {
     const [orders, setOrders] = useState<OrdersMetricType[]>()
     const [collected, setCollected] = useState<SalesMetricType[]>()
 
-    const [loading, setLoading] = useState<boolean>()
     const [search, setSearch] = useState<string>('')
+    const [loading, setLoading] = useState<boolean>(true)
     const [selectedStore, setSelectedStore] = useState<Store>()
     const [metrics, setMetrics] = useState<AdminDashboardResponse>()
 
@@ -92,7 +92,6 @@ const AdminIndex = () => {
     }
 
     useEffect(() => {
-        setLoading(true)
         const initData = async () => {
             if (selectedStore) {
                 const dataResponse = await axios.get<AdminDashboardResponse>('dashboard/admin', {
