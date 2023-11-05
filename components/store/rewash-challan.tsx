@@ -6,7 +6,7 @@ import dayjs from "dayjs"
 import Link from "next/link"
 import router from "next/router"
 import { useEffect, useState } from "react"
-import TableSkeleton from "../table-skeleton"
+import TableSkeleton from "@/components/table-skeleton"
 
 const RewashChallans = () => {
     const axios = useAxios()
