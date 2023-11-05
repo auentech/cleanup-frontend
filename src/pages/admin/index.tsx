@@ -14,6 +14,7 @@ import dayjs from "dayjs"
 import Link from "next/link"
 import TableSkeleton from "@/components/table-skeleton"
 import { Skeleton } from "@nextui-org/react"
+import FormatNumber from "@/common/number-formatter"
 
 type SalesMetricType = {
     date: string,
@@ -189,7 +190,7 @@ const AdminIndex = () => {
                                 <Metric>
                                     {loading ? (
                                         <Skeleton className="h-3 rounded-lg w-full" />
-                                    ) : '₹ ' + lodashSumBy(cost, 'Cost')}
+                                    ) : '₹ ' + FormatNumber(lodashSumBy(cost, 'Cost'))}
                                 </Metric>
                             </div>
                         </Flex>
@@ -216,7 +217,7 @@ const AdminIndex = () => {
                                 <Metric>
                                     {loading ? (
                                         <Skeleton className="h-3 rounded-lg w-full" />
-                                    ) : '₹ ' + lodashSumBy(collected, 'Cost')}
+                                    ) : '₹ ' + FormatNumber(lodashSumBy(collected, 'Cost'))}
                                 </Metric>
                             </div>
                         </Flex>
@@ -295,7 +296,7 @@ const AdminIndex = () => {
                                             <TableCell>{order.store?.code}</TableCell>
                                             <TableCell>{order.count}</TableCell>
                                             <TableCell>{statusBadger(order.status)}</TableCell>
-                                            <TableCell>₹ {order.cost}</TableCell>
+                                            <TableCell>₹ {FormatNumber(order.cost)}</TableCell>
                                             <TableCell>
                                                 <Link href={'/admin/stores/' + order?.store?.id + '/orders/' + order.code}>
                                                     <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
