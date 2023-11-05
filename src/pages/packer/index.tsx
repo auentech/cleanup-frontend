@@ -2,6 +2,7 @@ import useAxios from "@/common/axios"
 import Logout from "@/common/logout"
 import isUser from "@/common/middlewares/isUser"
 import { ReturnChallan, ReturnChallansResponse, UserData } from "@/common/types"
+import TableSkeleton from "@/components/table-skeleton"
 import { CameraIcon, ShoppingBagIcon } from "@heroicons/react/24/outline"
 import { Subtitle, Title, Italic, Card, TabList, TabGroup, Tab, TabPanels, TabPanel, Flex, Table, TableHead, TableHeaderCell, TableRow, TableBody, TableCell, Button } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
@@ -70,50 +71,54 @@ const PackerHome = () => {
                         </TabList>
                         <TabPanels>
                             <TabPanel>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableHeaderCell>
-                                                RC Code
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                Store Code
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                Store Name
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                Created at
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                Order codes
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                QR Codes
-                                            </TableHeaderCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {returnChallans.length > 0 && returnChallans.map(challan => (
-                                            <TableRow key={challan.code}>
-                                                <TableCell>{challan.code}</TableCell>
-                                                <TableCell>{challan.store?.code}</TableCell>
-                                                <TableCell>{challan.store?.name}</TableCell>
-                                                <TableCell>
-                                                    {dayjs(challan.created_at).format('DD, MMMM YY')}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Button variant="light" icon={ShoppingBagIcon}>Show order codes</Button>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/return-challans/' + challan.code + '/qr?token=' + user?.token} target="_blank">
-                                                        <Button variant="secondary" icon={CameraIcon}>Show QR codes</Button>
-                                                    </Link>
-                                                </TableCell>
+                                {returnChallans.length > 0 ? (
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableHeaderCell>
+                                                    RC Code
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Store Code
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Store Name
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Created at
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Order codes
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    QR Codes
+                                                </TableHeaderCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHead>
+                                        <TableBody>
+                                            {returnChallans.map(challan => (
+                                                <TableRow key={challan.code}>
+                                                    <TableCell>{challan.code}</TableCell>
+                                                    <TableCell>{challan.store?.code}</TableCell>
+                                                    <TableCell>{challan.store?.name}</TableCell>
+                                                    <TableCell>
+                                                        {dayjs(challan.created_at).format('DD, MMMM YY')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button variant="light" icon={ShoppingBagIcon}>Show order codes</Button>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/return-challans/' + challan.code + '/qr?token=' + user?.token} target="_blank">
+                                                            <Button variant="secondary" icon={CameraIcon}>Show QR codes</Button>
+                                                        </Link>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                ) : (
+                                    <TableSkeleton numCols={6} numRows={5} />
+                                )}
                             </TabPanel>
 
                             <TabPanel>
