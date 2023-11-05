@@ -2,6 +2,7 @@ import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { DeliveryChallansResponse, LoginResponse } from "@/common/types"
 import OperatorNavigation from "@/components/operator/operator-navigation"
+import TableSkeleton from "@/components/table-skeleton"
 import { BeakerIcon, BuildingStorefrontIcon, PlusCircleIcon, ReceiptRefundIcon, TruckIcon } from "@heroicons/react/24/outline"
 import { Badge, Button, Card, Flex, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
 import Waveform from "@uiball/loaders/dist/components/Waveform"
@@ -71,42 +72,46 @@ const ShowChallans = () => {
                         </TabList>
                         <TabPanels>
                             <TabPanel className="mt-4">
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableHeaderCell>Code</TableHeaderCell>
-                                            <TableHeaderCell>Factory</TableHeaderCell>
-                                            <TableHeaderCell>Created on</TableHeaderCell>
-                                            <TableHeaderCell>Store</TableHeaderCell>
-                                            <TableHeaderCell>Action</TableHeaderCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {challans?.data.map(challan => (
-                                            <TableRow key={challan.id}>
-                                                <TableCell>{challan.code}</TableCell>
-                                                <TableCell>
-                                                    <Flex justifyContent="start" className="gap-2">
-                                                        {challan.factory?.name}
-                                                        <Badge icon={BeakerIcon}>{challan.factory?.code}</Badge>
-                                                    </Flex>
-                                                </TableCell>
-                                                <TableCell>{dayjs(challan.created_at).format('DD, MMMM YY')}</TableCell>
-                                                <TableCell>
-                                                    <Flex justifyContent="start" className="gap-2">
-                                                        {challan.store?.name}
-                                                        <Badge icon={BuildingStorefrontIcon}>{challan.store?.code}</Badge>
-                                                    </Flex>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Link href={'/operator/challans/' + challan.id}>
-                                                        <Button variant="secondary" color="gray" icon={TruckIcon}>Show challan</Button>
-                                                    </Link>
-                                                </TableCell>
+                                {challans == undefined ? (
+                                    <TableSkeleton numCols={5} numRows={5} />
+                                ) : (
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableHeaderCell>Code</TableHeaderCell>
+                                                <TableHeaderCell>Factory</TableHeaderCell>
+                                                <TableHeaderCell>Created on</TableHeaderCell>
+                                                <TableHeaderCell>Store</TableHeaderCell>
+                                                <TableHeaderCell>Action</TableHeaderCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHead>
+                                        <TableBody>
+                                            {challans?.data.map(challan => (
+                                                <TableRow key={challan.id}>
+                                                    <TableCell>{challan.code}</TableCell>
+                                                    <TableCell>
+                                                        <Flex justifyContent="start" className="gap-2">
+                                                            {challan.factory?.name}
+                                                            <Badge icon={BeakerIcon}>{challan.factory?.code}</Badge>
+                                                        </Flex>
+                                                    </TableCell>
+                                                    <TableCell>{dayjs(challan.created_at).format('DD, MMMM YY')}</TableCell>
+                                                    <TableCell>
+                                                        <Flex justifyContent="start" className="gap-2">
+                                                            {challan.store?.name}
+                                                            <Badge icon={BuildingStorefrontIcon}>{challan.store?.code}</Badge>
+                                                        </Flex>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Link href={'/operator/challans/' + challan.id}>
+                                                            <Button variant="secondary" color="gray" icon={TruckIcon}>Show challan</Button>
+                                                        </Link>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
                             </TabPanel>
 
                             <TabPanel>

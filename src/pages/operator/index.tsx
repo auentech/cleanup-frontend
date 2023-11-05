@@ -5,6 +5,7 @@ import { LoginResponse, OrdersResponse, StoreResponse, UserData } from "@/common
 import OperatorNavigation from "@/components/operator/operator-navigation"
 import StoreKPICards from "@/components/store/store-kpi-cards"
 import StoreOrders from "@/components/store/store-orders"
+import TableSkeleton from "@/components/table-skeleton"
 import { Title, Text, Italic, Grid, Card, TabList, TabGroup, Tab, TabPanels, TabPanel, Flex } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useSession } from "next-auth/react"
@@ -93,7 +94,9 @@ const OperatorIndex = () => {
                     </TabList>
                     <TabPanels>
                         <TabPanel>
-                            <StoreOrders store={store} orders={orders} role="operator" />
+                            {store == undefined || orders == undefined ? (
+                                <TableSkeleton numCols={7} numRows={5} />
+                            ) : <StoreOrders store={store} orders={orders} role="operator" />}
                         </TabPanel>
                         <TabPanel>
                             {index == 1 && <LazyCreateOrder store={store as StoreResponse} />}

@@ -6,6 +6,7 @@ import dayjs from "dayjs"
 import Link from "next/link"
 import router from "next/router"
 import { useEffect, useState } from "react"
+import TableSkeleton from "../table-skeleton"
 
 const RewashChallans = () => {
     const axios = useAxios()
@@ -69,32 +70,36 @@ const RewashChallans = () => {
 
     const NoChallanOrders = () => (
         <>
-            <Table className="mt-4">
-                <TableHead>
-                    <TableRow>
-                        <TableHeaderCell>Order code</TableHeaderCell>
-                        <TableHeaderCell>Customer name</TableHeaderCell>
-                        <TableHeaderCell>Garments</TableHeaderCell>
-                        <TableHeaderCell>Origianl order</TableHeaderCell>
-                        <TableHeaderCell>Order created at</TableHeaderCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {orders?.data.map(order => (
-                        <TableRow key={order.id}>
-                            <TableCell>{order.code}</TableCell>
-                            <TableCell>{order.customer?.name}</TableCell>
-                            <TableCell>{order.count}</TableCell>
-                            <TableCell>
-                                <Link href={'/operator/stores/' + user?.meta.store_id + '/orders/' + order.rewash?.code}>
-                                    <Text color="blue">{order.rewash?.code}</Text>
-                                </Link>
-                            </TableCell>
-                            <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
+            {!orders ? (
+                <TableSkeleton numCols={5} numRows={5} />
+            ) : (
+                <Table className="mt-4">
+                    <TableHead>
+                        <TableRow>
+                            <TableHeaderCell>Order code</TableHeaderCell>
+                            <TableHeaderCell>Customer name</TableHeaderCell>
+                            <TableHeaderCell>Garments</TableHeaderCell>
+                            <TableHeaderCell>Origianl order</TableHeaderCell>
+                            <TableHeaderCell>Order created at</TableHeaderCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {orders?.data.map(order => (
+                            <TableRow key={order.id}>
+                                <TableCell>{order.code}</TableCell>
+                                <TableCell>{order.customer?.name}</TableCell>
+                                <TableCell>{order.count}</TableCell>
+                                <TableCell>
+                                    <Link href={'/operator/stores/' + user?.meta.store_id + '/orders/' + order.rewash?.code}>
+                                        <Text color="blue">{order.rewash?.code}</Text>
+                                    </Link>
+                                </TableCell>
+                                <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            )}
 
             {orders && (
                 <>
