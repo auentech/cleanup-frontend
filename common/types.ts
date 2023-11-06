@@ -323,6 +323,12 @@ export type ReturnChallansResponse = {
     meta: Meta
 }
 
+export type ClosingCreateResponse = {
+    mode: PaymentMode
+    total_cost: string
+    created_at: string
+}
+
 export type BackendGeneralResponse = {
     type: 'SUCCESS' | 'ERROR' | 'AUTH_ERROR'
     message: string
