@@ -124,7 +124,7 @@ const ShowOrderInfo = () => {
                 </Card>
             </div>
 
-            <Grid numItemsLg={2} className="gap-6 mt-6">
+            <Grid numItemsLg={3} className="gap-6 mt-6">
                 <Card>
                     <Title>Customer details</Title>
                     <Text>Details of the customer the order belongs to</Text>
@@ -193,6 +193,40 @@ const ShowOrderInfo = () => {
                                 </Button>
                             </Link>
                         </Flex>
+                    </div>
+                </Card>
+
+                <Card>
+                    <Title>Order Details</Title>
+                    <Text>Get a glimpse of order related information</Text>
+
+                    <div className="mt-4">
+                        <List>
+                            <ListItem>
+                                <Text>Code</Text>
+                                <Text>{order?.data.code}</Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text>Package</Text>
+                                <Text>{order?.data.package}</Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text>Speed</Text>
+                                <Text>{order?.data.speed}</Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text>Due on</Text>
+                                <Text>{order?.data.due_date ? dayjs(order?.data.due_date).format('DD, MMMM YY') : 'General'}</Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text>CGST</Text>
+                                <Text>₹ {order?.data.cost && (order.data.cost * (9 / 100)).toFixed(2)}</Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text>SGST</Text>
+                                <Text>₹ {order?.data.cost && (order.data.cost * (9 / 100)).toFixed(2)}</Text>
+                            </ListItem>
+                        </List>
                     </div>
                 </Card>
             </Grid>

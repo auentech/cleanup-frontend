@@ -108,9 +108,12 @@ export type Order = {
     store?: Store
     rewash?: Order
     paid: number
+    speed: number
     rewash_parent_id: number
+    due_date: string
     created_at: string
     updated_at: string
+    package: 'economy' | 'executive'
 }
 
 export type StoresResponse = {
