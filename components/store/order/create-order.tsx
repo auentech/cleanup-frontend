@@ -156,7 +156,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
             case "executive":
                 setCost(ogCost)
                 break
-            case "economic":
+            case "economy":
                 setCost(theCost => theCost - (theCost * (15 / 100)))
                 break
         }
