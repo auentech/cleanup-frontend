@@ -168,7 +168,7 @@ const StoreKPICards = ({ store }: StoreKPICardsType) => {
                         <Flex justifyContent="start" className="space-x-6">
                             <Icon icon={CurrencyRupeeIcon} variant="light" color="lime" size="xl"></Icon>
                             <div className="truncate">
-                                <Title>Collected</Title>
+                                <Title>Balance</Title>
                                 <Metric>₹ {FormatNumber(lodashSumBy(balanceMetrics, 'Cost'))}</Metric>
                             </div>
                         </Flex>

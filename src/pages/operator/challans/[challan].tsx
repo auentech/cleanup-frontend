@@ -9,6 +9,7 @@ import { useEffect, useState } from "react"
 import sumBy from "lodash/sumBy"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
+import dayjs from "dayjs"
 
 const ShowChallan = () => {
     const axios = useAxios()
@@ -101,7 +102,8 @@ const ShowChallan = () => {
                             <TableRow>
                                 <TableHeaderCell>Order code</TableHeaderCell>
                                 <TableHeaderCell>No. of garments</TableHeaderCell>
-                                <TableHeaderCell>Cost</TableHeaderCell>
+                                <TableHeaderCell>Due date</TableHeaderCell>
+                                <TableHeaderCell>Package</TableHeaderCell>
                                 <TableHeaderCell>Action</TableHeaderCell>
                             </TableRow>
                         </TableHead>
@@ -110,7 +112,8 @@ const ShowChallan = () => {
                                 <TableRow key={order.id}>
                                     <TableCell>{order.code}</TableCell>
                                     <TableCell>{order.count}</TableCell>
-                                    <TableCell>{order.cost}</TableCell>
+                                    <TableCell>{order.due_date ? dayjs(order.due_date).format('DD, MMMM YY') : 'General'}</TableCell>
+                                    <TableCell>{order.package}</TableCell>
                                     <TableCell>
                                         <Link href={'/operator/stores/' + challan.data.store?.id + '/orders/' + order.code}>
                                             <Button icon={ArchiveBoxIcon} variant="secondary">
@@ -126,19 +129,19 @@ const ShowChallan = () => {
                     <Divider />
 
                     <Flex justifyContent="end" className="gap-6">
-                        <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + user?.meta.store_id + '/challans/' + challanID + '/excel?token=' + auth.token}>
+                        <a target="_blank" href={process.env.NEXT_PUBLIC_BACKEND_URL + 'api/stores/' + user?.meta.store_id + '/challans/' + challanID + '/excel?token=' + auth.token}>
                             <Button
                                 color="gray"
                                 variant="secondary"
                                 icon={ReceiptPercentIcon}
                             >Export excel</Button>
-                        </Link>
-                        <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + user?.meta.store_id + '/challans/' + challanID + '/pdf?token=' + auth.token}>
+                        </a>
+                        <a target="_blank" href={process.env.NEXT_PUBLIC_BACKEND_URL + 'api/stores/' + user?.meta.store_id + '/challans/' + challanID + '/pdf?token=' + auth.token}>
                             <Button
                                 icon={PrinterIcon}
                                 variant="secondary"
                             >Export print</Button>
-                        </Link>
+                        </a>
                     </Flex>
                 </Card>
             </div>
