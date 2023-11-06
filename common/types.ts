@@ -329,6 +329,22 @@ export type ClosingCreateResponse = {
     created_at: string
 }
 
+export type Closing = {
+    card: number
+    cash: number
+    upi: number
+    expense: number
+    remarks: string
+    performer: UserData
+    created_at: string
+}
+
+export type ClosingsResponse = {
+    data: Closing[]
+    links: Links
+    meta: Meta
+}
+
 export type BackendGeneralResponse = {
     type: 'SUCCESS' | 'ERROR' | 'AUTH_ERROR'
     message: string
