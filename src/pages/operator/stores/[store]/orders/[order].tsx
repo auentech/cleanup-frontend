@@ -1,6 +1,6 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
-import { BackendGeneralResponse, OrderResponse, OrderStatusesResponse, StoreResponse, UserData } from "@/common/types"
+import { BackendGeneralResponse, OrderResponse, OrderStatusesResponse, PaymentMode, StoreResponse, UserData } from "@/common/types"
 import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, CurrencyRupeeIcon, ForwardIcon, ReceiptPercentIcon, ShoppingBagIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, NumberInput, Select, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, TextInput, Title, SelectItem } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
@@ -38,7 +38,7 @@ const ShowOrderInfo = () => {
     const [editLoading, setEditLoading] = useState<boolean>(false)
     const [statuses, setStatuses] = useState<OrderStatusesResponse>()
     const [deliveryLoading, setDeliveryLoading] = useState<boolean>(false)
-    const [balanceMode, setBalanceMode] = useState<'UPI' | 'Card' | 'Cash'>('Cash')
+    const [balanceMode, setBalanceMode] = useState<PaymentMode>('Cash')
 
     const editModel = useDisclosure()
     const deliveryModal = useDisclosure()
@@ -277,6 +277,10 @@ const ShowOrderInfo = () => {
                                 <Text>SGST</Text>
                                 <Text>₹ {order?.data.cost && (order.data.cost * (9 / 100)).toFixed(2)}</Text>
                             </ListItem>
+                            <ListItem>
+                                <Text>First installment mode</Text>
+                                <Text>{order?.data.mode}</Text>
+                            </ListItem>
                         </List>
                     </div>
                 </Card>
@@ -375,7 +379,7 @@ const ShowOrderInfo = () => {
                                     <Select
                                         enableClear={false}
                                         value={balanceMode}
-                                        onValueChange={mode => setBalanceMode(mode as 'UPI' | 'Cash' | 'Card')}
+                                        onValueChange={mode => setBalanceMode(mode as PaymentMode)}
                                     >
                                         <SelectItem value="UPI">UPI</SelectItem>
                                         <SelectItem value="Card">Card</SelectItem>

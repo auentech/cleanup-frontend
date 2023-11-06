@@ -95,12 +95,15 @@ export type RemarkItem = {
     brand: string
 }
 
+export type PaymentMode = 'UPI' | 'Card' | 'Cash'
+
 export type Order = {
     id: number
     code: string
     count: number
     cost: number
     remarks?: RemarkItem[]
+    mode: PaymentMode
     discount: number
     status: StatusEnum
     customer?: UserData

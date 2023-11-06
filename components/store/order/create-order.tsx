@@ -1,5 +1,5 @@
 import useAxios from "@/common/axios"
-import { BackendGeneralResponse, OrderGarment, OrderService, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
+import { BackendGeneralResponse, OrderGarment, OrderService, PaymentMode, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
 import { CheckIcon, PlusCircleIcon, ShoppingCartIcon, UserIcon, UserPlusIcon } from "@heroicons/react/24/outline"
 import { Button, Callout, Col, Divider, Flex, Grid, List, ListItem, NumberInput, SearchSelect, SearchSelectItem, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
 import { AxiosError, isAxiosError } from "axios"
@@ -44,6 +44,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [cost, setCost] = useState<number>(0)
     const [ogCost, setOGCost] = useState<number>(0)
     const [discount, setDiscount] = useState<number>(0)
+    const [mode, setMode] = useState<PaymentMode>('Cash')
     const [taxedCost, setTaxedCost] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -188,6 +189,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                 const orderCreated = await axios.post<BackendGeneralResponse>('/stores/' + store.data.id + '/orders', {
                     cost,
+                    mode,
                     speed,
                     orders,
                     discount,
@@ -204,6 +206,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
             const orderCreated = await axios.post<BackendGeneralResponse>('/stores/' + store.data.id + '/orders', {
                 cost,
+                mode,
                 speed,
                 orders,
                 discount,
@@ -438,6 +441,15 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <Select value={thePackage} onValueChange={setThePackage} enableClear={false} className="mt-2">
                             <SelectItem value="executive">Executive package</SelectItem>
                             <SelectItem value="economy">Economy package</SelectItem>
+                        </Select>
+                    </div>
+
+                    <div className="py-2">
+                        <Title>Payment mode</Title>
+                        <Select value={mode} onValueChange={v => setMode(v as PaymentMode)} enableClear={false} className="mt-2">
+                            <SelectItem value="UPI">UPI</SelectItem>
+                            <SelectItem value="Card">Card</SelectItem>
+                            <SelectItem value="Cash">Cash</SelectItem>
                         </Select>
                     </div>
 
