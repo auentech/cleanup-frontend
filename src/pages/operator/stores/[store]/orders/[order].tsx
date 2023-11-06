@@ -1,8 +1,8 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { BackendGeneralResponse, OrderResponse, OrderStatusesResponse, StoreResponse, UserData } from "@/common/types"
-import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, CurrencyRupeeIcon, ForwardIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
-import { Badge, Button, Callout, Card, Flex, Grid, Icon, List, ListItem, NumberInput, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
+import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, CurrencyRupeeIcon, ForwardIcon, ReceiptPercentIcon, XMarkIcon } from "@heroicons/react/24/outline"
+import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, NumberInput, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, TextInput, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
@@ -12,6 +12,14 @@ import OperatorNavigation from "@/components/operator/operator-navigation"
 import OrderRemarks from "@/components/store/order/remarks"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
+import {
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter
+} from "@nextui-org/modal"
+import { useDisclosure } from "@nextui-org/react"
 
 const ShowOrderInfo = () => {
     const axios = useAxios()
@@ -26,8 +34,11 @@ const ShowOrderInfo = () => {
     const [loading, setLoading] = useState<boolean>(true)
     const [order, setOrder] = useState<OrderResponse>()
     const [store, setStore] = useState<StoreResponse>()
+    const [editReason, setEditReason] = useState<string>()
     const [editLoading, setEditLoading] = useState<boolean>(false)
     const [statuses, setStatuses] = useState<OrderStatusesResponse>()
+
+    const editModel = useDisclosure()
 
     useEffect(() => {
         const getOrderDetails = async () => {
@@ -69,10 +80,12 @@ const ShowOrderInfo = () => {
 
         try {
             await axios.put<BackendGeneralResponse>('/stores/' + storeID + '/orders/' + orderID + '/cost', {
-                cost: newCost
+                cost: newCost,
+                remarks: editReason,
             })
 
             alert('Made changes to order cost')
+            router.reload()
         } catch (e) {
             alert('Unable to make change')
         } finally {
@@ -192,6 +205,14 @@ const ShowOrderInfo = () => {
                                     Scan status
                                 </Button>
                             </Link>
+                            <Button
+                                className="w-full"
+                                icon={ForwardIcon}
+                                variant="secondary"
+                                onClick={editModel.onOpen}
+                            >
+                                Change order cost
+                            </Button>
                         </Flex>
                     </div>
                 </Card>
@@ -237,35 +258,6 @@ const ShowOrderInfo = () => {
 
             <div className="mt-6">
                 <Card>
-                    <Title>Change order cost</Title>
-                    <div className="mt-4">
-                        {editLoading ? (
-                            <Callout title="We're changing order cost">
-                                Please be aware that your name will be recorded when edits are made
-                            </Callout>
-                        ) : (
-                            <Grid numItems={2} className="gap-6">
-                                <NumberInput
-                                    icon={CurrencyRupeeIcon}
-                                    value={newCost}
-                                    onValueChange={setNewCost}
-                                    enableStepper={true} />
-
-                                <Button
-                                    variant="secondary"
-                                    icon={ForwardIcon}
-                                    loading={editLoading}
-                                    loadingText="Changing order cost..."
-                                    onClick={_ => editOrder()}
-                                >Change cost</Button>
-                            </Grid>
-                        )}
-                    </div>
-                </Card>
-            </div>
-
-            <div className="mt-6">
-                <Card>
                     <Title>Order timeline</Title>
 
                     <ol className="relative border-l border-gray-200 dark:border-gray-700 mt-4">
@@ -280,17 +272,61 @@ const ShowOrderInfo = () => {
                                 </h3>
                                 <p className="text-base font-normal text-gray-500 dark:text-gray-400">
                                     {'Action was performed at ' + dayjs(status.created_at).format('hh:mm A') + ' by ' + status.performer?.name + ' who\'s role is ' + status.performer?.role}
-                                    <br />
                                     {status.data && (
-                                        'Old cost was: ' + status.data.old + ' and the new cost is: ' + status.data.new
+                                        <>
+                                            <br />
+                                            {'Old cost was: ' + status.data.old + ' and the new cost is: ' + status.data.new}
+                                            <br />
+                                            {'Reason: ' + (status.data.remarks ?? 'Not entered')}
+                                        </>
                                     )}
                                 </p>
+                                <br />
                             </li>
                         ))}
                     </ol>
 
                 </Card>
             </div>
+
+            <Modal isOpen={editModel.isOpen} onOpenChange={editModel.onOpenChange}>
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader>
+                                <Title>Order cost change</Title>
+                            </ModalHeader>
+                            <ModalBody>
+                                <div className="mt-2">
+                                    <Subtitle>New cost</Subtitle>
+                                    <NumberInput
+                                        icon={CurrencyRupeeIcon}
+                                        value={newCost}
+                                        onValueChange={setNewCost}
+                                        enableStepper={false}
+                                    />
+                                </div>
+
+                                <div className="mt-2">
+                                    <Subtitle>Reason for change</Subtitle>
+                                    <TextInput
+                                        value={editReason}
+                                        onInput={e => setEditReason(e.currentTarget.value)}
+                                    />
+                                </div>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button icon={XMarkIcon} variant="secondary" color="red" onClick={onClose}>
+                                    Close
+                                </Button>
+                                <Button icon={ForwardIcon} loading={editLoading} loadingText="Changing order cost..." onClick={e => editOrder()}>
+                                    Change cost
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
         </>
     )
 
