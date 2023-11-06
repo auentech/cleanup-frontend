@@ -1,7 +1,8 @@
 import useAxios from "@/common/axios"
-import { OrderGarment, OrderService, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
+import { BackendGeneralResponse, OrderGarment, OrderService, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
 import { CheckIcon, PlusCircleIcon, ShoppingCartIcon, UserIcon, UserPlusIcon } from "@heroicons/react/24/outline"
 import { Button, Callout, Col, Divider, Flex, Grid, List, ListItem, NumberInput, SearchSelect, SearchSelectItem, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
+import { AxiosError, isAxiosError } from "axios"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
@@ -25,7 +26,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [selectedCustomer, setSelectedCustomer] = useState<UserData>()
 
     const [speed, setSpeed] = useState<string>('4')
-    const [thePackage, setThePackage] = useState<string>('1')
+    const [thePackage, setThePackage] = useState<string>('executive')
     const [installment, setInstallment] = useState<'full' | 'half'>()
     const [serviceAvailed, setServiceAvailed] = useState<number>(1)
     const [services, setServices] = useState<ServicesResponse>()
@@ -150,13 +151,11 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     }, [speed])
 
     useEffect(() => {
-        const packageInt: number = parseInt(thePackage)
-
-        switch (packageInt) {
-            case 1:
+        switch (thePackage) {
+            case "executive":
                 setCost(ogCost)
                 break
-            case 2:
+            case "economic":
                 setCost(theCost => theCost - (theCost * (15 / 100)))
                 break
         }
@@ -182,32 +181,41 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     pincode: customerpincode as number,
                 }
 
-                await axios.post('/stores/' + store.data.id + '/orders', {
+                const orderCreated = await axios.post<BackendGeneralResponse>('/stores/' + store.data.id + '/orders', {
                     cost,
                     speed,
                     orders,
                     discount,
                     installment,
                     new_customer,
+                    package: thePackage,
                 })
 
+                alert(orderCreated.data.message)
                 router.reload()
 
                 return
             }
 
-            await axios.post('/stores/' + store.data.id + '/orders', {
+            const orderCreated = await axios.post<BackendGeneralResponse>('/stores/' + store.data.id + '/orders', {
                 cost,
                 speed,
                 orders,
                 discount,
                 installment,
+                package: thePackage,
                 customer_id: selectedCustomer?.id,
             })
 
+            alert(orderCreated.data.message)
             router.reload()
-        } catch {
+        } catch (e) {
+            if (isAxiosError(e)) {
+                const err = e as AxiosError
+                const data = err.response?.data as BackendGeneralResponse
 
+                alert(data.message)
+            }
         } finally {
             setLoading(false)
         }
@@ -423,8 +431,8 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     <div className="py-2">
                         <Title>Package</Title>
                         <Select value={thePackage} onValueChange={setThePackage} enableClear={false} className="mt-2">
-                            <SelectItem value="1">Executive package</SelectItem>
-                            <SelectItem value="2">Economic package</SelectItem>
+                            <SelectItem value="executive">Executive package</SelectItem>
+                            <SelectItem value="economy">Economy package</SelectItem>
                         </Select>
                     </div>
 
