@@ -44,6 +44,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [cost, setCost] = useState<number>(0)
     const [ogCost, setOGCost] = useState<number>(0)
     const [discount, setDiscount] = useState<number>(0)
+    const [taxedCost, setTaxedCost] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(false)
 
     const handleCustomerSearch = (value: string) => {
@@ -160,6 +161,10 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                 break
         }
     }, [thePackage])
+
+    useEffect(() => {
+        setTaxedCost(cost + (cost * (18 / 100)))
+    }, [cost])
 
     const handleOrderCreate = async () => {
         setLoading(true)
@@ -378,16 +383,16 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             <Title>₹ {discount}</Title>
                         </ListItem>
                         <ListItem>
-                            <Title>Order Net Total</Title>
-                            <Title>₹ {cost - discount}</Title>
-                        </ListItem>
-                        <ListItem>
                             <Title>CGST</Title>
                             <Title>₹ {(cost * (9 / 100)).toFixed(2)}</Title>
                         </ListItem>
                         <ListItem>
                             <Title>SGST</Title>
                             <Title>₹ {(cost * (9 / 100)).toFixed(2)}</Title>
+                        </ListItem>
+                        <ListItem>
+                            <Title>Order Net Total</Title>
+                            <Title>₹ {taxedCost}</Title>
                         </ListItem>
                         <ListItem>
                             <Flex justifyContent="between" className="gap-6">
@@ -412,7 +417,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             <ListItem>
                                 <Title>To pay now</Title>
                                 <Title>
-                                    ₹ {installment == 'full' ? (cost - discount) : ((cost - discount) / 2)}
+                                    ₹ {installment == 'full' ? (taxedCost - discount) : ((taxedCost - discount) / 2)}
                                 </Title>
                             </ListItem>
                         )}
