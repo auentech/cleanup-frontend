@@ -37,7 +37,8 @@ const ShowOrderInfo = () => {
     const [editReason, setEditReason] = useState<string>()
     const [editLoading, setEditLoading] = useState<boolean>(false)
     const [statuses, setStatuses] = useState<OrderStatusesResponse>()
-    const [balanceMode, setBalanceMode] = useState<'UPI' | 'Card' | 'Cash'>()
+    const [deliveryLoading, setDeliveryLoading] = useState<boolean>(false)
+    const [balanceMode, setBalanceMode] = useState<'UPI' | 'Card' | 'Cash'>('Cash')
 
     const editModel = useDisclosure()
     const deliveryModal = useDisclosure()
@@ -95,6 +96,23 @@ const ShowOrderInfo = () => {
         }
     }
 
+    const deliverOrder = async () => {
+        setDeliveryLoading(true)
+
+        try {
+            await axios.put<BackendGeneralResponse>('/stores/' + storeID + '/orders/' + orderID + '/deliver', {
+                mode: balanceMode
+            })
+
+            alert('Order marked as delivered')
+            router.reload()
+        } catch {
+            alert('Unable to deliver order')
+        } finally {
+            setDeliveryLoading(false)
+        }
+    }
+
     const OrderDisplay = () => (
         <>
             <div>
@@ -121,14 +139,16 @@ const ShowOrderInfo = () => {
                     <Table className="mt-4">
                         <TableHead>
                             <TableRow>
+                                <TableHeaderCell>S.No</TableHeaderCell>
                                 <TableHeaderCell>Service</TableHeaderCell>
                                 <TableHeaderCell>Garment</TableHeaderCell>
                                 <TableHeaderCell>Cost</TableHeaderCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {order?.data.items?.map(item => (
+                            {order?.data.items?.map((item, index) => (
                                 <TableRow key={item.id}>
+                                    <TableCell>{index + 1}</TableCell>
                                     <TableCell>{item.service.service}</TableCell>
                                     <TableCell>{item.garment.name}</TableCell>
                                     <TableCell>₹ {item.garment.price_max}</TableCell>
@@ -184,7 +204,7 @@ const ShowOrderInfo = () => {
 
                     <div className="mt-4">
                         <Flex flexDirection="col" className="gap-y-4">
-                            <a target="_blank" href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/invoice?token=' + user.token} className="w-full">
+                            <a target="_blank" href={process.env.NEXT_PUBLIC_BACKEND_URL + 'api/stores/' + storeID + '/orders/' + orderID + '/invoice?token=' + user.token} className="w-full">
                                 <Button
                                     className="w-full"
                                     variant="secondary"
@@ -193,7 +213,7 @@ const ShowOrderInfo = () => {
                                     Download Invoice
                                 </Button>
                             </a>
-                            <a target="_blank" href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/qr?token=' + user.token} className="w-full">
+                            <a target="_blank" href={process.env.NEXT_PUBLIC_BACKEND_URL + 'api/stores/' + storeID + '/orders/' + orderID + '/qr?token=' + user.token} className="w-full">
                                 <Button
                                     className="w-full"
                                     variant="secondary"
@@ -243,7 +263,7 @@ const ShowOrderInfo = () => {
                             </ListItem>
                             <ListItem>
                                 <Text>Speed</Text>
-                                <Text>{order?.data.speed}</Text>
+                                <Text>{order?.data.speed == 0 ? 'General delivery' : order?.data.speed + ' day delivery'}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Due on</Text>
@@ -352,7 +372,11 @@ const ShowOrderInfo = () => {
                                     Mark the order as delivered? Pending balance has to be paid if there is any.
                                 </p>
                                 {order?.data.cost != order?.data.paid && (
-                                    <Select>
+                                    <Select
+                                        enableClear={false}
+                                        value={balanceMode}
+                                        onValueChange={mode => setBalanceMode(mode as 'UPI' | 'Cash' | 'Card')}
+                                    >
                                         <SelectItem value="UPI">UPI</SelectItem>
                                         <SelectItem value="Card">Card</SelectItem>
                                         <SelectItem value="Cash">Cash</SelectItem>
@@ -363,7 +387,7 @@ const ShowOrderInfo = () => {
                                 <Button icon={XMarkIcon} variant="secondary" color="red" onClick={onClose}>
                                     Close
                                 </Button>
-                                <Button icon={ForwardIcon} loading={editLoading} loadingText="Marking as delivered...">
+                                <Button icon={ForwardIcon} loading={deliveryLoading} loadingText="Marking as delivered..." onClick={_ => deliverOrder()}>
                                     Mark as delivered
                                 </Button>
                             </ModalFooter>
