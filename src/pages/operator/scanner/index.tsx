@@ -80,7 +80,6 @@ const ScannerPage = () => {
                         <SelectItem value="view">View order information</SelectItem>
                         <SelectItem value="rewash">Put order to rewash</SelectItem>
                         <SelectItem value="processed">Mark order as processed</SelectItem>
-                        <SelectItem value="delivered">Mark order as delivered</SelectItem>
                     </Select>
 
                     {option && (
