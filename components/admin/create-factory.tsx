@@ -1,14 +1,14 @@
 import useAxios from "@/common/axios"
 import { BackendGeneralResponse, CreateFactoryError, DistrictsResponse, StatesResponse } from "@/common/types"
-import { GlobeAsiaAustraliaIcon, ArrowPathIcon, CheckCircleIcon } from "@heroicons/react/24/outline"
-import { TextInput, SearchSelect, SearchSelectItem, Flex, Button, Text, Callout, Divider } from "@tremor/react"
+import { GlobeAsiaAustraliaIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
+import { TextInput, SearchSelect, SearchSelectItem, Flex, Button, Text, Divider } from "@tremor/react"
 import { useEffect, useState } from "react"
 import Axios, { AxiosError } from 'axios'
+import { useRouter } from "next/router"
 
 const CreateFactory = () => {
     const [loading, setLoading] = useState<boolean>(false)
     const [errors, setErrors] = useState<CreateFactoryError>()
-    const [success, setSuccess] = useState<BackendGeneralResponse>()
 
     const [code, setCode] = useState<string>('')
     const [state, setState] = useState<string>('')
@@ -21,6 +21,7 @@ const CreateFactory = () => {
     const [districts, setDistricts] = useState<DistrictsResponse>()
 
     const axios = useAxios()
+    const router = useRouter()
 
     useEffect(() => {
         (async () => {
@@ -47,7 +48,7 @@ const CreateFactory = () => {
         setLoading(true)
 
         try {
-            const response = await axios.post('/factories', {
+            const response = await axios.post<BackendGeneralResponse>('/factories', {
                 name: factoryName,
                 custom_code: code,
                 profile: {
@@ -58,8 +59,8 @@ const CreateFactory = () => {
                 }
             })
 
-            setSuccess(response.data)
-            setInterval(() => wipeSlate, 2000)
+            alert(response.data.message)
+            router.reload()
         } catch (e) {
             if (Axios.isAxiosError(e)) {
                 const error = e as AxiosError
@@ -70,27 +71,8 @@ const CreateFactory = () => {
         }
     }
 
-    const wipeSlate = () => {
-        setCode('')
-        setState('')
-        setAddress('')
-        setPincode('')
-        setDistrict('')
-        setFactoryName('')
-        setErrors(undefined)
-        setSuccess(undefined)
-    }
-
     return (
         <>
-            {success && (
-                <div className="mt-4">
-                    <Callout title="Action successfull" color="green" icon={CheckCircleIcon}>
-                        Factory was created successfully
-                    </Callout>
-                </div>
-            )}
-
             <div className="mt-4">
                 <Text>Factory Name</Text>
                 <TextInput
