@@ -1,8 +1,8 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
 import { BackendGeneralResponse, OrderResponse, OrderStatusesResponse, StoreResponse, UserData } from "@/common/types"
-import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, CurrencyRupeeIcon, ForwardIcon, ReceiptPercentIcon, XMarkIcon } from "@heroicons/react/24/outline"
-import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, NumberInput, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, TextInput, Title } from "@tremor/react"
+import { ArrowLeftIcon, ArrowPathIcon, BuildingStorefrontIcon, CameraIcon, CurrencyRupeeIcon, ForwardIcon, ReceiptPercentIcon, ShoppingBagIcon, XMarkIcon } from "@heroicons/react/24/outline"
+import { Badge, Button, Card, Flex, Grid, Icon, List, ListItem, NumberInput, Select, Subtitle, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, TextInput, Title, SelectItem } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
@@ -37,8 +37,10 @@ const ShowOrderInfo = () => {
     const [editReason, setEditReason] = useState<string>()
     const [editLoading, setEditLoading] = useState<boolean>(false)
     const [statuses, setStatuses] = useState<OrderStatusesResponse>()
+    const [balanceMode, setBalanceMode] = useState<'UPI' | 'Card' | 'Cash'>()
 
     const editModel = useDisclosure()
+    const deliveryModal = useDisclosure()
 
     useEffect(() => {
         const getOrderDetails = async () => {
@@ -181,7 +183,7 @@ const ShowOrderInfo = () => {
                     <Text>You can edit the order details. Do with care</Text>
 
                     <div className="mt-4">
-                        <Flex flexDirection="col" className="gap-y-6">
+                        <Flex flexDirection="col" className="gap-y-4">
                             <a target="_blank" href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/stores/' + storeID + '/orders/' + orderID + '/invoice?token=' + user.token} className="w-full">
                                 <Button
                                     className="w-full"
@@ -212,6 +214,14 @@ const ShowOrderInfo = () => {
                                 onClick={editModel.onOpen}
                             >
                                 Change order cost
+                            </Button>
+                            <Button
+                                className="w-full"
+                                icon={ShoppingBagIcon}
+                                variant="secondary"
+                                onClick={deliveryModal.onOpen}
+                            >
+                                Give for delivery
                             </Button>
                         </Flex>
                     </div>
@@ -321,6 +331,40 @@ const ShowOrderInfo = () => {
                                 </Button>
                                 <Button icon={ForwardIcon} loading={editLoading} loadingText="Changing order cost..." onClick={e => editOrder()}>
                                     Change cost
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
+
+            <Modal isOpen={deliveryModal.isOpen} scrollBehavior="inside" backdrop="blur" onOpenChange={deliveryModal.onOpenChange} classNames={{
+                body: "pb-40",
+            }}>
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader>
+                                <Title>Delivery order</Title>
+                            </ModalHeader>
+                            <ModalBody>
+                                <p>
+                                    Mark the order as delivered? Pending balance has to be paid if there is any.
+                                </p>
+                                {order?.data.cost != order?.data.paid && (
+                                    <Select>
+                                        <SelectItem value="UPI">UPI</SelectItem>
+                                        <SelectItem value="Card">Card</SelectItem>
+                                        <SelectItem value="Cash">Cash</SelectItem>
+                                    </Select>
+                                )}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button icon={XMarkIcon} variant="secondary" color="red" onClick={onClose}>
+                                    Close
+                                </Button>
+                                <Button icon={ForwardIcon} loading={editLoading} loadingText="Marking as delivered...">
+                                    Mark as delivered
                                 </Button>
                             </ModalFooter>
                         </>
