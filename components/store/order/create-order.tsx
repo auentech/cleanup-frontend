@@ -25,7 +25,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [customerSearch, setCustomerSearch] = useState<string>()
     const [selectedCustomer, setSelectedCustomer] = useState<UserData>()
 
-    const [speed, setSpeed] = useState<string>('4')
+    const [speed, setSpeed] = useState<string>('0')
     const [thePackage, setThePackage] = useState<string>('executive')
     const [installment, setInstallment] = useState<'full' | 'half'>()
     const [serviceAvailed, setServiceAvailed] = useState<number>(1)
@@ -424,7 +424,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             <SelectItem value="1">1 Day delivery</SelectItem>
                             <SelectItem value="2">2 Day delivery</SelectItem>
                             <SelectItem value="3">3 Day delivery</SelectItem>
-                            <SelectItem value="4">General delivery</SelectItem>
+                            <SelectItem value="0">General delivery</SelectItem>
                         </Select>
                     </div>
 
