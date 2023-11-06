@@ -36,6 +36,7 @@ const StoreOrders = ({ orders, store, role }: StoreOrdersType) => {
                     <TableHeaderCell>Garments</TableHeaderCell>
                     <TableHeaderCell>Status</TableHeaderCell>
                     <TableHeaderCell>Amount</TableHeaderCell>
+                    <TableHeaderCell>Due on</TableHeaderCell>
                     <TableHeaderCell>Action</TableHeaderCell>
                 </TableRow>
             </TableHead>
@@ -48,6 +49,7 @@ const StoreOrders = ({ orders, store, role }: StoreOrdersType) => {
                         <TableCell>{order.count}</TableCell>
                         <TableCell>{statusBadger(order.status)}</TableCell>
                         <TableCell>₹ {FormatNumber(order.cost)}</TableCell>
+                        <TableCell>{order.due_date ? dayjs(order.due_date).format('DD, MMMM YY') : 'General'}</TableCell>
                         <TableCell>
                             <Link href={'/' + role + '/stores/' + store?.data.id + '/orders/' + order.code}>
                                 <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
