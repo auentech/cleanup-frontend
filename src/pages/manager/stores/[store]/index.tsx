@@ -1,8 +1,8 @@
 import useAxios from "@/common/axios"
 import isUser from "@/common/middlewares/isUser"
-import { OrdersResponse, StoreResponse } from "@/common/types"
-import { ArrowLeftIcon, BuildingStorefrontIcon, PencilIcon, ReceiptPercentIcon, TrashIcon } from "@heroicons/react/24/outline"
-import { Badge, Button, Card, Flex, Grid, Icon, Tab, TabGroup, TabList, TabPanel, TabPanels, Text, Title } from "@tremor/react"
+import { OrdersResponse, Store, StoreResponse } from "@/common/types"
+import { ArrowLeftIcon, BuildingStorefrontIcon, MoonIcon, PencilIcon, ReceiptPercentIcon } from "@heroicons/react/24/outline"
+import { Badge, Card, Flex, Grid, Icon, Tab, TabGroup, TabList, TabPanel, TabPanels, Text, Title } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
@@ -12,6 +12,17 @@ import StoreOrders from "@/components/store/store-orders"
 import ManagerNavigation from "@/components/manager/manager-navigation"
 
 const LazyEditStore = dynamic(() => import('@/components/admin/edit-store'), {
+    loading: () => (
+        <Flex alignItems="center" justifyContent="center">
+            <Waveform
+                size={20}
+                color="#3b82f6"
+            />
+        </Flex>
+    )
+})
+
+const LazyClosingsList = dynamic(() => import('@/components/store/store-closings'), {
     loading: () => (
         <Flex alignItems="center" justifyContent="center">
             <Waveform
@@ -64,18 +75,10 @@ const ShowStore = () => {
 
     const StoreBody = () => (
         <div>
-            <Flex justifyContent="between" className="space-x-6">
-                <div>
-                    <Flex>
-                        <Icon icon={ArrowLeftIcon} onClick={() => router.back()} style={{ cursor: 'pointer' }}></Icon>
-                        <Title>{store?.data.name} store</Title>
-                        <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">{store?.data.code}</Badge>
-                    </Flex>
-                </div>
-                <div className="space-x-4">
-                    <Button color="red" variant="secondary" icon={TrashIcon}>Delete</Button>
-                    <Button variant="secondary" icon={PencilIcon}>Edit</Button>
-                </div>
+            <Flex justifyContent="start">
+                <Icon icon={ArrowLeftIcon} onClick={() => router.back()} style={{ cursor: 'pointer' }}></Icon>
+                <Title>{store?.data.name} store</Title>
+                <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">{store?.data.code}</Badge>
             </Flex>
             <Text>Store located at: {store?.data?.profile?.address}</Text>
 
@@ -93,6 +96,7 @@ const ShowStore = () => {
                         <TabList variant="solid">
                             <Tab icon={ReceiptPercentIcon}>Orders</Tab>
                             <Tab icon={PencilIcon}>Settings</Tab>
+                            <Tab icon={MoonIcon}>Closings</Tab>
                         </TabList>
                         <TabPanels>
                             <TabPanel className="mt-6">
@@ -109,6 +113,10 @@ const ShowStore = () => {
                                 <Text>Did not like something? Time to change that</Text>
 
                                 {theIndex == 1 && <LazyEditStore />}
+                            </TabPanel>
+
+                            <TabPanel className="mt-6">
+                                {theIndex == 2 && <LazyClosingsList store={store?.data as Store} />}
                             </TabPanel>
                         </TabPanels>
                     </TabGroup>
