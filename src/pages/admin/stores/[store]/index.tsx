@@ -64,18 +64,10 @@ const ShowStore = () => {
 
     const StoreBody = () => (
         <div>
-            <Flex justifyContent="between" className="space-x-6">
-                <div>
-                    <Flex>
-                        <Icon icon={ArrowLeftIcon} onClick={() => router.back()} style={{ cursor: 'pointer' }}></Icon>
-                        <Title>{store?.data.name} store</Title>
-                        <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">{store?.data.code}</Badge>
-                    </Flex>
-                </div>
-                <div className="space-x-4">
-                    <Button color="red" variant="secondary" icon={TrashIcon}>Delete</Button>
-                    <Button variant="secondary" icon={PencilIcon}>Edit</Button>
-                </div>
+            <Flex justifyContent="start">
+                <Icon icon={ArrowLeftIcon} onClick={() => router.back()} style={{ cursor: 'pointer' }}></Icon>
+                <Title>{store?.data.name} store</Title>
+                <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">{store?.data.code}</Badge>
             </Flex>
             <Text>Store located at: {store?.data?.profile?.address}</Text>
 
