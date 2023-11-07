@@ -36,13 +36,6 @@ const Login = () => {
             return
         }
 
-        if (!isStrongPassword(password, { minSymbols: 0 })) {
-            setPasswordError('Please enter a proper password')
-            setLoading(false)
-
-            return
-        }
-
         const response = await signIn('credentials', {
             email, password,
             redirect: false
