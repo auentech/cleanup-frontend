@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import isEmail from 'validator/lib/isEmail'
-import isStrongPassword from 'validator/lib/isStrongPassword'
 import isGuest from "@/common/middlewares/isGuest"
 
 const Login = () => {
