@@ -36,8 +36,8 @@ const StoreClosings = ({ store }: StoreClosingProps) => {
                 </TableRow>
             </TableHead>
             <TableBody>
-                {closings?.data.map(closing => (
-                    <TableRow>
+                {closings?.data.map((closing, i) => (
+                    <TableRow key={i}>
                         <TableCell>{dayjs(closing.created_at).format('DD, MMMM YY')}</TableCell>
                         <TableCell>{closing.performer.name}</TableCell>
                         <TableCell>₹ {closing.upi}</TableCell>
