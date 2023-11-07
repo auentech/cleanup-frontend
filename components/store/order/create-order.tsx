@@ -1,19 +1,25 @@
 import useAxios from "@/common/axios"
-import { BackendGeneralResponse, OrderGarment, OrderService, PaymentMode, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
-import { CheckIcon, PlusCircleIcon, ShoppingCartIcon, UserIcon, UserPlusIcon } from "@heroicons/react/24/outline"
+import { BackendGeneralResponse, PaymentMode, ServicesResponse, StoreResponse, UserData, UserSearchResponse } from "@/common/types"
+import { CheckIcon, PlusCircleIcon, ShoppingCartIcon, TrashIcon, UserIcon, UserPlusIcon } from "@heroicons/react/24/outline"
 import { Button, Callout, Col, Divider, Flex, Grid, List, ListItem, NumberInput, SearchSelect, SearchSelectItem, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
 import { AxiosError, isAxiosError } from "axios"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
 type LocalOrders = {
-    service_id: string,
-    garment_id: string
+    service_id: number,
+    garment_id: number
     count: number
 }
 
 type CreateOrderType = {
     store: StoreResponse
+}
+
+type OrderEntry = {
+    service: number
+    garment: number
+    count: number
 }
 
 const CreateOrder = ({ store }: CreateOrderType) => {
@@ -25,15 +31,13 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [customerSearch, setCustomerSearch] = useState<string>()
     const [selectedCustomer, setSelectedCustomer] = useState<UserData>()
 
-    const [speed, setSpeed] = useState<string>('0')
+    const [speed, setSpeed] = useState<number>(0)
     const [thePackage, setThePackage] = useState<string>('executive')
     const [installment, setInstallment] = useState<'full' | 'half'>()
-    const [serviceAvailed, setServiceAvailed] = useState<number>(1)
     const [services, setServices] = useState<ServicesResponse>()
-
-    const [selectedServices, setSelectedServices] = useState<string[]>([])
-    const [selectedGarments, setSelectedGarments] = useState<string[]>([])
-    const [selectedPieces, setSelectedPieces] = useState<number[]>([])
+    const [renderer, setRenderer] = useState<OrderEntry[]>([
+        { service: 0, garment: 0, count: 0 }
+    ])
 
     const [customerName, setCustomerName] = useState<string>()
     const [customerphone, setCustomerPhone] = useState<number>()
@@ -47,54 +51,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [mode, setMode] = useState<PaymentMode>('Cash')
     const [taxedCost, setTaxedCost] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(false)
-
-    const handleCustomerSearch = (value: string) => {
-        setCustomerSearch(value)
-    }
-
-    const handleServicesInput = (index: number, value: string) => {
-        const newSelectedServices = [...selectedServices as string[]]
-        newSelectedServices[index] = value
-        setSelectedServices(newSelectedServices)
-    }
-
-    const handleGarmentsInput = (index: number, value: string) => {
-        const newSelectedGarments = [...selectedGarments as string[]]
-        newSelectedGarments[index] = value
-        setSelectedGarments(newSelectedGarments)
-    }
-
-    const handlePiecesInput = (index: number, value: number) => {
-        const newPeices = [...selectedPieces as number[]]
-        newPeices[index] = value
-        setSelectedPieces(newPeices)
-    }
-
-    const handleCustomerSelection = (value: UserData) => {
-        setSelectedCustomer(value)
-    }
-
-    const getGarments = (i: number) => {
-        let elements: any = []
-
-        const serviceID = selectedServices[i]
-
-        if (serviceID == undefined) {
-            return
-        }
-
-        const service = services?.data.filter(service => (service.id + '') === serviceID)[0] as OrderService
-
-        service.garments?.forEach(garment => {
-            elements.push(
-                <SelectItem key={garment.id} value={garment.id + ''}>
-                    {garment.name} - {garment.price_max} ₹
-                </SelectItem>
-            )
-        })
-
-        return elements
-    }
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -120,61 +76,63 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     }, [])
 
     useEffect(() => {
-        if (selectedPieces.includes(NaN)) {
-            return
+        let updatedCost = ogCost
+
+        switch (speed) {
+            case 1:
+                updatedCost *= 2
+                break
+            case 2:
+                updatedCost *= 1.5
+                break
+            case 3:
+                updatedCost *= 1.25
+                break
+            default:
+                break
         }
 
-        setCost(0)
-        setOGCost(0)
-        selectedServices.forEach((serviceID, index) => {
-            const garmentID = selectedGarments[index]
-            const pieces = selectedPieces[index]
-
-            const service = services?.data.filter(service => service.id + '' === serviceID)[0] as OrderService
-            const garment = service.garments?.filter(garment => garment.id + '' === garmentID)[0] as OrderGarment
-
-            setCost(oldCost => (garment.price_max * pieces) + oldCost)
-            setOGCost(oldCost => (garment.price_max * pieces) + oldCost)
-        })
-    }, [selectedPieces, selectedGarments])
-
-    useEffect(() => {
-        const speedInt: number = parseInt(speed)
-
-        if (speedInt == 1) {
-            setCost(ogCost + ogCost)
-        } else if (speedInt == 2) {
-            setCost((ogCost * (50 / 100)) + ogCost)
-        } else if (speedInt == 3) {
-            setCost((ogCost * (25 / 100)) + ogCost)
-        } else {
-            setCost(ogCost)
-        }
-    }, [speed])
-
-    useEffect(() => {
         switch (thePackage) {
-            case "executive":
-                setCost(ogCost)
+            case 'executive':
+                // Do nothing, cost remains the same
                 break
-            case "economy":
-                setCost(theCost => theCost - (theCost * (15 / 100)))
+            case 'economy':
+                updatedCost -= updatedCost * 0.15
+                break
+            default:
                 break
         }
-    }, [thePackage])
+
+        setCost(updatedCost)
+    }, [speed, thePackage, renderer])
+
+    useEffect(() => setTaxedCost(cost + (cost * (18 / 100))), [cost])
 
     useEffect(() => {
-        setTaxedCost(cost + (cost * (18 / 100)))
-    }, [cost])
+        let newCost = 0
+
+        renderer.forEach(render => {
+            const service = services?.data.find(service => service.id == render.service)
+            const garment = service?.garments?.find(garment => garment.id == render.garment)
+
+            if (service == undefined || garment == undefined || render.count == 0 || Number.isNaN(render.count)) {
+                return
+            }
+
+            newCost += ((garment?.price_max as number) * render.count)
+        })
+
+        setCost(newCost)
+        setOGCost(newCost)
+    }, [renderer])
 
     const handleOrderCreate = async () => {
         setLoading(true)
 
-        let orders: LocalOrders[] = []
-        selectedServices.forEach((serviceID, index) => orders.push({
-            service_id: serviceID,
-            garment_id: selectedGarments[index],
-            count: selectedPieces[index],
+        let orders: LocalOrders[] = renderer.map(render => ({
+            service_id: render.service,
+            garment_id: render.garment,
+            count: render.count
         }))
 
         try {
@@ -229,55 +187,48 @@ const CreateOrder = ({ store }: CreateOrderType) => {
         }
     }
 
-    const renderService = () => {
-        let elements = []
+    const renderGarments = (serviceID: number) => {
+        const service = services?.data.find(service => service.id == serviceID)
 
-        for (let i = 0; i < serviceAvailed; i++) {
-            elements.push(
-                <div className="mt-4" key={i}>
-                    <Grid numItemsMd={3} className="gap-6">
-                        <Col>
-                            <Text>Service</Text>
-                            <SearchSelect
-                                className="mt-2"
-                                onValueChange={value => handleServicesInput(i, value)}
-                                value={selectedServices?.[i] as string}
-                                enableClear={false}
-                            >
-                                {services?.data.map(service => (
-                                    <SearchSelectItem key={service.id} value={service.id + ''}>{service.service}</SearchSelectItem>
-                                )) || (
-                                        <SearchSelectItem value=''>Loading...</SearchSelectItem>
-                                    )}
-                            </SearchSelect>
-                        </Col>
-                        <Col>
-                            <Text>Garment</Text>
-                            <Select
-                                onValueChange={value => handleGarmentsInput(i, value)}
-                                value={selectedGarments?.[i] as string}
-                                className="mt-2"
-                                enableClear={false}
-                            >
-                                {getGarments(i)}
-                            </Select>
-                        </Col>
-                        <Col>
-                            <Text>Count</Text>
-                            <NumberInput
-                                onValueChange={value => handlePiecesInput(i, value)}
-                                value={selectedPieces?.[i] as number}
-                                min={1}
-                                enableStepper={false}
-                                className="mt-2"
-                            />
-                        </Col>
-                    </Grid>
-                </div>
-            )
+        return service?.garments?.map(garment => (
+            <SearchSelectItem key={garment.id} value={garment.id + ''}>
+                {garment.name} - {garment.price_max} ₹
+            </SearchSelectItem>
+        ))
+    }
+
+    const addOrder = () => {
+        setRenderer(oldRenders => ([
+            ...oldRenders,
+            { service: 0, garment: 0, count: 0 }
+        ]))
+    }
+
+    const deleteOrder = (index: number) => {
+        if (renderer.length <= 1) {
+            return
         }
 
-        return elements
+        const updatedRenderer = renderer.filter((_, i) => index != i)
+        setRenderer(updatedRenderer)
+    }
+
+    const updateService = (index: number, serviceID: number) => {
+        const updatedRenderer = [...renderer]
+        updatedRenderer[index].service = serviceID
+        setRenderer(updatedRenderer)
+    }
+
+    const updateGarment = (index: number, garmentID: number) => {
+        const updatedRenderer = [...renderer]
+        updatedRenderer[index].garment = garmentID
+        setRenderer(updatedRenderer)
+    }
+
+    const updateCount = (index: number, count: number) => {
+        const updatedRenderer = [...renderer]
+        updatedRenderer[index].count = count
+        setRenderer(updatedRenderer)
     }
 
     return (
@@ -292,7 +243,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                 <>
                     <div className="mt-4">
                         <Text>Search customer</Text>
-                        <TextInput placeholder="Search..." className="mt-2" onInput={e => handleCustomerSearch(e.currentTarget.value)} />
+                        <TextInput placeholder="Search..." className="mt-2" onInput={e => setCustomerSearch(e.currentTarget.value)} />
                     </div>
 
                     {customers && (
@@ -300,7 +251,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             {customers.data.map(customer => (
                                 <ListItem key={customer.id}>
                                     <Text>{customer.name} - {customer.phone} - {customer.email}</Text>
-                                    <Button size="xs" variant="secondary" color="gray" icon={CheckIcon} onClick={() => handleCustomerSelection(customer)}>
+                                    <Button size="xs" variant="secondary" color="gray" icon={CheckIcon} onClick={() => setSelectedCustomer(customer)}>
                                         Select customer
                                     </Button>
                                 </ListItem>
@@ -362,11 +313,67 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                 <>
                     <Divider />
 
-                    {renderService()}
+                    {renderer.map((render, key) => (
+                        <div className="mt-4" key={key}>
+                            <Grid numItemsMd={4} className="gap-6">
+                                <Col>
+                                    <Text>Service</Text>
+                                    <SearchSelect
+                                        className="mt-2"
+                                        onValueChange={v => updateService(key, parseInt(v))}
+                                        value={render.service + ''}
+                                        enableClear={false}
+                                    >
+                                        {services?.data.map(service => (
+                                            <SearchSelectItem key={service.id} value={service.id + ''}>{service.service}</SearchSelectItem>
+                                        )) || (
+                                                <SearchSelectItem value=''>Loading...</SearchSelectItem>
+                                            )}
+                                    </SearchSelect>
+                                </Col>
+                                <Col>
+                                    <Text>Garment</Text>
+                                    <SearchSelect
+                                        className="mt-2"
+                                        onValueChange={v => updateGarment(key, parseInt(v))}
+                                        value={render.garment + ''}
+                                        enableClear={false}
+                                    >
+                                        {render.service == 0 ? (
+                                            <SearchSelectItem value="">
+                                                Select service
+                                            </SearchSelectItem>
+                                        ) : renderGarments(renderer[key].service) as JSX.Element[]}
+                                    </SearchSelect>
+                                </Col>
+                                <Col>
+                                    <Text>Count</Text>
+                                    <NumberInput
+                                        min={1}
+                                        onValueChange={v => updateCount(key, v)}
+                                        value={render.count}
+                                        enableStepper={false}
+                                        className="mt-2"
+                                    />
+                                </Col>
+                                <Col>
+                                    <Text>Action</Text>
+                                    <Button
+                                        className="mt-2 w-full"
+                                        icon={TrashIcon}
+                                        variant="secondary"
+                                        color="red"
+                                        onClick={_ => deleteOrder(key)}
+                                        disabled={renderer.length <= 1}
+                                    >Delete</Button>
+                                </Col>
+                            </Grid>
+                        </div>
+                    ))}
 
                     <Divider />
 
-                    <Button variant="secondary" className="w-full" icon={PlusCircleIcon} onClick={() => setServiceAvailed(count => count + 1)}>Add service</Button>
+                    <Button variant="secondary" className="w-full" icon={PlusCircleIcon} onClick={addOrder}>Add service</Button>
 
                     <Divider />
 
@@ -428,7 +435,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                     <div className="py-2">
                         <Title>Delivery speed</Title>
-                        <Select value={speed} onValueChange={setSpeed} enableClear={false} className="mt-2">
+                        <Select value={speed + ''} onValueChange={v => setSpeed(parseInt(v))} enableClear={false} className="mt-2">
                             <SelectItem value="1">1 Day delivery</SelectItem>
                             <SelectItem value="2">2 Day delivery</SelectItem>
                             <SelectItem value="3">3 Day delivery</SelectItem>
