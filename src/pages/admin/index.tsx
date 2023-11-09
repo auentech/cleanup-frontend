@@ -1,42 +1,98 @@
-import Logout from "@/common/logout"
-import isUser from "@/common/middlewares/isUser"
-import { AdminDashboardResponse, StatusEnum, Store, StoresResponse, UserData } from "@/common/types"
-import { Title, Text, Italic, Grid, Card, TextInput, AreaChart, Flex, Icon, Metric, Table, Button, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Badge, List, ListItem, Callout } from "@tremor/react"
-import { useSession } from "next-auth/react"
-import AdminNavigation from "@/components/admin/admin-navigation"
-import useAxios from "@/common/axios"
-import { useEffect, useState } from "react"
-import { ArchiveBoxArrowDownIcon, ArrowPathIcon, BuildingStorefrontIcon, CheckIcon, CurrencyRupeeIcon, ExclamationTriangleIcon, ReceiptPercentIcon, UserIcon } from "@heroicons/react/24/outline"
+import Logout from '@/common/logout'
+import isUser from '@/common/middlewares/isUser'
+import {
+    AdminDashboardResponse,
+    Order,
+    OrdersResponse,
+    StatusEnum,
+    Store,
+    StoresResponse,
+    UserData,
+} from '@/common/types'
+import {
+    Title,
+    Text,
+    Italic,
+    Grid,
+    Card,
+    TextInput,
+    AreaChart,
+    Flex,
+    Icon,
+    Metric,
+    Table,
+    Button,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeaderCell,
+    TableRow,
+    Badge,
+    List,
+    ListItem,
+    Callout,
+} from '@tremor/react'
+import { useSession } from 'next-auth/react'
+import AdminNavigation from '@/components/admin/admin-navigation'
+import useAxios from '@/common/axios'
+import { useEffect, useState } from 'react'
+import {
+    ArchiveBoxArrowDownIcon,
+    ArrowPathIcon,
+    BuildingStorefrontIcon,
+    CheckIcon,
+    CurrencyRupeeIcon,
+    ExclamationTriangleIcon,
+    ReceiptPercentIcon,
+    UserIcon,
+} from '@heroicons/react/24/outline'
 import lodashSumBy from 'lodash/sumBy'
 import lodashMap from 'lodash/map'
 import lodashSortBy from 'lodash/sortBy'
-import dayjs from "dayjs"
-import Link from "next/link"
-import TableSkeleton from "@/components/table-skeleton"
-import { Skeleton } from "@nextui-org/react"
-import FormatNumber from "@/common/number-formatter"
+import dayjs from 'dayjs'
+import Link from 'next/link'
+import TableSkeleton from '@/components/table-skeleton'
+import { Skeleton } from '@nextui-org/react'
+import FormatNumber from '@/common/number-formatter'
+import { MagnifyingGlassIcon } from '@heroicons/react/24/solid'
 
 type SalesMetricType = {
-    date: string,
+    date: string
     Cost: number
 }
 
 type OrdersMetricType = {
-    date: string,
+    date: string
     Orders: number
 }
 
 const statusBadger = (status: StatusEnum) => {
     switch (status) {
         case 'received':
-            return <Badge color="red" size="sm" icon={ExclamationTriangleIcon}>Unprocessed</Badge>
+            return (
+                <Badge color="red" size="sm" icon={ExclamationTriangleIcon}>
+                    Unprocessed
+                </Badge>
+            )
         case 'in_process':
-            return <Badge color="blue" size="sm" icon={ArrowPathIcon}>In Factory</Badge>
+            return (
+                <Badge color="blue" size="sm" icon={ArrowPathIcon}>
+                    In Factory
+                </Badge>
+            )
         case 'in_store':
         case 'processed':
-            return <Badge color="yellow" size="sm" icon={BuildingStorefrontIcon}>In store</Badge>
+            return (
+                <Badge color="yellow" size="sm" icon={BuildingStorefrontIcon}>
+                    In store
+                </Badge>
+            )
         case 'delivered':
-            return <Badge color="green" size="sm" icon={UserIcon}>Delivered</Badge>
+            return (
+                <Badge color="green" size="sm" icon={UserIcon}>
+                    Delivered
+                </Badge>
+            )
     }
 }
 
@@ -50,43 +106,55 @@ const AdminIndex = () => {
     const [orders, setOrders] = useState<OrdersMetricType[]>()
     const [collected, setCollected] = useState<SalesMetricType[]>()
 
-    const [search, setSearch] = useState<string>('')
+    const [storeSearch, setStoreSearch] = useState<string>('')
+    const [orderSearch, setOrderSearch] = useState<string>('')
+
     const [loading, setLoading] = useState<boolean>(true)
     const [selectedStore, setSelectedStore] = useState<Store>()
     const [metrics, setMetrics] = useState<AdminDashboardResponse>()
+    const [storeOrders, setStoreOrders] = useState<Order[]>()
 
     const calculateCost = () => {
         const orderMetrics = metrics?.metrics
-        const data: SalesMetricType[] = lodashMap(orderMetrics, (theMetrics, date) => {
-            return {
-                date,
-                Cost: lodashSumBy(theMetrics, 'cost')
-            }
-        })
+        const data: SalesMetricType[] = lodashMap(
+            orderMetrics,
+            (theMetrics, date) => {
+                return {
+                    date,
+                    Cost: lodashSumBy(theMetrics, 'cost'),
+                }
+            },
+        )
 
         setCost(lodashSortBy(data, 'date'))
     }
 
     const calculateCollected = () => {
         const orderMetrics = metrics?.metrics
-        const data: SalesMetricType[] = lodashMap(orderMetrics, (theMetrics, date) => {
-            return {
-                date,
-                Cost: lodashSumBy(theMetrics, 'paid')
-            }
-        })
+        const data: SalesMetricType[] = lodashMap(
+            orderMetrics,
+            (theMetrics, date) => {
+                return {
+                    date,
+                    Cost: lodashSumBy(theMetrics, 'paid'),
+                }
+            },
+        )
 
         setCollected(lodashSortBy(data, 'date'))
     }
 
     const calculateOrders = () => {
         const orderMetrics = metrics?.metrics
-        const data: OrdersMetricType[] = lodashMap(orderMetrics, (theMetrics, date) => {
-            return {
-                date,
-                Orders: theMetrics.length
-            }
-        })
+        const data: OrdersMetricType[] = lodashMap(
+            orderMetrics,
+            (theMetrics, date) => {
+                return {
+                    date,
+                    Orders: theMetrics.length,
+                }
+            },
+        )
 
         setOrders(lodashSortBy(data, 'date'))
     }
@@ -94,17 +162,24 @@ const AdminIndex = () => {
     useEffect(() => {
         const initData = async () => {
             if (selectedStore) {
-                const dataResponse = await axios.get<AdminDashboardResponse>('dashboard/admin', {
-                    params: {
-                        store: selectedStore.id
-                    }
-                })
+                const dataResponse = await axios.get<AdminDashboardResponse>(
+                    'dashboard/admin',
+                    {
+                        params: {
+                            store: selectedStore.id,
+                        },
+                    },
+                )
 
+                setStoreOrders(dataResponse.data.data)
                 setMetrics(dataResponse.data)
                 return
             }
 
-            const dataResponse = await axios.get<AdminDashboardResponse>('dashboard/admin')
+            const dataResponse =
+                await axios.get<AdminDashboardResponse>('dashboard/admin')
+
+            setStoreOrders(dataResponse.data.data)
             setMetrics(dataResponse.data)
             setLoading(false)
         }
@@ -120,21 +195,39 @@ const AdminIndex = () => {
 
     useEffect(() => {
         const searchStore = async () => {
-            const storesResponse = await axios.get<StoresResponse>('search/store', {
-                params: { search }
-            })
+            const storesResponse = await axios.get<StoresResponse>(
+                'search/store',
+                {
+                    params: { search: storeSearch },
+                },
+            )
 
             setStores(storesResponse.data.data)
         }
 
         searchStore()
-    }, [search])
+    }, [storeSearch])
+
+    useEffect(() => {
+        const searchOrders = async () => {
+            const ordersResponse = await axios.get<OrdersResponse>(
+                '/search/admin/order',
+                {
+                    params: { search: orderSearch },
+                },
+            )
+
+            setStoreOrders(ordersResponse.data.data)
+        }
+
+        searchOrders()
+    }, [orderSearch])
 
     return (
         <div className="p-12">
             <Title>Welcome, {user.name}</Title>
             <Text>
-                Admin dashboard for Cleanup {' '}
+                Admin dashboard for Cleanup{' '}
                 <Italic style={{ color: '#ef4444', cursor: 'pointer' }}>
                     <Logout />
                 </Italic>
@@ -146,22 +239,37 @@ const AdminIndex = () => {
                 <Card>
                     {!selectedStore && (
                         <>
-                            <TextInput placeholder="Search store" onInput={e => setSearch(e.currentTarget.value)} />
+                            <TextInput
+                                placeholder="Search store"
+                                onInput={(e) =>
+                                    setStoreSearch(e.currentTarget.value)
+                                }
+                            />
 
-                            {(search && stores) && (
+                            {storeSearch && stores && (
                                 <div className="mt-4">
                                     <List>
-                                        {stores.map(theStore => (
+                                        {stores.map((theStore) => (
                                             <ListItem key={theStore.id}>
                                                 <Text>
-                                                    {theStore.name} - {theStore.code} - {theStore.profile?.district.name}
+                                                    {theStore.name} -{' '}
+                                                    {theStore.code} -{' '}
+                                                    {
+                                                        theStore.profile
+                                                            ?.district.name
+                                                    }
                                                 </Text>
                                                 <Button
                                                     size="xs"
                                                     icon={CheckIcon}
                                                     variant="secondary"
-                                                    onClick={e => setSelectedStore(theStore)}
-                                                >Select store
+                                                    onClick={(e) =>
+                                                        setSelectedStore(
+                                                            theStore,
+                                                        )
+                                                    }
+                                                >
+                                                    Select store
                                                 </Button>
                                             </ListItem>
                                         ))}
@@ -172,8 +280,12 @@ const AdminIndex = () => {
                     )}
 
                     {selectedStore && (
-                        <Callout color="green" title="Reports for selected store">
-                            Reports for {selectedStore.name} store with code {selectedStore.code} will be displayed
+                        <Callout
+                            color="green"
+                            title="Reports for selected store"
+                        >
+                            Reports for {selectedStore.name} store with code{' '}
+                            {selectedStore.code} will be displayed
                         </Callout>
                     )}
                 </Card>
@@ -183,13 +295,21 @@ const AdminIndex = () => {
                 <Grid numItemsLg={3} className="gap-6">
                     <Card decoration="top" decorationColor="blue">
                         <Flex justifyContent="start" className="space-x-6">
-                            <Icon icon={ReceiptPercentIcon} variant="light" color="blue" size="xl"></Icon>
+                            <Icon
+                                icon={ReceiptPercentIcon}
+                                variant="light"
+                                color="blue"
+                                size="xl"
+                            ></Icon>
                             <div className="truncate">
                                 <Title>Billing</Title>
                                 <Metric>
                                     {loading ? (
-                                        <Skeleton className="h-3 rounded-lg w-full" />
-                                    ) : '₹ ' + FormatNumber(lodashSumBy(cost, 'Cost'))}
+                                        <Skeleton className="h-3 w-full rounded-lg" />
+                                    ) : (
+                                        '₹ ' +
+                                        FormatNumber(lodashSumBy(cost, 'Cost'))
+                                    )}
                                 </Metric>
                             </div>
                         </Flex>
@@ -199,7 +319,7 @@ const AdminIndex = () => {
                             data={cost as SalesMetricType[]}
                             index="date"
                             categories={['Cost']}
-                            colors={["blue"]}
+                            colors={['blue']}
                             showXAxis={true}
                             showGridLines={false}
                             startEndOnly={true}
@@ -210,13 +330,23 @@ const AdminIndex = () => {
 
                     <Card decoration="top" decorationColor="orange">
                         <Flex justifyContent="start" className="space-x-6">
-                            <Icon icon={CurrencyRupeeIcon} variant="light" color="orange" size="xl"></Icon>
+                            <Icon
+                                icon={CurrencyRupeeIcon}
+                                variant="light"
+                                color="orange"
+                                size="xl"
+                            ></Icon>
                             <div className="truncate">
                                 <Title>Collected</Title>
                                 <Metric>
                                     {loading ? (
-                                        <Skeleton className="h-3 rounded-lg w-full" />
-                                    ) : '₹ ' + FormatNumber(lodashSumBy(collected, 'Cost'))}
+                                        <Skeleton className="h-3 w-full rounded-lg" />
+                                    ) : (
+                                        '₹ ' +
+                                        FormatNumber(
+                                            lodashSumBy(collected, 'Cost'),
+                                        )
+                                    )}
                                 </Metric>
                             </div>
                         </Flex>
@@ -226,7 +356,7 @@ const AdminIndex = () => {
                             data={collected as SalesMetricType[]}
                             index="date"
                             categories={['Cost']}
-                            colors={["orange"]}
+                            colors={['orange']}
                             showXAxis={true}
                             showGridLines={false}
                             startEndOnly={true}
@@ -237,13 +367,20 @@ const AdminIndex = () => {
 
                     <Card decoration="top" decorationColor="fuchsia">
                         <Flex justifyContent="start" className="space-x-6">
-                            <Icon icon={ArchiveBoxArrowDownIcon} variant="light" color="fuchsia" size="xl"></Icon>
+                            <Icon
+                                icon={ArchiveBoxArrowDownIcon}
+                                variant="light"
+                                color="fuchsia"
+                                size="xl"
+                            ></Icon>
                             <div className="truncate">
                                 <Title>Orders</Title>
                                 <Metric>
                                     {loading ? (
-                                        <Skeleton className="h-3 rounded-lg w-full" />
-                                    ) : lodashSumBy(orders, 'Orders')}
+                                        <Skeleton className="h-3 w-full rounded-lg" />
+                                    ) : (
+                                        lodashSumBy(orders, 'Orders')
+                                    )}
                                 </Metric>
                             </div>
                         </Flex>
@@ -253,7 +390,7 @@ const AdminIndex = () => {
                             data={orders as OrdersMetricType[]}
                             index="date"
                             categories={['Orders']}
-                            colors={["fuchsia"]}
+                            colors={['fuchsia']}
                             showXAxis={true}
                             showGridLines={false}
                             startEndOnly={true}
@@ -267,7 +404,17 @@ const AdminIndex = () => {
             <div className="mt-4">
                 <Card>
                     <Title>Live orders</Title>
-                    <Text>Orders across stores will be displayed in realtime</Text>
+                    <Text>
+                        Orders across stores will be displayed in realtime
+                    </Text>
+
+                    <TextInput
+                        value={orderSearch}
+                        icon={MagnifyingGlassIcon}
+                        onInput={(e) => setOrderSearch(e.currentTarget.value)}
+                        placeholder="Search orders..."
+                        className="my-2"
+                    />
 
                     <div className="mt-2">
                         {loading ? (
@@ -277,40 +424,86 @@ const AdminIndex = () => {
                                 <TableHead>
                                     <TableRow>
                                         <TableHeaderCell>Code</TableHeaderCell>
-                                        <TableHeaderCell>Customer</TableHeaderCell>
-                                        <TableHeaderCell>Order date</TableHeaderCell>
-                                        <TableHeaderCell>Store code</TableHeaderCell>
-                                        <TableHeaderCell>Garments</TableHeaderCell>
-                                        <TableHeaderCell>Status</TableHeaderCell>
-                                        <TableHeaderCell>Amount</TableHeaderCell>
-                                        <TableHeaderCell>Action</TableHeaderCell>
+                                        <TableHeaderCell>
+                                            Customer
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            Order date
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            Store code
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            Due Date
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            Status
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            Amount
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            Action
+                                        </TableHeaderCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {metrics?.data.map(order => (
+                                    {storeOrders?.map((order) => (
                                         <TableRow key={order.id}>
                                             <TableCell>{order.code}</TableCell>
-                                            <TableCell>{order.customer?.name}</TableCell>
-                                            <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
-                                            <TableCell>{order.store?.code}</TableCell>
-                                            <TableCell>{order.count}</TableCell>
-                                            <TableCell>{statusBadger(order.status)}</TableCell>
-                                            <TableCell>₹ {FormatNumber(order.cost)}</TableCell>
                                             <TableCell>
-                                                <Link href={'/admin/stores/' + order?.store?.id + '/orders/' + order.code}>
-                                                    <Button variant="secondary" color="gray" icon={ReceiptPercentIcon}>Show order</Button>
+                                                {order.customer?.name}
+                                            </TableCell>
+                                            <TableCell>
+                                                {dayjs(order.created_at).format(
+                                                    'DD, MMMM YY',
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {order.store?.code}
+                                            </TableCell>
+                                            <TableCell>
+                                                {order.due_date
+                                                    ? dayjs(
+                                                          order.due_date,
+                                                      ).format('DD, MMMM YY')
+                                                    : 'General'}
+                                            </TableCell>
+                                            <TableCell>
+                                                {statusBadger(order.status)}
+                                            </TableCell>
+                                            <TableCell>
+                                                ₹ {FormatNumber(order.cost)}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Link
+                                                    href={
+                                                        '/admin/stores/' +
+                                                        order?.store?.id +
+                                                        '/orders/' +
+                                                        order.code
+                                                    }
+                                                >
+                                                    <Button
+                                                        variant="secondary"
+                                                        color="gray"
+                                                        icon={
+                                                            ReceiptPercentIcon
+                                                        }
+                                                    >
+                                                        Show order
+                                                    </Button>
                                                 </Link>
                                             </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
-                        )
-                        }
-                    </div >
-                </Card >
-            </div >
-        </div >
+                        )}
+                    </div>
+                </Card>
+            </div>
+        </div>
     )
 }
 
