@@ -171,6 +171,7 @@ export type CreateStoreError = {
         'profile.pincode'?: string[]
         'profile.district'?: string[]
         'profile.state'?: string[]
+        'profile.emergency_contact'?: string[]
     }
 }
 
