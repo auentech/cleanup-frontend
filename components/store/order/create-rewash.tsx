@@ -1,12 +1,38 @@
-import useAxios from "@/common/axios"
-import { BackendGeneralResponse, LoginResponse, Order, OrderItem, OrderResponse, OrdersResponse } from "@/common/types"
-import { CheckBadgeIcon, ReceiptPercentIcon, ReceiptRefundIcon } from "@heroicons/react/24/outline"
-import { Button, Callout, Divider, Flex, List, ListItem, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, TextInput } from "@tremor/react"
-import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
+import useAxios from '@/common/axios'
+import {
+    BackendGeneralResponse,
+    Order,
+    OrderItem,
+    OrderResponse,
+    OrdersResponse,
+    UserData,
+} from '@/common/types'
+import {
+    CheckBadgeIcon,
+    ReceiptPercentIcon,
+    ReceiptRefundIcon,
+} from '@heroicons/react/24/outline'
+import {
+    Button,
+    Callout,
+    Divider,
+    Flex,
+    List,
+    ListItem,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeaderCell,
+    TableRow,
+    Text,
+    TextInput,
+} from '@tremor/react'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 
 type CreateRewashType = {
-    user: LoginResponse
+    user: UserData
 }
 
 type CreateRewashQuery = {
@@ -27,12 +53,17 @@ const CreateRewash = ({ user }: CreateRewashType) => {
 
     useEffect(() => {
         const fetchOrders = async () => {
-            const ordersResponse = await axios.get<OrdersResponse>('search/store/' + user.meta.store_id + '/order', {
-                params: { search }
-            })
+            const ordersResponse = await axios.get<OrdersResponse>(
+                'search/store/' + user.store_id + '/order',
+                {
+                    params: { search },
+                },
+            )
 
             const filtered: OrdersResponse = {
-                data: ordersResponse.data.data.filter(order => !order.rewash_parent_id),
+                data: ordersResponse.data.data.filter(
+                    (order) => !order.rewash_parent_id,
+                ),
                 links: ordersResponse.data.links,
                 meta: ordersResponse.data.meta,
             }
@@ -50,14 +81,17 @@ const CreateRewash = ({ user }: CreateRewashType) => {
 
         try {
             const fetchOrder = async () => {
-                const orderResponse = await axios.get<OrderResponse>('/stores/' + user?.meta?.store_id + '/orders/' + query.order, {
-                    params: {
-                        include: [
-                            'orderItems.garment',
-                            'orderItems.service'
-                        ]
-                    }
-                })
+                const orderResponse = await axios.get<OrderResponse>(
+                    '/stores/' + user?.store_id + '/orders/' + query.order,
+                    {
+                        params: {
+                            include: [
+                                'orderItems.garment',
+                                'orderItems.service',
+                            ],
+                        },
+                    },
+                )
                 setSelectedOrder(orderResponse.data.data)
             }
 
@@ -72,19 +106,19 @@ const CreateRewash = ({ user }: CreateRewashType) => {
             return
         }
 
-        setSelectedItems(oldValues => ([
-            ...oldValues,
-            item.id
-        ]))
+        setSelectedItems((oldValues) => [...oldValues, item.id])
     }
 
     const isItemSelected = (item: OrderItem) => selectedItems.includes(item.id)
 
     const handleCreateRewash = async () => {
-        const response = await axios.post<BackendGeneralResponse>('stores/' + user.meta.store_id + '/orders/rewash', {
-            order_id: selectedOrder?.id,
-            items: selectedItems,
-        })
+        const response = await axios.post<BackendGeneralResponse>(
+            'stores/' + user.store_id + '/orders/rewash',
+            {
+                order_id: selectedOrder?.id,
+                items: selectedItems,
+            },
+        )
 
         alert(response.data.message)
         router.reload()
@@ -96,12 +130,15 @@ const CreateRewash = ({ user }: CreateRewashType) => {
                 <>
                     <div className="mt-4">
                         <Text>Search orders</Text>
-                        <TextInput onInput={e => setSearch(e.currentTarget.value)} className="mt-2" />
+                        <TextInput
+                            onInput={(e) => setSearch(e.currentTarget.value)}
+                            className="mt-2"
+                        />
                     </div>
 
                     <div className="mt-4">
                         <List>
-                            {orders?.data.map(order => (
+                            {orders?.data.map((order) => (
                                 <ListItem key={order.id}>
                                     {order.customer?.name} - {order.code}
                                     <Button
@@ -109,8 +146,10 @@ const CreateRewash = ({ user }: CreateRewashType) => {
                                         color="gray"
                                         variant="secondary"
                                         icon={ReceiptPercentIcon}
-                                        onClick={e => setSelectedOrder(order)}
-                                    >Select order</Button>
+                                        onClick={(e) => setSelectedOrder(order)}
+                                    >
+                                        Select order
+                                    </Button>
                                 </ListItem>
                             ))}
                         </List>
@@ -121,8 +160,9 @@ const CreateRewash = ({ user }: CreateRewashType) => {
             {selectedOrder && (
                 <>
                     <div className="mt-4">
-                        <Callout title={"Rewash for " + selectedOrder.code}>
-                            Order of {selectedOrder.customer?.name} with code {selectedOrder.code} will be given for rewash
+                        <Callout title={'Rewash for ' + selectedOrder.code}>
+                            Order of {selectedOrder.customer?.name} with code{' '}
+                            {selectedOrder.code} will be given for rewash
                         </Callout>
                     </div>
 
@@ -131,14 +171,24 @@ const CreateRewash = ({ user }: CreateRewashType) => {
                             <TableHead>
                                 <TableRow>
                                     <TableHeaderCell>Service</TableHeaderCell>
-                                    <TableHeaderCell style={{ textAlign: 'center' }}>Garment</TableHeaderCell>
-                                    <TableHeaderCell style={{ textAlign: 'center' }}>Action</TableHeaderCell>
+                                    <TableHeaderCell
+                                        style={{ textAlign: 'center' }}
+                                    >
+                                        Garment
+                                    </TableHeaderCell>
+                                    <TableHeaderCell
+                                        style={{ textAlign: 'center' }}
+                                    >
+                                        Action
+                                    </TableHeaderCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {selectedOrder.items?.map(item => (
+                                {selectedOrder.items?.map((item) => (
                                     <TableRow key={item.id}>
-                                        <TableCell>{item.service?.service}</TableCell>
+                                        <TableCell>
+                                            {item.service?.service}
+                                        </TableCell>
                                         <TableCell>
                                             <Flex justifyContent="center">
                                                 {item.garment?.name}
@@ -147,12 +197,26 @@ const CreateRewash = ({ user }: CreateRewashType) => {
                                         <TableCell>
                                             <Flex justifyContent="center">
                                                 <Button
-                                                    onClick={e => handleItemSelection(item)}
-                                                    disabled={isItemSelected(item)}
+                                                    onClick={(e) =>
+                                                        handleItemSelection(
+                                                            item,
+                                                        )
+                                                    }
+                                                    disabled={isItemSelected(
+                                                        item,
+                                                    )}
                                                     icon={CheckBadgeIcon}
                                                     variant="secondary"
-                                                    color={isItemSelected(item) ? "gray" : 'blue'}
-                                                >{isItemSelected(item) ? 'Item selected' : 'Select Item'}</Button>
+                                                    color={
+                                                        isItemSelected(item)
+                                                            ? 'gray'
+                                                            : 'blue'
+                                                    }
+                                                >
+                                                    {isItemSelected(item)
+                                                        ? 'Item selected'
+                                                        : 'Select Item'}
+                                                </Button>
                                             </Flex>
                                         </TableCell>
                                     </TableRow>
@@ -170,8 +234,10 @@ const CreateRewash = ({ user }: CreateRewashType) => {
                         <Button
                             variant="secondary"
                             icon={ReceiptRefundIcon}
-                            onClick={e => handleCreateRewash()}
-                        >Create rewash</Button>
+                            onClick={(e) => handleCreateRewash()}
+                        >
+                            Create rewash
+                        </Button>
                     </Flex>
                 </>
             )}

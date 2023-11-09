@@ -1,17 +1,46 @@
-import useAxios from "@/common/axios"
-import { BackendGeneralResponse, FactoriesResponse, Factory, LoginResponse, OrdersResponse } from "@/common/types"
-import { BeakerIcon, CheckBadgeIcon, TruckIcon } from "@heroicons/react/24/outline"
-import { Table, TableHead, TableRow, Text, TableHeaderCell, TableBody, TableCell, Divider, Button, Flex, Badge, List, ListItem, TextInput } from "@tremor/react"
-import dayjs from "dayjs"
-import Link from "next/link"
-import router from "next/router"
-import { useEffect, useState } from "react"
-import TableSkeleton from "@/components/table-skeleton"
+import useAxios from '@/common/axios'
+import {
+    BackendGeneralResponse,
+    FactoriesResponse,
+    Factory,
+    LoginResponse,
+    OrdersResponse,
+    UserData,
+} from '@/common/types'
+import {
+    BeakerIcon,
+    CheckBadgeIcon,
+    TruckIcon,
+} from '@heroicons/react/24/outline'
+import {
+    Table,
+    TableHead,
+    TableRow,
+    Text,
+    TableHeaderCell,
+    TableBody,
+    TableCell,
+    Divider,
+    Button,
+    Flex,
+    Badge,
+    List,
+    ListItem,
+    TextInput,
+} from '@tremor/react'
+import dayjs from 'dayjs'
+import Link from 'next/link'
+import router from 'next/router'
+import { useEffect, useState } from 'react'
+import TableSkeleton from '@/components/table-skeleton'
+import { useSession } from 'next-auth/react'
 
 const RewashChallans = () => {
     const axios = useAxios()
+    const { data } = useSession()
 
-    const [user, setUser] = useState<LoginResponse>()
+    const user = data?.user as UserData
+
     const [orders, setOrders] = useState<OrdersResponse>()
     const [loading, setLoading] = useState<boolean>(false)
     const [factorySearch, setFactorySearch] = useState<string>()
@@ -21,17 +50,19 @@ const RewashChallans = () => {
     useEffect(() => {
         const fetchRewashes = async () => {
             const userResponse = await axios.get<LoginResponse>('user')
-            setUser(userResponse.data)
 
-            const rewashesResponse = await axios.get<OrdersResponse>('/stores/' + userResponse.data.meta.store_id + '/orders', {
-                params: {
-                    filter: {
-                        no_challans: 'lol',
-                        rewash: 'lol'
+            const rewashesResponse = await axios.get<OrdersResponse>(
+                '/stores/' + user.store_id + '/orders',
+                {
+                    params: {
+                        filter: {
+                            no_challans: 'lol',
+                            rewash: 'lol',
+                        },
+                        include: ['customer', 'rewash'],
                     },
-                    include: ['customer', 'rewash']
-                }
-            })
+                },
+            )
 
             setOrders(rewashesResponse.data)
         }
@@ -41,11 +72,14 @@ const RewashChallans = () => {
 
     useEffect(() => {
         const fetchFactories = async () => {
-            const factoriesResponse = await axios.get<FactoriesResponse>('/search/factory', {
-                params: {
-                    search: factorySearch
-                }
-            })
+            const factoriesResponse = await axios.get<FactoriesResponse>(
+                '/search/factory',
+                {
+                    params: {
+                        search: factorySearch,
+                    },
+                },
+            )
 
             setFactories(factoriesResponse.data)
         }
@@ -56,11 +90,14 @@ const RewashChallans = () => {
     const handleCreateChallan = async () => {
         setLoading(true)
 
-        const selectedOrders = orders?.data.map(order => order.id)
-        await axios.post<BackendGeneralResponse>('stores/' + user?.meta.store_id + '/challans/', {
-            factory_id: selectedFactory?.id,
-            orders: selectedOrders,
-        })
+        const selectedOrders = orders?.data.map((order) => order.id)
+        await axios.post<BackendGeneralResponse>(
+            'stores/' + user?.store_id + '/challans/',
+            {
+                factory_id: selectedFactory?.id,
+                orders: selectedOrders,
+            },
+        )
 
         alert('Delivery challan created successfully')
         setLoading(false)
@@ -84,17 +121,30 @@ const RewashChallans = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {orders?.data.map(order => (
+                        {orders?.data.map((order) => (
                             <TableRow key={order.id}>
                                 <TableCell>{order.code}</TableCell>
                                 <TableCell>{order.customer?.name}</TableCell>
                                 <TableCell>{order.count}</TableCell>
                                 <TableCell>
-                                    <Link href={'/operator/stores/' + user?.meta.store_id + '/orders/' + order.rewash?.code}>
-                                        <Text color="blue">{order.rewash?.code}</Text>
+                                    <Link
+                                        href={
+                                            '/operator/stores/' +
+                                            user?.store_id +
+                                            '/orders/' +
+                                            order.rewash?.code
+                                        }
+                                    >
+                                        <Text color="blue">
+                                            {order.rewash?.code}
+                                        </Text>
                                     </Link>
                                 </TableCell>
-                                <TableCell>{dayjs(order.created_at).format('DD, MMMM YY')}</TableCell>
+                                <TableCell>
+                                    {dayjs(order.created_at).format(
+                                        'DD, MMMM YY',
+                                    )}
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -112,7 +162,9 @@ const RewashChallans = () => {
                             variant="secondary"
                             onClick={() => handleCreateChallan()}
                             loadingText="Creating delivery challan for rewashes..."
-                        >Create challan for all</Button>
+                        >
+                            Create challan for all
+                        </Button>
                     </Flex>
                 </>
             )}
@@ -125,27 +177,43 @@ const RewashChallans = () => {
                 <>
                     <div className="mt-4">
                         <Text>Search factory</Text>
-                        <TextInput className="mt-2" onInput={e => setFactorySearch(e.currentTarget.value)} />
+                        <TextInput
+                            className="mt-2"
+                            onInput={(e) =>
+                                setFactorySearch(e.currentTarget.value)
+                            }
+                        />
                     </div>
 
                     <div className="mt-4">
                         <List>
-                            {factories && (
-                                factories.data.map(factory => (
+                            {factories &&
+                                factories.data.map((factory) => (
                                     <ListItem key={factory.code}>
-                                        <Flex justifyContent="start" className="gap-4">
-                                            <span>{factory.name} - {factory.profile?.district.name}</span>
-                                            <Badge icon={BeakerIcon}>{factory.code}</Badge>
+                                        <Flex
+                                            justifyContent="start"
+                                            className="gap-4"
+                                        >
+                                            <span>
+                                                {factory.name} -{' '}
+                                                {factory.profile?.district.name}
+                                            </span>
+                                            <Badge icon={BeakerIcon}>
+                                                {factory.code}
+                                            </Badge>
                                         </Flex>
                                         <Button
                                             color="gray"
                                             variant="secondary"
                                             icon={CheckBadgeIcon}
-                                            onClick={e => setSelectedFactory(factory)}
-                                        >Select factory</Button>
+                                            onClick={(e) =>
+                                                setSelectedFactory(factory)
+                                            }
+                                        >
+                                            Select factory
+                                        </Button>
                                     </ListItem>
-                                ))
-                            )}
+                                ))}
                         </List>
                     </div>
                 </>

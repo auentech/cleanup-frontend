@@ -24,6 +24,7 @@ export type UserData = {
     phone: number
     role: Role
     token?: string
+    store_id?: number
     profile?: Profile
     created_at: Date
     updated_at: Date
@@ -41,7 +42,13 @@ export type UserSearchResponse = {
     data: UserData[]
 }
 
-export type Role = 'admin' | 'manager' | 'operator' | 'washer' | 'packer' | 'ironer'
+export type Role =
+    | 'admin'
+    | 'manager'
+    | 'operator'
+    | 'washer'
+    | 'packer'
+    | 'ironer'
 
 type Links = {
     first: string
@@ -86,7 +93,12 @@ export type Store = {
     updated_at: string
 }
 
-export type StatusEnum = 'received' | 'in_process' | 'processed' | 'in_store' | 'delivered'
+export type StatusEnum =
+    | 'received'
+    | 'in_process'
+    | 'processed'
+    | 'in_store'
+    | 'delivered'
 
 export type RemarkItem = {
     item_id: number
@@ -120,7 +132,7 @@ export type Order = {
 }
 
 export type StoresResponse = {
-    data: Store[],
+    data: Store[]
     links: Links
     meta: Meta
 }
@@ -163,7 +175,7 @@ export type CreateStoreError = {
 }
 
 export type OrdersResponse = {
-    data: Order[],
+    data: Order[]
     links: Links
     meta: Meta
 }

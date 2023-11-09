@@ -13,28 +13,32 @@ export const authOptions: AuthOptions = {
             name: 'Credentials',
             credentials: {
                 email: { label: 'Email', type: 'email' },
-                password: { label: 'Password', type: 'password' }
+                password: { label: 'Password', type: 'password' },
             },
-            authorize: async credentials => {
+            authorize: async (credentials) => {
                 try {
-                    const response = await axios.post<LoginResponse>('/api/auth/login', {
-                        email: credentials?.email,
-                        password: credentials?.password
-                    }, {
-                        baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    })
+                    const response = await axios.post<LoginResponse>(
+                        '/api/auth/login',
+                        {
+                            email: credentials?.email,
+                            password: credentials?.password,
+                        },
+                        {
+                            baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        },
+                    )
 
                     return {
                         ...response.data.data,
                         token: response.data.meta.token,
-                        store_id: response.data.meta.store_id
+                        store_id: response.data.meta.store_id,
                     }
                 } catch (e) {
                     const error = e as AxiosError
-                    console.error(error.response?.data)
+                    console.error('[ERROR]', error.response?.data)
                     throw new Error('Unable to log you in')
                 }
             },
@@ -45,9 +49,9 @@ export const authOptions: AuthOptions = {
             const token = params.token
             const session: Session = {
                 user: {
-                    ...token
+                    ...token,
                 },
-                expires: dayjs.add(1, 'day').toISOString()
+                expires: dayjs.add(1, 'day').toISOString(),
             }
 
             return session
@@ -56,7 +60,7 @@ export const authOptions: AuthOptions = {
             if (params.user) {
                 const token = {
                     ...params.token,
-                    ...params.user
+                    ...params.user,
                 }
 
                 return token
