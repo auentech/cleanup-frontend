@@ -2,7 +2,7 @@ import Dayjs from 'dayjs'
 import type { AuthOptions, Session } from 'next-auth'
 import NextAuth from 'next-auth/next'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { LoginResponse } from '@/common/types'
+import { BackendGeneralResponse, LoginResponse } from '@/common/types'
 import axios, { AxiosError } from 'axios'
 
 const dayjs = Dayjs()
@@ -38,8 +38,14 @@ export const authOptions: AuthOptions = {
                     }
                 } catch (e) {
                     const error = e as AxiosError
-                    console.error('[ERROR]', error.response?.data)
-                    throw new Error('Unable to log you in')
+                    const backend = error.response
+                        ?.data as BackendGeneralResponse
+
+                    throw new Error(
+                        backend.message
+                            ? backend.message
+                            : 'Unable to log you in',
+                    )
                 }
             },
         }),
