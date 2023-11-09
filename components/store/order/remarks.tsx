@@ -1,9 +1,26 @@
-import useAxios from "@/common/axios"
-import { BackendGeneralResponse, OrderItem, OrderResponse, RemarkItem } from "@/common/types"
-import { PencilSquareIcon } from "@heroicons/react/24/outline"
-import { Text, Card, Col, Divider, Flex, Grid, Select, TextInput, Title, SelectItem, Button } from "@tremor/react"
-import { useRouter } from "next/router"
-import { useState } from "react"
+import useAxios from '@/common/axios'
+import {
+    BackendGeneralResponse,
+    OrderItem,
+    OrderResponse,
+    RemarkItem,
+} from '@/common/types'
+import { PencilSquareIcon } from '@heroicons/react/24/outline'
+import {
+    Text,
+    Card,
+    Col,
+    Divider,
+    Flex,
+    Grid,
+    Select,
+    TextInput,
+    Title,
+    SelectItem,
+    Button,
+} from '@tremor/react'
+import { useRouter } from 'next/router'
+import { useState } from 'react'
 
 type OrderRemarksType = {
     order: OrderResponse
@@ -18,12 +35,21 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
     const storeID = router.query.store
 
     const [loading, setLoading] = useState<boolean>(false)
-    const [remarks, setRemarks] = useState<RemarkItem[]>([])
+    const [remarks, setRemarks] = useState<RemarkItem[]>(
+        order.data?.remarks as RemarkItem[],
+    )
 
-    const handleRemarksChange = async (item: OrderItem, type: RemarksAllowedType, value: string) => {
+    const handleRemarksChange = async (
+        item: OrderItem,
+        type: RemarksAllowedType,
+        value: string,
+    ) => {
         setRemarks((prevRemarks) => {
             const updatedRemarks = [...prevRemarks]
-            const itemIndex = updatedRemarks.findIndex((remark) => remark.item_id === item.id)
+            const itemIndex = updatedRemarks.findIndex(
+                (remark) => remark.item_id === item.id,
+            )
+
             if (itemIndex !== -1) {
                 updatedRemarks[itemIndex] = {
                     ...updatedRemarks[itemIndex],
@@ -44,9 +70,12 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
 
     const handleRemarksUpdate = async () => {
         setLoading(true)
-        await axios.put<BackendGeneralResponse>('/stores/' + storeID + '/orders/' + order.data.code, {
-            remarks
-        })
+        await axios.put<BackendGeneralResponse>(
+            '/stores/' + storeID + '/orders/' + order.data.code,
+            {
+                remarks,
+            },
+        )
 
         alert('remarks updated')
         setLoading(false)
@@ -54,7 +83,9 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
     }
 
     const getRemarkForItem = (item: OrderItem, type: RemarksAllowedType) => {
-        const theRemark = order.data.remarks?.filter(remark => remark.item_id == item.id)[0]
+        const theRemark = remarks?.filter(
+            (remark) => remark.item_id == item.id,
+        )[0]
 
         if (theRemark) {
             return theRemark[type]
@@ -67,15 +98,19 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
         <Card>
             <Title>Remarks</Title>
 
-            {order.data.items?.map(item => (
+            {order.data.items?.map((item) => (
                 <div className="mt-6" key={item.id}>
-                    <Title className="mb-2">{item.garment.name} - {item.service.service}</Title>
+                    <Title className="mb-2">
+                        {item.garment.name} - {item.service.service}
+                    </Title>
                     <Grid numItemsLg={3} className="gap-6">
                         <Col>
                             <Text>{item.garment.name} color</Text>
                             <Select
                                 className="mt-2"
-                                onValueChange={v => handleRemarksChange(item, 'color', v)}
+                                onValueChange={(v) =>
+                                    handleRemarksChange(item, 'color', v)
+                                }
                                 disabled={loading}
                                 defaultValue={getRemarkForItem(item, 'color')}
                             >
@@ -90,13 +125,19 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                             <Text>{item.garment.name} texture</Text>
                             <Select
                                 className="mt-2"
-                                onValueChange={v => handleRemarksChange(item, 'texture', v)}
+                                onValueChange={(v) =>
+                                    handleRemarksChange(item, 'texture', v)
+                                }
                                 disabled={loading}
                                 defaultValue={getRemarkForItem(item, 'texture')}
                             >
                                 <SelectItem value="Silky">Silky</SelectItem>
-                                <SelectItem value="Cross pattern">Cross pattern</SelectItem>
-                                <SelectItem value="Stripped">Stripped</SelectItem>
+                                <SelectItem value="Cross pattern">
+                                    Cross pattern
+                                </SelectItem>
+                                <SelectItem value="Stripped">
+                                    Stripped
+                                </SelectItem>
                                 <SelectItem value="Checked">Checked</SelectItem>
                             </Select>
                         </Col>
@@ -105,7 +146,13 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                             <Text>{item.garment.name} brand</Text>
                             <TextInput
                                 className="mt-2"
-                                onInput={e => handleRemarksChange(item, 'brand', e.currentTarget.value)}
+                                onInput={(e) =>
+                                    handleRemarksChange(
+                                        item,
+                                        'brand',
+                                        e.currentTarget.value,
+                                    )
+                                }
                                 disabled={loading}
                                 defaultValue={getRemarkForItem(item, 'brand')}
                             />
@@ -122,8 +169,10 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                     variant="secondary"
                     loading={loading}
                     loadingText="Updating remarks..."
-                    onClick={e => handleRemarksUpdate()}
-                >Update remarks</Button>
+                    onClick={(e) => handleRemarksUpdate()}
+                >
+                    Update remarks
+                </Button>
             </Flex>
         </Card>
     )
