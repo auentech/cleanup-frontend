@@ -33,7 +33,6 @@ import {
     Callout,
 } from '@tremor/react'
 import { useSession } from 'next-auth/react'
-import AdminNavigation from '@/components/admin/admin-navigation'
 import useAxios from '@/common/axios'
 import { useEffect, useState } from 'react'
 import {
@@ -55,6 +54,7 @@ import Link from 'next/link'
 import TableSkeleton from '@/components/table-skeleton'
 import { Skeleton } from '@nextui-org/react'
 import FormatNumber from '@/common/number-formatter'
+import ManagerNavigation from '@/components/manager/manager-navigation'
 
 type SalesMetricType = {
     date: string
@@ -233,7 +233,7 @@ const AdminIndex = () => {
                 </Italic>
             </Text>
 
-            <AdminNavigation />
+            <ManagerNavigation />
 
             <div className="mt-6">
                 <Card>
