@@ -93,7 +93,7 @@ const Factories = () => {
                                                         <TableCell>{factory.profile?.state.name}</TableCell>
                                                         <TableCell>{factory.profile?.district.name}</TableCell>
                                                         <TableCell>
-                                                            <Link href={'/admin/factories/' + factory.id}>
+                                                            <Link href={'/manager/factories/' + factory.id}>
                                                                 <Button icon={BeakerIcon} size="xs" variant="secondary" color="gray">
                                                                     Show factory
                                                                 </Button>

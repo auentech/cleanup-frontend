@@ -4,7 +4,6 @@ import {
     AdminDashboardResponse,
     Order,
     OrdersResponse,
-    StatusEnum,
     Store,
     StoresResponse,
     UserData,
@@ -27,7 +26,6 @@ import {
     TableHead,
     TableHeaderCell,
     TableRow,
-    Badge,
     List,
     ListItem,
     Callout,
@@ -38,13 +36,10 @@ import useAxios from '@/common/axios'
 import { useEffect, useState } from 'react'
 import {
     ArchiveBoxArrowDownIcon,
-    ArrowPathIcon,
-    BuildingStorefrontIcon,
     CheckIcon,
     CurrencyRupeeIcon,
-    ExclamationTriangleIcon,
     ReceiptPercentIcon,
-    UserIcon,
+    MagnifyingGlassIcon
 } from '@heroicons/react/24/outline'
 import lodashSumBy from 'lodash/sumBy'
 import lodashMap from 'lodash/map'
@@ -54,7 +49,7 @@ import Link from 'next/link'
 import TableSkeleton from '@/components/table-skeleton'
 import { Skeleton } from '@nextui-org/react'
 import FormatNumber from '@/common/number-formatter'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/solid'
+import StatusBadger from '@/common/status-badger'
 
 type SalesMetricType = {
     date: string
@@ -64,36 +59,6 @@ type SalesMetricType = {
 type OrdersMetricType = {
     date: string
     Orders: number
-}
-
-const statusBadger = (status: StatusEnum) => {
-    switch (status) {
-        case 'received':
-            return (
-                <Badge color="red" size="sm" icon={ExclamationTriangleIcon}>
-                    Unprocessed
-                </Badge>
-            )
-        case 'in_process':
-            return (
-                <Badge color="blue" size="sm" icon={ArrowPathIcon}>
-                    In Factory
-                </Badge>
-            )
-        case 'in_store':
-        case 'processed':
-            return (
-                <Badge color="yellow" size="sm" icon={BuildingStorefrontIcon}>
-                    In store
-                </Badge>
-            )
-        case 'delivered':
-            return (
-                <Badge color="green" size="sm" icon={UserIcon}>
-                    Delivered
-                </Badge>
-            )
-    }
 }
 
 const AdminIndex = () => {
@@ -465,12 +430,12 @@ const AdminIndex = () => {
                                             <TableCell>
                                                 {order.due_date
                                                     ? dayjs(
-                                                          order.due_date,
-                                                      ).format('DD, MMMM YY')
+                                                        order.due_date,
+                                                    ).format('DD, MMMM YY')
                                                     : 'General'}
                                             </TableCell>
                                             <TableCell>
-                                                {statusBadger(order.status)}
+                                                {StatusBadger(order.status)}
                                             </TableCell>
                                             <TableCell>
                                                 ₹ {FormatNumber(order.cost)}
