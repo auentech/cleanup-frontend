@@ -122,7 +122,7 @@ const EditStore = () => {
 
     return (
         <>
-            {currentStoreOps != undefined && (
+            {currentStoreOps != undefined ? (
                 <div className="mt-4">
                     <Text>Operators</Text>
                     <MultiSelect
@@ -138,6 +138,10 @@ const EditStore = () => {
                             </MultiSelectItem>
                         )}
                     </MultiSelect>
+                </div>
+            ) : (
+                <div className="mt-4">
+                    <Text>Loading operators, please wait...</Text>
                 </div>
             )}
 
