@@ -23,7 +23,12 @@ const ManagerNavigation = () => {
                     '/manager/stores/[store]/challans/[challan]'
                 ]
             },
-            { icon: UserIcon, text: 'Workers', path: '/manager/workers' },
+            {
+                icon: UserIcon,
+                text: 'Users',
+                path: '/manager/users',
+                subPath: ['/manager/users/[user]/orders'],
+            },
         ]} />
     )
 }

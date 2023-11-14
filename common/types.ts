@@ -26,6 +26,7 @@ export type UserData = {
     token?: string
     store_id?: number
     profile?: Profile
+    orders?: Order[]
     created_at: Date
     updated_at: Date
 }
@@ -49,6 +50,7 @@ export type Role =
     | 'washer'
     | 'packer'
     | 'ironer'
+    | 'customer'
 
 type Links = {
     first: string
