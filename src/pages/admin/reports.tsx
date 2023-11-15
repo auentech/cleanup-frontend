@@ -7,7 +7,6 @@ import { Accordion, AccordionBody, AccordionHeader, AccordionList, Button, Callo
 import loFilter from 'lodash/filter'
 import loSumBy from 'lodash/sumBy'
 import { useSession } from "next-auth/react"
-import Link from "next/link"
 import { useEffect, useState } from "react"
 
 type StoreCount = {
@@ -40,7 +39,7 @@ const AdminReports = () => {
     const [stores, setStores] = useState<Store[]>()
     const [search, setSearch] = useState<string>('')
     const [selectedStore, setSelectedStore] = useState<Store>()
-    const [selectedRange, setSelectedRange] = useState<string>()
+    const [selectedRange, setSelectedRange] = useState<string>('1')
     const [metrics, setMetrics] = useState<StoreReportsResponse>()
 
     useEffect(() => {
@@ -112,7 +111,7 @@ const AdminReports = () => {
                         )}
                     </Col>
                     <Col>
-                        <Select onValueChange={setSelectedRange} placeholder="Select range">
+                        <Select value={selectedRange} onValueChange={setSelectedRange} placeholder="Select range">
                             <SelectItem value="1">Today's data</SelectItem>
                             <SelectItem value="7">Last 7 day's data</SelectItem>
                             <SelectItem value="30">Last 30 day's data</SelectItem>
@@ -279,31 +278,39 @@ const AdminReports = () => {
                         </AccordionList>
                     </div>
 
-                    {selectedRange != '1' && (
-                        <Card className="mt-4">
-                            <Title className="mb-2">Downloads</Title>
-                            <Grid numItems={2} className="gap-6">
-                                <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/reports/exports/stores?token=' + user.token} className="w-full" target="_blank">
-                                    <Button
-                                        className="w-full"
-                                        variant="secondary"
-                                        icon={ArrowDownTrayIcon}
-                                    >
-                                        Download report
-                                    </Button>
-                                </Link>
-                                <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/reports/exports/customers?token=' + user.token} className="w-full" target="_blank">
-                                    <Button
-                                        className="w-full"
-                                        variant="secondary"
-                                        icon={UsersIcon}
-                                    >
-                                        Download users
-                                    </Button>
-                                </Link>
-                            </Grid>
-                        </Card>
-                    )}
+                    <Card className="mt-4">
+                        <Title className="mb-2">Downloads</Title>
+                        <Grid numItemsMd={4} className="gap-6">
+                            <a href={process.env.NEXT_PUBLIC_BACKEND_URL + 'api/reports/exports/stores?days=' + selectedRange + '&token=' + user.token} className="w-full" target="_blank">
+                                <Button
+                                    className="w-full"
+                                    variant="secondary"
+                                    icon={ArrowDownTrayIcon}
+                                >
+                                    Download report
+                                </Button>
+                            </a>
+                            <a href={process.env.NEXT_PUBLIC_BACKEND_URL + 'api/reports/exports/customers?days=' + selectedRange + '&token=' + user.token} className="w-full" target="_blank">
+                                <Button
+                                    className="w-full"
+                                    variant="secondary"
+                                    icon={UsersIcon}
+                                >
+                                    Download users
+                                </Button>
+                            </a>
+                            <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/reports/exports/collection/${selectedStore?.id}?days=${selectedRange}&token=${user.token}`} className="w-full" target="_blank">
+                                <Button className="w-full" variant="secondary" disabled={selectedStore == undefined}>
+                                    Collection report
+                                </Button>
+                            </a>
+                            <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/reports/exports/undelivered/${selectedStore?.id}?token=${user.token}`} className="w-full" target="_blank">
+                                <Button className="w-full" variant="secondary" disabled={selectedStore == undefined}>
+                                    Undelivered reports
+                                </Button>
+                            </a>
+                        </Grid>
+                    </Card>
                 </>
             )}
         </div>
