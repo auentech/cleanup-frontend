@@ -70,6 +70,7 @@ const OperatorIndex = () => {
     const [store, setStore] = useState<StoreResponse>()
     const [orders, setOrders] = useState<OrdersResponse>()
 
+    const [orderSearch, setOrderSearch] = useState<string>()
     const [expense, setExpense] = useState<number>()
     const [remarks, setRemarks] = useState<string>()
     const [closingLoading, setClosingLoading] = useState<boolean>()
@@ -97,29 +98,34 @@ const OperatorIndex = () => {
                 },
             )
 
-            const ordersResponse = await axios.get<OrdersResponse>(
-                '/stores/' + user.store_id + '/orders',
-                {
-                    params: {
-                        include: ['customer'],
-                        filter: {
-                            originals: 'yes',
-                        },
-                    },
-                },
-            )
-
             const closingResponse = await axios.get<ClosingCreateResponse[]>(
                 '/stores/' + user.store_id + '/closing/create',
             )
 
             setStore(storeResponse.data)
-            setOrders(ordersResponse.data)
             setCreateClosing(closingResponse.data)
         }
 
         fetchData()
     }, [])
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            const searchResponse = await axios.get<OrdersResponse>(
+                '/search/store/' + user.store_id + '/order',
+                {
+                    params: {
+                        originals: true,
+                        search: orderSearch
+                    },
+                },
+            )
+
+            setOrders(searchResponse.data)
+        }
+
+        fetchOrders()
+    }, [orderSearch])
 
     const createDayClosing = async () => {
         setClosingLoading(true)
@@ -180,11 +186,23 @@ const OperatorIndex = () => {
                             {store == undefined || orders == undefined ? (
                                 <TableSkeleton numCols={7} numRows={5} />
                             ) : (
-                                <StoreOrders
-                                    store={store}
-                                    orders={orders}
-                                    role="operator"
-                                />
+                                <>
+                                    <TextInput
+                                        className="my-4"
+                                        value={orderSearch}
+                                        onInput={(e) =>
+                                            setOrderSearch(
+                                                e.currentTarget.value,
+                                            )
+                                        }
+                                        placeholder="Search orders..."
+                                    />
+                                    <StoreOrders
+                                        store={store}
+                                        orders={orders}
+                                        role="operator"
+                                    />
+                                </>
                             )}
                         </TabPanel>
                         <TabPanel>
