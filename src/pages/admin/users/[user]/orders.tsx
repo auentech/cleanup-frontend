@@ -35,9 +35,7 @@ const UserOrders = () => {
                 }
             })
 
-            // @ts-ignore
             setCustomer(userResponse.data.data)
-            console.log(userResponse.data.data)
         }
 
         fetchUser()
