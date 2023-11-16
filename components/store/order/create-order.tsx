@@ -10,6 +10,7 @@ import {
 import {
     CheckIcon,
     PlusCircleIcon,
+    ReceiptPercentIcon,
     ShoppingCartIcon,
     TrashIcon,
     UserIcon,
@@ -286,10 +287,10 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const getInstallment = (): number => {
         switch (installment) {
             case 'full':
-                return taxedCost - discount
+                return taxedCost - ((discount / 100) * taxedCost)
                 break
             case 'half':
-                return (taxedCost - discount) / 2
+                return (taxedCost - ((discount / 100) * taxedCost)) / 2
                 break
             default:
                 return 0
@@ -438,10 +439,10 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                                 {service.service}
                                             </SearchSelectItem>
                                         )) || (
-                                            <SearchSelectItem value="">
-                                                Loading...
-                                            </SearchSelectItem>
-                                        )}
+                                                <SearchSelectItem value="">
+                                                    Loading...
+                                                </SearchSelectItem>
+                                            )}
                                     </SearchSelect>
                                 </Col>
                                 <Col>
@@ -510,6 +511,9 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     <div className="mt-4">
                         <Text>Discount</Text>
                         <NumberInput
+                            icon={ReceiptPercentIcon}
+                            enableStepper={false}
+                            value={discount}
                             onValueChange={setDiscount}
                             className="mt-2"
                         />
@@ -518,11 +522,11 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     <List className="mt-4">
                         <ListItem>
                             <Title>Order Gross Total</Title>
-                            <Title>₹ {cost}</Title>
+                            <Title>₹ {cost.toFixed(2)}</Title>
                         </ListItem>
                         <ListItem>
                             <Title>Discount given</Title>
-                            <Title>₹ {discount}</Title>
+                            <Title>% {discount}</Title>
                         </ListItem>
                         <ListItem>
                             <Title>CGST</Title>
@@ -534,7 +538,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         </ListItem>
                         <ListItem>
                             <Title>Order Net Total</Title>
-                            <Title>₹ {taxedCost - discount}</Title>
+                            <Title>₹ {(taxedCost - ((discount / 100) * taxedCost)).toFixed(2)}</Title>
                         </ListItem>
                         <ListItem>
                             <Flex justifyContent="between" className="gap-6">
@@ -582,7 +586,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         {installment != undefined && (
                             <ListItem>
                                 <Title>To pay now</Title>
-                                <Title>₹ {getInstallment()}</Title>
+                                <Title>₹ {getInstallment().toFixed(2)}</Title>
                             </ListItem>
                         )}
                     </List>
