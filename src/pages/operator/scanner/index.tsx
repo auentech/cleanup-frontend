@@ -49,7 +49,7 @@ const ScannerPage = () => {
             return
         }
 
-        ;(async () => {
+        ; (async () => {
             try {
                 const response = await axios.post<BackendGeneralResponse>(
                     '/orders/' + code + '/status',
@@ -98,7 +98,7 @@ const ScannerPage = () => {
                             <Col numColSpan={1} />
                             <Col numColSpan={1}>
                                 <QrReader
-                                    constraints={{ height: 200 }}
+                                    constraints={{ height: 200, facingMode: 'environment' }}
                                     onResult={handleScan}
                                 />
                             </Col>
