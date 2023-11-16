@@ -222,7 +222,7 @@ const ShowOrderInfo = () => {
                                     Download QR Codes
                                 </Button>
                             </a>
-                            <Link href="/operator/scanner" className="w-full">
+                            {/* <Link href="/operator/scanner" className="w-full">
                                 <Button className="w-full" variant="secondary" icon={ArrowPathIcon}>
                                     Scan status
                                 </Button>
@@ -234,7 +234,7 @@ const ShowOrderInfo = () => {
                                 onClick={editModel.onOpen}
                             >
                                 Change order cost
-                            </Button>
+                            </Button> */}
                             <Button
                                 className="w-full"
                                 icon={ShoppingBagIcon}
@@ -323,7 +323,7 @@ const ShowOrderInfo = () => {
                 </Card>
             </div>
 
-            <Modal isOpen={editModel.isOpen} onOpenChange={editModel.onOpenChange}>
+            {/* <Modal isOpen={editModel.isOpen} onOpenChange={editModel.onOpenChange}>
                 <ModalContent>
                     {(onClose) => (
                         <>
@@ -360,7 +360,7 @@ const ShowOrderInfo = () => {
                         </>
                     )}
                 </ModalContent>
-            </Modal>
+            </Modal> */}
 
             <Modal isOpen={deliveryModal.isOpen} scrollBehavior="inside" backdrop="blur" onOpenChange={deliveryModal.onOpenChange} classNames={{
                 body: "pb-40",
