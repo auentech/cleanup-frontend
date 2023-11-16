@@ -1,5 +1,5 @@
 import Navigation from "@/common/navigation"
-import { HomeIcon, TruckIcon, CameraIcon, ReceiptRefundIcon } from "@heroicons/react/24/outline"
+import { HomeIcon, TruckIcon, CameraIcon, ReceiptRefundIcon, UsersIcon } from "@heroicons/react/24/outline"
 
 const OperatorNavigation = () => {
     return (
@@ -15,6 +15,14 @@ const OperatorNavigation = () => {
                 ]
             },
             { icon: CameraIcon, text: 'Scanner', path: '/operator/scanner' },
+            {
+                icon: UsersIcon,
+                text: 'Customers',
+                path: '/operator/customers',
+                subPath: [
+                    '/operator/customers/[customer]/orders'
+                ]
+            },
         ]} />
     )
 }
