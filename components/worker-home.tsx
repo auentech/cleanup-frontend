@@ -83,7 +83,7 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
                     <Grid numItemsLg={3} className="mt-6">
                         <Col numColSpan={1} />
                         <Col numColSpan={1}>
-                            <QrReader constraints={{ height: 200 }} onResult={handleScan} />
+                            <QrReader constraints={{ height: 200, facingMode: 'environment' }} onResult={handleScan} />
                         </Col>
                         <Col numColSpan={1} />
                     </Grid>
