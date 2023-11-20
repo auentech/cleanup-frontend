@@ -3,7 +3,8 @@ import isUser from "@/common/middlewares/isUser"
 import { Store, StoresResponse, UserData } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import { ArchiveBoxArrowDownIcon, ArchiveBoxIcon, ArrowDownTrayIcon, ArrowPathIcon, BeakerIcon, BuildingStorefrontIcon, CheckIcon, ClockIcon, CurrencyRupeeIcon, GiftIcon, ReceiptRefundIcon, ShoppingBagIcon, TicketIcon, UsersIcon } from "@heroicons/react/24/outline"
-import { Accordion, AccordionBody, AccordionHeader, AccordionList, Button, Callout, Card, Col, Flex, Grid, Icon, List, ListItem, Metric, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
+import { Accordion, AccordionBody, AccordionHeader, AccordionList, Button, Callout, Card, Col, DateRangePicker, DateRangePickerItem, DateRangePickerValue, Flex, Grid, Icon, List, ListItem, Metric, Select, SelectItem, Text, TextInput, Title } from "@tremor/react"
+import dayjs from "dayjs"
 import loFilter from 'lodash/filter'
 import loSumBy from 'lodash/sumBy'
 import { useSession } from "next-auth/react"
@@ -36,10 +37,13 @@ const AdminReports = () => {
 
     const user = data?.user as UserData
 
+    const [range, setRange] = useState<DateRangePickerValue>({
+        from: dayjs().subtract(1, 'day').toDate(),
+        to: dayjs().toDate()
+    })
+    const [store, setStore] = useState<Store>()
     const [stores, setStores] = useState<Store[]>()
     const [search, setSearch] = useState<string>('')
-    const [selectedStore, setSelectedStore] = useState<Store>()
-    const [selectedRange, setSelectedRange] = useState<string>('1')
     const [metrics, setMetrics] = useState<StoreReportsResponse>()
 
     useEffect(() => {
@@ -58,16 +62,19 @@ const AdminReports = () => {
         const initData = async () => {
             const response = await axios.get<StoreReportsResponse>('reports/stores', {
                 params: {
-                    store_id: selectedStore?.id,
-                    days: selectedRange
+                    store_id: store?.id,
+                    from: range.from,
+                    to: range.to,
                 }
             })
 
             setMetrics(response.data)
         }
 
-        initData()
-    }, [selectedStore, selectedRange])
+        if (range.to != undefined || range.from != undefined) {
+            initData()
+        }
+    }, [store, range])
 
     return (
         <div className="p-12">
@@ -79,7 +86,7 @@ const AdminReports = () => {
             <Card className="mt-6">
                 <Grid numItemsLg={2} numItemsMd={2} className="gap-6">
                     <Col numColSpan={1}>
-                        {selectedStore == undefined ? (
+                        {store == undefined ? (
                             <>
                                 <TextInput onInput={e => setSearch(e.currentTarget.value)} placeholder="Search store..." />
 
@@ -95,7 +102,7 @@ const AdminReports = () => {
                                                         size="xs"
                                                         icon={CheckIcon}
                                                         variant="secondary"
-                                                        onClick={e => setSelectedStore(theStore)}
+                                                        onClick={e => setStore(theStore)}
                                                     >Select store
                                                     </Button>
                                                 </ListItem>
@@ -106,17 +113,26 @@ const AdminReports = () => {
                             </>
                         ) : (
                             <Callout title="Store selected">
-                                Reports for {selectedStore.name} store with code {selectedStore.code} will be displayed
+                                Reports for {store.name} store with code {store.code} will be displayed
                             </Callout>
                         )}
                     </Col>
                     <Col>
-                        <Select value={selectedRange} onValueChange={setSelectedRange} placeholder="Select range">
-                            <SelectItem value="1">Today's data</SelectItem>
-                            <SelectItem value="7">Last 7 day's data</SelectItem>
-                            <SelectItem value="30">Last 30 day's data</SelectItem>
-                            <SelectItem value="365">Last 365 day's data</SelectItem>
-                        </Select>
+                        <DateRangePicker
+                            value={range}
+                            className="max-w-full"
+                            onValueChange={setRange}
+                            placeholder="Select range">
+                            <DateRangePickerItem from={dayjs().subtract(1, 'day').toDate()} value="today">
+                                Today
+                            </DateRangePickerItem>
+                            <DateRangePickerItem from={dayjs().subtract(7, 'day').toDate()} value="7days">
+                                Last 7 days
+                            </DateRangePickerItem>
+                            <DateRangePickerItem from={dayjs().subtract(30, 'days').toDate()} value="30days">
+                                Last 30 days
+                            </DateRangePickerItem>
+                        </DateRangePicker>
                     </Col>
                 </Grid>
             </Card>
@@ -281,7 +297,7 @@ const AdminReports = () => {
                     <Card className="mt-4">
                         <Title className="mb-2">Downloads</Title>
                         <Grid numItemsMd={4} className="gap-6">
-                            <a href={process.env.NEXT_PUBLIC_BACKEND_URL + 'api/reports/exports/stores?days=' + selectedRange + '&token=' + user.token} className="w-full" target="_blank">
+                            <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/reports/exports/stores?from=${dayjs(range.from).format('YYYY-MM-DD')}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`} className="w-full" target="_blank">
                                 <Button
                                     className="w-full"
                                     variant="secondary"
@@ -290,7 +306,7 @@ const AdminReports = () => {
                                     Download report
                                 </Button>
                             </a>
-                            <a href={process.env.NEXT_PUBLIC_BACKEND_URL + 'api/reports/exports/customers?days=' + selectedRange + '&token=' + user.token} className="w-full" target="_blank">
+                            <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/reports/exports/customers?from=${dayjs(range.from).format('YYYY-MM-DD')}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`} className="w-full" target="_blank">
                                 <Button
                                     className="w-full"
                                     variant="secondary"
@@ -299,13 +315,13 @@ const AdminReports = () => {
                                     Download users
                                 </Button>
                             </a>
-                            <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/reports/exports/collection/${selectedStore?.id}?days=${selectedRange}&token=${user.token}`} className="w-full" target="_blank">
-                                <Button className="w-full" variant="secondary" disabled={selectedStore == undefined}>
+                            <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/reports/exports/collection?from=${dayjs(range.from).format('YYYY-MM-DD')}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`} className="w-full" target="_blank">
+                                <Button className="w-full" variant="secondary" disabled={dayjs().diff(range.from, 'day') <= 1}>
                                     Collection report
                                 </Button>
                             </a>
-                            <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/reports/exports/undelivered/${selectedStore?.id}?token=${user.token}`} className="w-full" target="_blank">
-                                <Button className="w-full" variant="secondary" disabled={selectedStore == undefined}>
+                            <a href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/reports/exports/undelivered?from=${dayjs(range.from).format('YYYY-MM-DD')}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`} className="w-full" target="_blank">
+                                <Button className="w-full" variant="secondary" disabled={dayjs().diff(range.from, 'day') <= 1}>
                                     Undelivered reports
                                 </Button>
                             </a>
