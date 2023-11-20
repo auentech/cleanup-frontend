@@ -34,7 +34,7 @@ const ListCustomers = () => {
                 placeholder="Search customer..."
                 onInput={e => setSearch(e.currentTarget.value)} />
 
-            {customers == undefined ? <TableSkeleton /> : (
+            {customers == undefined ? <TableSkeleton numCols={7} numRows={5} /> : (
                 <Table className="mt-2">
                     <TableHead>
                         <TableRow>
