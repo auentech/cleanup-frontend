@@ -56,6 +56,14 @@ const LazyCreateWorker = dynamic(
     },
 )
 
+const LazyListCustomers = dynamic(() => import('@/components/admin/list-customers'), {
+    loading: () => (
+        <Flex alignItems="center" justifyContent="center">
+            <Waveform size={20} color="#3b82f6" />
+        </Flex>
+    )
+})
+
 const Workers = () => {
     const axios = useAxios()
     const router = useRouter()
@@ -117,8 +125,9 @@ const Workers = () => {
 
                 <TabGroup className="mt-4" onIndexChange={setTheIndex}>
                     <TabList>
-                        <Tab>List users</Tab>
-                        <Tab>Create user</Tab>
+                        <Tab>List workers</Tab>
+                        <Tab>Create worker</Tab>
+                        <Tab>List customers</Tab>
                     </TabList>
                     <TabPanels>
                         <TabPanel>
@@ -200,6 +209,9 @@ const Workers = () => {
                         </TabPanel>
                         <TabPanel>
                             {theIndex == 1 && <LazyCreateWorker />}
+                        </TabPanel>
+                        <TabPanel>
+                            {theIndex == 2 && <LazyListCustomers />}
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>
