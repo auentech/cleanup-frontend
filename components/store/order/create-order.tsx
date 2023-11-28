@@ -287,10 +287,10 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const getInstallment = (): number => {
         switch (installment) {
             case 'full':
-                return taxedCost - ((discount / 100) * taxedCost)
+                return taxedCost - (discount / 100) * taxedCost
                 break
             case 'half':
-                return (taxedCost - ((discount / 100) * taxedCost)) / 2
+                return (taxedCost - (discount / 100) * taxedCost) / 2
                 break
             default:
                 return 0
@@ -325,6 +325,18 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                     {customers && (
                         <List className="mt-4">
+                            <ListItem>
+                                <Text>New customer?</Text>
+                                <Button
+                                    size="xs"
+                                    variant="secondary"
+                                    color="blue"
+                                    icon={UserPlusIcon}
+                                    onClick={() => setShowCustomerForm(true)}
+                                >
+                                    Create customer
+                                </Button>
+                            </ListItem>
                             {customers.data.map((customer) => (
                                 <ListItem key={customer.id}>
                                     <Text>
@@ -344,18 +356,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                     </Button>
                                 </ListItem>
                             ))}
-                            <ListItem>
-                                <Text>New customer?</Text>
-                                <Button
-                                    size="xs"
-                                    variant="secondary"
-                                    color="blue"
-                                    icon={UserPlusIcon}
-                                    onClick={() => setShowCustomerForm(true)}
-                                >
-                                    Create customer
-                                </Button>
-                            </ListItem>
                         </List>
                     )}
                 </>
@@ -439,10 +439,10 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                                 {service.service}
                                             </SearchSelectItem>
                                         )) || (
-                                                <SearchSelectItem value="">
-                                                    Loading...
-                                                </SearchSelectItem>
-                                            )}
+                                            <SearchSelectItem value="">
+                                                Loading...
+                                            </SearchSelectItem>
+                                        )}
                                     </SearchSelect>
                                 </Col>
                                 <Col>
@@ -538,7 +538,13 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         </ListItem>
                         <ListItem>
                             <Title>Order Net Total</Title>
-                            <Title>₹ {(taxedCost - ((discount / 100) * taxedCost)).toFixed(2)}</Title>
+                            <Title>
+                                ₹{' '}
+                                {(
+                                    taxedCost -
+                                    (discount / 100) * taxedCost
+                                ).toFixed(2)}
+                            </Title>
                         </ListItem>
                         <ListItem>
                             <Flex justifyContent="between" className="gap-6">
