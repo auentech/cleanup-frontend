@@ -139,10 +139,15 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                 break
         }
 
-        setCost(updatedCost)
-    }, [speed, thePackage, renderer])
+        setCost(updatedCost - (discount / 100) * updatedCost)
+    }, [speed, thePackage, renderer, discount])
 
-    useEffect(() => setTaxedCost(cost + cost * (18 / 100)), [cost])
+    useEffect(() => {
+        const tax = cost * (18 / 100)
+        console.log('COST ->', cost)
+        console.log('GST ->', tax)
+        setTaxedCost(cost + tax)
+    }, [cost])
 
     useEffect(() => {
         let newCost = 0
@@ -170,6 +175,15 @@ const CreateOrder = ({ store }: CreateOrderType) => {
         setCost(newCost)
         setOGCost(newCost)
     }, [renderer])
+
+    const handleDiscountChange = (value: number) => {
+        if (isNaN(value) || value <= 0) {
+            setDiscount(0)
+            return
+        }
+
+        setDiscount(value)
+    }
 
     const handleOrderCreate = async () => {
         setLoading(true)
@@ -287,14 +301,11 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const getInstallment = (): number => {
         switch (installment) {
             case 'full':
-                return taxedCost - (discount / 100) * taxedCost
-                break
+                return taxedCost
             case 'half':
-                return (taxedCost - (discount / 100) * taxedCost) / 2
-                break
+                return taxedCost / 2
             default:
                 return 0
-                break
         }
     }
 
@@ -514,19 +525,55 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             icon={ReceiptPercentIcon}
                             enableStepper={false}
                             value={discount}
-                            onValueChange={setDiscount}
+                            onValueChange={handleDiscountChange}
                             className="mt-2"
                         />
+                    </div>
+
+                    <div className="mt-4">
+                        <Text>Delivery speed</Text>
+                        <Select
+                            value={speed + ''}
+                            onValueChange={(v) => setSpeed(parseInt(v))}
+                            enableClear={false}
+                            className="mt-2"
+                        >
+                            <SelectItem value="1">1 Day delivery</SelectItem>
+                            <SelectItem value="2">2 Day delivery</SelectItem>
+                            <SelectItem value="3">3 Day delivery</SelectItem>
+                            <SelectItem value="0">General delivery</SelectItem>
+                        </Select>
+                    </div>
+
+                    <div className="mt-4">
+                        <Text>Package</Text>
+                        <Select
+                            value={thePackage}
+                            onValueChange={setThePackage}
+                            enableClear={false}
+                            className="mt-2"
+                        >
+                            <SelectItem value="executive">
+                                Executive package
+                            </SelectItem>
+                            <SelectItem value="economy">
+                                Economy package
+                            </SelectItem>
+                        </Select>
                     </div>
 
                     <List className="mt-4">
                         <ListItem>
                             <Title>Order Gross Total</Title>
-                            <Title>₹ {cost.toFixed(2)}</Title>
+                            <Title>₹ {ogCost.toFixed(2)}</Title>
                         </ListItem>
                         <ListItem>
                             <Title>Discount given</Title>
                             <Title>% {discount}</Title>
+                        </ListItem>
+                        <ListItem>
+                            <Title>Discounted total</Title>
+                            <Title>₹ {cost.toFixed(2)}</Title>
                         </ListItem>
                         <ListItem>
                             <Title>CGST</Title>
@@ -538,13 +585,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         </ListItem>
                         <ListItem>
                             <Title>Order Net Total</Title>
-                            <Title>
-                                ₹{' '}
-                                {(
-                                    taxedCost -
-                                    (discount / 100) * taxedCost
-                                ).toFixed(2)}
-                            </Title>
+                            <Title>₹ {taxedCost.toFixed(2)}</Title>
                         </ListItem>
                         <ListItem>
                             <Flex justifyContent="between" className="gap-6">
@@ -596,38 +637,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             </ListItem>
                         )}
                     </List>
-
-                    <div className="py-2">
-                        <Title>Delivery speed</Title>
-                        <Select
-                            value={speed + ''}
-                            onValueChange={(v) => setSpeed(parseInt(v))}
-                            enableClear={false}
-                            className="mt-2"
-                        >
-                            <SelectItem value="1">1 Day delivery</SelectItem>
-                            <SelectItem value="2">2 Day delivery</SelectItem>
-                            <SelectItem value="3">3 Day delivery</SelectItem>
-                            <SelectItem value="0">General delivery</SelectItem>
-                        </Select>
-                    </div>
-
-                    <div className="py-2">
-                        <Title>Package</Title>
-                        <Select
-                            value={thePackage}
-                            onValueChange={setThePackage}
-                            enableClear={false}
-                            className="mt-2"
-                        >
-                            <SelectItem value="executive">
-                                Executive package
-                            </SelectItem>
-                            <SelectItem value="economy">
-                                Economy package
-                            </SelectItem>
-                        </Select>
-                    </div>
 
                     <div className="py-2">
                         <Title>Payment mode</Title>
