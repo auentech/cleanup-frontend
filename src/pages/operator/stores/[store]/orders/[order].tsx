@@ -2,7 +2,9 @@ import useAxios from '@/common/axios'
 import isUser from '@/common/middlewares/isUser'
 import {
     BackendGeneralResponse,
+    OrderGarment,
     OrderResponse,
+    OrderService,
     OrderStatusesResponse,
     PaymentMode,
     StoreResponse,
@@ -59,6 +61,16 @@ import {
     ModalFooter,
 } from '@nextui-org/modal'
 import { useDisclosure } from '@nextui-org/react'
+import groupBy from 'lodash/groupBy'
+import map from 'lodash/map'
+import sumBy from 'lodash/sumBy'
+
+type Consolidate = {
+    service: OrderService
+    garment: OrderGarment
+    quantity: number
+    total: number
+}
 
 const ShowOrderInfo = () => {
     const axios = useAxios()
@@ -78,6 +90,7 @@ const ShowOrderInfo = () => {
     const [statuses, setStatuses] = useState<OrderStatusesResponse>()
     const [deliveryLoading, setDeliveryLoading] = useState<boolean>(false)
     const [balanceMode, setBalanceMode] = useState<PaymentMode>('Cash')
+    const [consolidate, setConsolidate] = useState<Consolidate[]>()
 
     const editModel = useDisclosure()
     const deliveryModal = useDisclosure()
@@ -119,6 +132,21 @@ const ShowOrderInfo = () => {
             setStatuses(statusResponse.data)
             setNewCost(orderResponse.data.data.cost)
 
+            const groupedOrders = groupBy(
+                orderResponse.data?.data.items,
+                (item) => `${item.garment.id}-${item.service.id}`,
+            )
+
+            const consolidatedOrders = map(groupedOrders, (gOrder) => {
+                return {
+                    service: gOrder[0].service,
+                    garment: gOrder[0].garment,
+                    total: sumBy(gOrder, 'cost'),
+                    quantity: gOrder.length,
+                }
+            })
+
+            setConsolidate(consolidatedOrders)
             setLoading(false)
         }
 
@@ -209,20 +237,24 @@ const ShowOrderInfo = () => {
                                 <TableHeaderCell>S.No</TableHeaderCell>
                                 <TableHeaderCell>Service</TableHeaderCell>
                                 <TableHeaderCell>Garment</TableHeaderCell>
+                                <TableHeaderCell>Quantity</TableHeaderCell>
                                 <TableHeaderCell>Cost</TableHeaderCell>
+                                <TableHeaderCell>Total</TableHeaderCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {order?.data.items?.map((item, index) => (
-                                <TableRow key={item.id}>
+                            {consolidate?.map((item, index) => (
+                                <TableRow key={item.garment.id}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell>
                                         {item.service.service}
                                     </TableCell>
                                     <TableCell>{item.garment.name}</TableCell>
+                                    <TableCell>{item.quantity}</TableCell>
                                     <TableCell>
                                         ₹ {item.garment.price_max}
                                     </TableCell>
+                                    <TableCell>₹ {item.total}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
