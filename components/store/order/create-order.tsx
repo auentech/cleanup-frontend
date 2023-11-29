@@ -431,8 +431,8 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                     {renderer.map((render, key) => (
                         <div className="mt-4" key={key}>
-                            <Grid numItemsMd={4} className="gap-6">
-                                <Col>
+                            <Grid numItemsMd={12} className="gap-6">
+                                <Col numColSpan={5}>
                                     <Text>Service</Text>
                                     <SearchSelect
                                         className="mt-2"
@@ -456,7 +456,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                         )}
                                     </SearchSelect>
                                 </Col>
-                                <Col>
+                                <Col numColSpan={5}>
                                     <Text>Garment</Text>
                                     <SearchSelect
                                         className="mt-2"
@@ -477,7 +477,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                         )}
                                     </SearchSelect>
                                 </Col>
-                                <Col>
+                                <Col numColSpan={1}>
                                     <Text>Count</Text>
                                     <NumberInput
                                         min={1}
@@ -486,10 +486,10 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                         }
                                         value={render.count}
                                         enableStepper={false}
-                                        className="mt-2"
+                                        className="mt-2 min-w-full"
                                     />
                                 </Col>
-                                <Col>
+                                <Col numColSpan={1}>
                                     <Text>Action</Text>
                                     <Button
                                         className="mt-2 w-full"
@@ -498,9 +498,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                         color="red"
                                         onClick={(_) => deleteOrder(key)}
                                         disabled={renderer.length <= 1}
-                                    >
-                                        Delete
-                                    </Button>
+                                    />
                                 </Col>
                             </Grid>
                         </div>
