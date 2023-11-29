@@ -126,6 +126,7 @@ export type Order = {
     rewash?: Order
     paid: number
     speed: number
+    delivery_challan_id: number
     rewash_parent_id: number
     due_date: string
     created_at: string

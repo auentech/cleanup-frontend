@@ -111,7 +111,9 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                                 onValueChange={(v) =>
                                     handleRemarksChange(item, 'color', v)
                                 }
-                                disabled={loading}
+                                disabled={
+                                    loading || !!order.data.delivery_challan_id
+                                }
                                 defaultValue={getRemarkForItem(item, 'color')}
                             >
                                 <SelectItem value="Red">Red</SelectItem>
@@ -128,7 +130,9 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                                 onValueChange={(v) =>
                                     handleRemarksChange(item, 'texture', v)
                                 }
-                                disabled={loading}
+                                disabled={
+                                    loading || !!order.data.delivery_challan_id
+                                }
                                 defaultValue={getRemarkForItem(item, 'texture')}
                             >
                                 <SelectItem value="Silky">Silky</SelectItem>
@@ -153,7 +157,9 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                                         e.currentTarget.value,
                                     )
                                 }
-                                disabled={loading}
+                                disabled={
+                                    loading || !!order.data.delivery_challan_id
+                                }
                                 defaultValue={getRemarkForItem(item, 'brand')}
                             />
                         </Col>
