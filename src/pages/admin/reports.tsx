@@ -115,7 +115,7 @@ const AdminReports = () => {
             setMetrics(response.data)
         }
 
-        if (range.to != undefined || range.from != undefined) {
+        if (range?.from != undefined) {
             initData()
         }
     }, [store, range])
@@ -609,7 +609,7 @@ const AdminReports = () => {
                             <a
                                 href={`${
                                     process.env.NEXT_PUBLIC_BACKEND_URL
-                                }api/reports/exports/collection?from=${dayjs(
+                                }api/reports/exports/collection/${store?.id}?from=${dayjs(
                                     range.from,
                                 ).format('YYYY-MM-DD')}&to=${dayjs(
                                     range.to,
@@ -620,9 +620,7 @@ const AdminReports = () => {
                                 <Button
                                     className="w-full"
                                     variant="secondary"
-                                    disabled={
-                                        dayjs().diff(range.from, 'day') <= 1
-                                    }
+                                    disabled={store == undefined}
                                 >
                                     Collection report
                                 </Button>
@@ -630,7 +628,7 @@ const AdminReports = () => {
                             <a
                                 href={`${
                                     process.env.NEXT_PUBLIC_BACKEND_URL
-                                }api/reports/exports/undelivered?from=${dayjs(
+                                }api/reports/exports/undelivered/${store?.id}?from=${dayjs(
                                     range.from,
                                 ).format('YYYY-MM-DD')}&to=${dayjs(
                                     range.to,
@@ -641,9 +639,7 @@ const AdminReports = () => {
                                 <Button
                                     className="w-full"
                                     variant="secondary"
-                                    disabled={
-                                        dayjs().diff(range.from, 'day') <= 1
-                                    }
+                                    disabled={store == undefined}
                                 >
                                     Undelivered reports
                                 </Button>
