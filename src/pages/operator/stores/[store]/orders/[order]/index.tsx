@@ -12,10 +12,8 @@ import {
 } from '@/common/types'
 import {
     ArrowLeftIcon,
-    ArrowPathIcon,
     BuildingStorefrontIcon,
     CameraIcon,
-    CurrencyRupeeIcon,
     ForwardIcon,
     ReceiptPercentIcon,
     ShoppingBagIcon,
@@ -30,7 +28,6 @@ import {
     Icon,
     List,
     ListItem,
-    NumberInput,
     Select,
     Subtitle,
     Table,
@@ -40,7 +37,6 @@ import {
     TableHeaderCell,
     TableRow,
     Text,
-    TextInput,
     Title,
     SelectItem,
 } from '@tremor/react'
@@ -81,18 +77,14 @@ const ShowOrderInfo = () => {
     const storeID = router.query.store
     const orderID = router.query.order
 
-    const [newCost, setNewCost] = useState<number>()
     const [loading, setLoading] = useState<boolean>(true)
     const [order, setOrder] = useState<OrderResponse>()
     const [store, setStore] = useState<StoreResponse>()
-    const [editReason, setEditReason] = useState<string>()
-    const [editLoading, setEditLoading] = useState<boolean>(false)
     const [statuses, setStatuses] = useState<OrderStatusesResponse>()
     const [deliveryLoading, setDeliveryLoading] = useState<boolean>(false)
     const [balanceMode, setBalanceMode] = useState<PaymentMode>('Cash')
     const [consolidate, setConsolidate] = useState<Consolidate[]>()
 
-    const editModel = useDisclosure()
     const deliveryModal = useDisclosure()
 
     useEffect(() => {
@@ -130,7 +122,6 @@ const ShowOrderInfo = () => {
             setOrder(orderResponse.data)
             setStore(storeResponse.data)
             setStatuses(statusResponse.data)
-            setNewCost(orderResponse.data.data.cost)
 
             const groupedOrders = groupBy(
                 orderResponse.data?.data.items,
@@ -152,27 +143,6 @@ const ShowOrderInfo = () => {
 
         getOrderDetails()
     }, [])
-
-    const editOrder = async () => {
-        setEditLoading(true)
-
-        try {
-            await axios.put<BackendGeneralResponse>(
-                '/stores/' + storeID + '/orders/' + orderID + '/cost',
-                {
-                    cost: newCost,
-                    remarks: editReason,
-                },
-            )
-
-            alert('Made changes to order cost')
-            router.reload()
-        } catch (e) {
-            alert('Unable to make change')
-        } finally {
-            setEditLoading(false)
-        }
-    }
 
     const deliverOrder = async () => {
         setDeliveryLoading(true)
@@ -360,19 +330,25 @@ const ShowOrderInfo = () => {
                                     Download QR Codes
                                 </Button>
                             </a>
+                            <Link
+                                href={`/operator/stores/${storeID}/orders/${orderID}/edit`}
+                                className="w-full"
+                            >
+                                <Button
+                                    className="w-full"
+                                    icon={ForwardIcon}
+                                    variant="secondary"
+                                    disabled={!!order?.data.delivery_challan_id}
+                                >
+                                    Edit order
+                                </Button>
+                            </Link>
                             {/* <Link href="/operator/scanner" className="w-full">
                                 <Button className="w-full" variant="secondary" icon={ArrowPathIcon}>
                                     Scan status
                                 </Button>
                             </Link>
-                            <Button
-                                className="w-full"
-                                icon={ForwardIcon}
-                                variant="secondary"
-                                onClick={editModel.onOpen}
-                            >
-                                Change order cost
-                            </Button> */}
+                            */}
                             <Button
                                 className="w-full"
                                 icon={ShoppingBagIcon}
@@ -483,19 +459,6 @@ const ShowOrderInfo = () => {
                                         status.performer?.name +
                                         " who's role is " +
                                         status.performer?.role}
-                                    {status.data && (
-                                        <>
-                                            <br />
-                                            {'Old cost was: ' +
-                                                status.data.old +
-                                                ' and the new cost is: ' +
-                                                status.data.new}
-                                            <br />
-                                            {'Reason: ' +
-                                                (status.data.remarks ??
-                                                    'Not entered')}
-                                        </>
-                                    )}
                                 </p>
                                 <br />
                             </li>
@@ -503,45 +466,6 @@ const ShowOrderInfo = () => {
                     </ol>
                 </Card>
             </div>
-
-            {/* <Modal isOpen={editModel.isOpen} onOpenChange={editModel.onOpenChange}>
-                <ModalContent>
-                    {(onClose) => (
-                        <>
-                            <ModalHeader>
-                                <Title>Order cost change</Title>
-                            </ModalHeader>
-                            <ModalBody>
-                                <div className="mt-2">
-                                    <Subtitle>New cost</Subtitle>
-                                    <NumberInput
-                                        icon={CurrencyRupeeIcon}
-                                        value={newCost}
-                                        onValueChange={setNewCost}
-                                        enableStepper={false}
-                                    />
-                                </div>
-
-                                <div className="mt-2">
-                                    <Subtitle>Reason for change</Subtitle>
-                                    <TextInput
-                                        value={editReason}
-                                        onInput={e => setEditReason(e.currentTarget.value)}
-                                    />
-                                </div>
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button icon={XMarkIcon} variant="secondary" color="red" onClick={onClose}>
-                                    Close
-                                </Button>
-                                <Button icon={ForwardIcon} loading={editLoading} loadingText="Changing order cost..." onClick={e => editOrder()}>
-                                    Change cost
-                                </Button>
-                            </ModalFooter>
-                        </>
-                    )}
-                </ModalContent>
-            </Modal> */}
 
             <Modal
                 isOpen={deliveryModal.isOpen}
