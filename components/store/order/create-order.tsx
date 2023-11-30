@@ -144,8 +144,6 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
     useEffect(() => {
         const tax = cost * (18 / 100)
-        console.log('COST ->', cost)
-        console.log('GST ->', tax)
         setTaxedCost(cost + tax)
     }, [cost])
 
