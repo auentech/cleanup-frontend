@@ -71,7 +71,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
     const handleRemarksUpdate = async () => {
         setLoading(true)
         await axios.put<BackendGeneralResponse>(
-            '/stores/' + storeID + '/orders/' + order.data.code,
+            '/stores/' + storeID + '/orders/' + order.data.code + '/remarks',
             {
                 remarks,
             },
