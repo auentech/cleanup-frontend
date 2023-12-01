@@ -43,6 +43,7 @@ import {
 import lodashSumBy from 'lodash/sumBy'
 import lodashMap from 'lodash/map'
 import lodashSortBy from 'lodash/sortBy'
+import lodashReverse from 'lodash/reverse'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import TableSkeleton from '@/components/table-skeleton'
@@ -91,7 +92,7 @@ const AdminIndex = () => {
             },
         )
 
-        setCost(lodashSortBy(data, 'date'))
+        setCost(lodashReverse(lodashSortBy(data, 'date')))
     }
 
     const calculateCollected = () => {
@@ -106,7 +107,7 @@ const AdminIndex = () => {
             },
         )
 
-        setCollected(lodashSortBy(data, 'date'))
+        setCollected(lodashReverse(lodashSortBy(data, 'date')))
     }
 
     const calculateOrders = () => {
@@ -121,7 +122,7 @@ const AdminIndex = () => {
             },
         )
 
-        setOrders(lodashSortBy(data, 'date'))
+        setOrders(lodashReverse(lodashSortBy(data, 'date')))
     }
 
     useEffect(() => {
@@ -430,8 +431,8 @@ const AdminIndex = () => {
                                             <TableCell>
                                                 {order.due_date
                                                     ? dayjs(
-                                                        order.due_date,
-                                                    ).format('DD, MMMM YY')
+                                                          order.due_date,
+                                                      ).format('DD, MMMM YY')
                                                     : 'General'}
                                             </TableCell>
                                             <TableCell>
