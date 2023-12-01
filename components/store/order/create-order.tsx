@@ -20,6 +20,8 @@ import {
     Button,
     Callout,
     Col,
+    DatePicker,
+    DatePickerValue,
     Divider,
     Flex,
     Grid,
@@ -83,6 +85,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [mode, setMode] = useState<PaymentMode>('Cash')
     const [taxedCost, setTaxedCost] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(false)
+    const [dueDate, setDueDate] = useState<DatePickerValue>()
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -212,6 +215,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         discount,
                         installment,
                         new_customer,
+                        due_date: dueDate,
                         package: thePackage,
                     },
                 )
@@ -232,6 +236,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     discount,
                     installment,
                     package: thePackage,
+                    due_date: dueDate,
                     customer_id: selectedCustomer?.id,
                 },
             )
@@ -387,6 +392,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <Text>Customer phone</Text>
                         <NumberInput
                             className="mt-2"
+                            enableStepper={false}
                             onValueChange={setCustomerPhone}
                         />
                     </div>
@@ -417,6 +423,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                         <Text>Customer pincode</Text>
                         <NumberInput
                             className="mt-2"
+                            enableStepper={false}
                             onValueChange={setCustomerPincode}
                         />
                     </div>
@@ -477,13 +484,13 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                 </Col>
                                 <Col numColSpan={1}>
                                     <Text>Count</Text>
-                                    <NumberInput
-                                        min={1}
-                                        onValueChange={(v) =>
-                                            updateCount(key, v)
+                                    <TextInput
+                                        onInput={(e) =>
+                                            updateCount(
+                                                key,
+                                                Number(e.currentTarget.value),
+                                            )
                                         }
-                                        value={render.count}
-                                        enableStepper={false}
                                         className="mt-2 min-w-full"
                                     />
                                 </Col>
@@ -517,11 +524,13 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                     <div className="mt-4">
                         <Text>Discount</Text>
-                        <NumberInput
+                        <TextInput
                             icon={ReceiptPercentIcon}
-                            enableStepper={false}
-                            value={discount}
-                            onValueChange={handleDiscountChange}
+                            onInput={(e) =>
+                                handleDiscountChange(
+                                    Number(e.currentTarget.value),
+                                )
+                            }
                             className="mt-2"
                         />
                     </div>
@@ -540,6 +549,17 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                             <SelectItem value="0">General delivery</SelectItem>
                         </Select>
                     </div>
+
+                    {speed == 0 && (
+                        <div className="mt-4">
+                            <Text>Due Date</Text>
+                            <DatePicker
+                                className="mt-2 w-full"
+                                value={dueDate}
+                                onValueChange={setDueDate}
+                            />
+                        </div>
+                    )}
 
                     <div className="mt-4">
                         <Text>Package</Text>
