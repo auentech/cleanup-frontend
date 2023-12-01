@@ -1,10 +1,19 @@
-import { UsersResponse } from "@/common/types"
-import { Button, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextInput } from "@tremor/react"
-import { useEffect, useState } from "react"
-import TableSkeleton from "@/components/table-skeleton"
-import { ShoppingBagIcon } from "@heroicons/react/24/outline"
-import Link from "next/link"
-import useAxios from "@/common/axios"
+import { UsersResponse } from '@/common/types'
+import {
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeaderCell,
+    TableRow,
+    TextInput,
+} from '@tremor/react'
+import { useEffect, useState } from 'react'
+import TableSkeleton from '@/components/table-skeleton'
+import { ShoppingBagIcon } from '@heroicons/react/24/outline'
+import Link from 'next/link'
+import useAxios from '@/common/axios'
 
 const ListCustomers = () => {
     const axios = useAxios()
@@ -14,11 +23,14 @@ const ListCustomers = () => {
 
     useEffect(() => {
         const fetchUsers = async () => {
-            const UsersResponse = await axios.get<UsersResponse>('/search/customer', {
-                params: {
-                    query: search
-                }
-            })
+            const UsersResponse = await axios.get<UsersResponse>(
+                '/search/customer',
+                {
+                    params: {
+                        search,
+                    },
+                },
+            )
 
             setCustomers(UsersResponse.data)
         }
@@ -32,9 +44,12 @@ const ListCustomers = () => {
                 value={search}
                 className="mt-2"
                 placeholder="Search customer..."
-                onInput={e => setSearch(e.currentTarget.value)} />
+                onInput={(e) => setSearch(e.currentTarget.value)}
+            />
 
-            {customers == undefined ? <TableSkeleton numCols={7} numRows={5} /> : (
+            {customers == undefined ? (
+                <TableSkeleton numCols={7} numRows={5} />
+            ) : (
                 <Table className="mt-2">
                     <TableHead>
                         <TableRow>
@@ -48,17 +63,33 @@ const ListCustomers = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {customers.data.map(customer => (
+                        {customers.data.map((customer) => (
                             <TableRow key={customer.id}>
                                 <TableCell>{customer.name}</TableCell>
                                 <TableCell>{customer.email}</TableCell>
                                 <TableCell>{customer.phone}</TableCell>
-                                <TableCell>{customer.profile?.pincode}</TableCell>
-                                <TableCell>{customer.profile?.state.name}</TableCell>
-                                <TableCell>{customer.profile?.district.name}</TableCell>
                                 <TableCell>
-                                    <Link href={'/admin/users/' + customer.id + '/orders'}>
-                                        <Button variant="secondary" color="gray" icon={ShoppingBagIcon}>
+                                    {customer.profile?.pincode}
+                                </TableCell>
+                                <TableCell>
+                                    {customer.profile?.state.name}
+                                </TableCell>
+                                <TableCell>
+                                    {customer.profile?.district.name}
+                                </TableCell>
+                                <TableCell>
+                                    <Link
+                                        href={
+                                            '/admin/users/' +
+                                            customer.id +
+                                            '/orders'
+                                        }
+                                    >
+                                        <Button
+                                            variant="secondary"
+                                            color="gray"
+                                            icon={ShoppingBagIcon}
+                                        >
                                             Show orders
                                         </Button>
                                     </Link>
