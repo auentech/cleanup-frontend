@@ -1,12 +1,12 @@
-import { Title, Card, Grid, Col, Text, Italic } from "@tremor/react"
-import { QrReader } from "react-qr-reader"
-import useAxios from "@/common/axios"
-import { BackendGeneralResponse, UserData } from "@/common/types"
-import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
-import { useSession } from "next-auth/react"
-import Logout from "@/common/logout"
-import { AxiosError } from "axios"
+import { Title, Card, Grid, Col, Text, Italic } from '@tremor/react'
+import { QrReader } from 'react-qr-reader'
+import useAxios from '@/common/axios'
+import { BackendGeneralResponse, UserData } from '@/common/types'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import Logout from '@/common/logout'
+import { AxiosError } from 'axios'
 
 type WorkerHomeType = {
     role: 'washer' | 'packer' | 'ironer'
@@ -50,16 +50,20 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
                 action = 'unknown'
         }
 
-        (async () => {
+        ;(async () => {
             try {
-                const response = await axios.post<BackendGeneralResponse>('/orders/' + code + '/status', {
-                    action
-                })
+                const response = await axios.post<BackendGeneralResponse>(
+                    '/orders/' + code + '/status',
+                    {
+                        action,
+                    },
+                )
 
                 alert(response.data.message)
                 router.reload()
             } catch (e) {
                 const error = e as AxiosError
+                console.log(error.response?.data)
                 alert('Unable to record action')
                 router.reload()
             }
@@ -70,7 +74,7 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
         <div className="p-12">
             <Title>Welcome {user.name}</Title>
             <Text>
-                Ready to update some orders? {' '}
+                Ready to update some orders?{' '}
                 <Italic style={{ color: '#ef4444', cursor: 'pointer' }}>
                     <Logout />
                 </Italic>
@@ -83,7 +87,13 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
                     <Grid numItemsLg={3} className="mt-6">
                         <Col numColSpan={1} />
                         <Col numColSpan={1}>
-                            <QrReader constraints={{ height: 200, facingMode: 'environment' }} onResult={handleScan} />
+                            <QrReader
+                                constraints={{
+                                    height: 200,
+                                    facingMode: 'environment',
+                                }}
+                                onResult={handleScan}
+                            />
                         </Col>
                         <Col numColSpan={1} />
                     </Grid>
