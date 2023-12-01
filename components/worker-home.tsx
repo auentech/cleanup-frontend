@@ -63,8 +63,9 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
                 router.reload()
             } catch (e) {
                 const error = e as AxiosError
-                console.log(error.response?.data)
-                alert('Unable to record action')
+                const response = error.response?.data as BackendGeneralResponse
+
+                alert(response.message)
                 router.reload()
             }
         })()
