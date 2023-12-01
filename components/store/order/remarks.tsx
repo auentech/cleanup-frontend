@@ -18,6 +18,8 @@ import {
     Title,
     SelectItem,
     Button,
+    SearchSelect,
+    SearchSelectItem,
 } from '@tremor/react'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
@@ -27,6 +29,45 @@ type OrderRemarksType = {
 }
 
 type RemarksAllowedType = 'color' | 'brand' | 'texture'
+
+const colors: string[] = [
+    'Red',
+    'Blue',
+    'Green',
+    'Yellow',
+    'White',
+    'Black',
+    'Purple',
+    'Voilet',
+    'Pink',
+    'Magenta',
+    'Peach',
+    'Off White',
+    'Beige ',
+    'Khaki',
+    'Ivory',
+    'Brown',
+    'Orange',
+    'Grey',
+    'Sandal',
+]
+
+const textures: string[] = [
+    'Silky',
+    'Cross pattern',
+    'Stripped',
+    'Checked',
+    'Embroidery',
+    'Words',
+    'Cross stripped',
+    'Dots',
+    'Waves',
+    'Printed',
+    'Flowers',
+    'Images',
+    'Self checked',
+    'Self stripped',
+]
 
 const OrderRemarks = ({ order }: OrderRemarksType) => {
     const axios = useAxios()
@@ -106,7 +147,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                     <Grid numItemsLg={3} className="gap-6">
                         <Col>
                             <Text>{item.garment.name} color</Text>
-                            <Select
+                            <SearchSelect
                                 className="mt-2"
                                 onValueChange={(v) =>
                                     handleRemarksChange(item, 'color', v)
@@ -116,16 +157,17 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                                 }
                                 defaultValue={getRemarkForItem(item, 'color')}
                             >
-                                <SelectItem value="Red">Red</SelectItem>
-                                <SelectItem value="Blue">Blue</SelectItem>
-                                <SelectItem value="Yellow">Yellow</SelectItem>
-                                <SelectItem value="Black">Black</SelectItem>
-                            </Select>
+                                {colors.map((color) => (
+                                    <SearchSelectItem key={color} value={color}>
+                                        {color}
+                                    </SearchSelectItem>
+                                ))}
+                            </SearchSelect>
                         </Col>
 
                         <Col>
                             <Text>{item.garment.name} texture</Text>
-                            <Select
+                            <SearchSelect
                                 className="mt-2"
                                 onValueChange={(v) =>
                                     handleRemarksChange(item, 'texture', v)
@@ -135,15 +177,15 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                                 }
                                 defaultValue={getRemarkForItem(item, 'texture')}
                             >
-                                <SelectItem value="Silky">Silky</SelectItem>
-                                <SelectItem value="Cross pattern">
-                                    Cross pattern
-                                </SelectItem>
-                                <SelectItem value="Stripped">
-                                    Stripped
-                                </SelectItem>
-                                <SelectItem value="Checked">Checked</SelectItem>
-                            </Select>
+                                {textures.map((texture) => (
+                                    <SearchSelectItem
+                                        key={texture}
+                                        value={texture}
+                                    >
+                                        {texture}
+                                    </SearchSelectItem>
+                                ))}
+                            </SearchSelect>
                         </Col>
 
                         <Col>
