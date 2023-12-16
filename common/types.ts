@@ -341,7 +341,7 @@ export type ReturnChallansResponse = {
 
 export type ClosingCreateResponse = {
     mode: PaymentMode
-    total_cost: string
+    total_cost: number
     created_at: string
 }
 

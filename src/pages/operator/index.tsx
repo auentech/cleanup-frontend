@@ -116,7 +116,7 @@ const OperatorIndex = () => {
                 {
                     params: {
                         originals: true,
-                        search: orderSearch
+                        search: orderSearch,
                     },
                 },
             )
@@ -168,7 +168,7 @@ const OperatorIndex = () => {
             <OperatorNavigation />
 
             <div className="mt-6">
-                <Grid numItemsLg={4} numItemsMd={2} className="gap-6">
+                <Grid numItemsLg={3} numItemsMd={3} className="gap-6">
                     <StoreKPICards store={store} />
                 </Grid>
             </div>
@@ -244,37 +244,41 @@ const OperatorIndex = () => {
                                 <Subtitle>
                                     Income: ₹{' '}
                                     {lodashSumBy(
-                                        createClosing?.map((c) =>
-                                            parseFloat(c.total_cost),
-                                        ),
-                                    )}
+                                        createClosing?.map((c) => c.total_cost),
+                                    ).toFixed(2)}
                                 </Subtitle>
                                 <List>
                                     <ListItem>
                                         <Text>UPI</Text>
                                         <Text>
                                             ₹{' '}
-                                            {createClosing?.filter(
-                                                (c) => c.mode == 'UPI',
-                                            )?.[0]?.total_cost ?? 0}
+                                            {createClosing
+                                                ?.filter(
+                                                    (c) => c.mode == 'UPI',
+                                                )?.[0]
+                                                ?.total_cost.toFixed(2)}
                                         </Text>
                                     </ListItem>
                                     <ListItem>
                                         <Text>Card</Text>
                                         <Text>
                                             ₹{' '}
-                                            {createClosing?.filter(
-                                                (c) => c.mode == 'Card',
-                                            )?.[0]?.total_cost ?? 0}
+                                            {createClosing
+                                                ?.filter(
+                                                    (c) => c.mode == 'Card',
+                                                )?.[0]
+                                                ?.total_cost.toFixed(2)}
                                         </Text>
                                     </ListItem>
                                     <ListItem>
                                         <Text>Cash</Text>
                                         <Text>
                                             ₹{' '}
-                                            {createClosing?.filter(
-                                                (c) => c.mode == 'Cash',
-                                            )?.[0]?.total_cost ?? 0}
+                                            {createClosing
+                                                ?.filter(
+                                                    (c) => c.mode == 'Cash',
+                                                )?.[0]
+                                                ?.total_cost.toFixed(2)}
                                         </Text>
                                     </ListItem>
                                 </List>
