@@ -7,6 +7,7 @@ import { PencilIcon } from '@heroicons/react/24/solid'
 import { useQuery } from '@tanstack/react-query'
 import {
     Button,
+    Callout,
     Card,
     Divider,
     Subtitle,
@@ -60,6 +61,12 @@ const Garments = () => {
                 </Button>
 
                 <Divider />
+
+                {isError && (
+                    <Callout title="Something went wrong" color="red">
+                        Unable to load garments, please reload
+                    </Callout>
+                )}
 
                 {isLoading ? (
                     <TableSkeleton numCols={5} numRows={10} />

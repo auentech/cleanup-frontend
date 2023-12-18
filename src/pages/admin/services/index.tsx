@@ -6,6 +6,7 @@ import TableSkeleton from '@/components/table-skeleton'
 import { useQuery } from '@tanstack/react-query'
 import {
     Button,
+    Callout,
     Card,
     Divider,
     Subtitle,
@@ -41,6 +42,12 @@ const Services = () => {
                 <AdminNavigation />
 
                 <Card className="mt-6">
+                    {isError && (
+                        <Callout color="red" title="Something went wrong">
+                            Unable to load services, please reload
+                        </Callout>
+                    )}
+
                     <div>
                         {isLoading ? (
                             <TableSkeleton numRows={10} numCols={4} />
