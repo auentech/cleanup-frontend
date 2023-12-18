@@ -434,6 +434,10 @@ const ShowOrderInfo = () => {
             <div className="mt-6">
                 <Card>
                     <Title>Order timeline</Title>
+                    <Subtitle>
+                        Washed: {order?.meta?.washedCount} | Ironed:{' '}
+                        {order?.meta?.ironedCount}
+                    </Subtitle>
 
                     <ol className="relative mt-4 border-l border-gray-200 dark:border-gray-700">
                         {statuses?.data.map((status) => (

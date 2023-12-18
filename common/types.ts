@@ -267,6 +267,10 @@ export type OrderItem = {
 
 export type OrderResponse = {
     data: Order
+    meta?: {
+        washedCount?: number
+        ironedCount?: number
+    }
 }
 
 type OrderStatus = {
