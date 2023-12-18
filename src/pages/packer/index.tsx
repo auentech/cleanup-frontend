@@ -1,26 +1,43 @@
-import useAxios from "@/common/axios"
-import Logout from "@/common/logout"
-import isUser from "@/common/middlewares/isUser"
-import { ReturnChallan, ReturnChallansResponse, UserData } from "@/common/types"
-import TableSkeleton from "@/components/table-skeleton"
-import { CameraIcon, ShoppingBagIcon } from "@heroicons/react/24/outline"
-import { Subtitle, Title, Italic, Card, TabList, TabGroup, Tab, TabPanels, TabPanel, Flex, Table, TableHead, TableHeaderCell, TableRow, TableBody, TableCell, Button } from "@tremor/react"
-import { Waveform } from "@uiball/loaders"
-import dayjs from "dayjs"
-import { useSession } from "next-auth/react"
-import dynamic from "next/dynamic"
-import Link from "next/link"
-import { useEffect, useState } from "react"
+import useAxios from '@/common/axios'
+import Logout from '@/common/logout'
+import isUser from '@/common/middlewares/isUser'
+import { ReturnChallansResponse, UserData } from '@/common/types'
+import TableSkeleton from '@/components/table-skeleton'
+import { CameraIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
+import { useQuery } from '@tanstack/react-query'
+import {
+    Subtitle,
+    Title,
+    Italic,
+    Card,
+    TabList,
+    TabGroup,
+    Tab,
+    TabPanels,
+    TabPanel,
+    Flex,
+    Table,
+    TableHead,
+    TableHeaderCell,
+    TableRow,
+    TableBody,
+    TableCell,
+    Button,
+    Callout,
+} from '@tremor/react'
+import { Waveform } from '@uiball/loaders'
+import dayjs from 'dayjs'
+import { useSession } from 'next-auth/react'
+import dynamic from 'next/dynamic'
+import Link from 'next/link'
+import { useState } from 'react'
 
 const LazyCreateReturn = dynamic(() => import('@/components/create-return'), {
     loading: () => (
         <Flex alignItems="center" justifyContent="center">
-            <Waveform
-                size={20}
-                color="#3b82f6"
-            />
+            <Waveform size={20} color="#3b82f6" />
         </Flex>
-    )
+    ),
 })
 
 const PackerHome = () => {
@@ -29,25 +46,23 @@ const PackerHome = () => {
     const user = data?.user as UserData
 
     const [index, setIndex] = useState<number>(0)
-    const [returnChallans, setReturnChallans] = useState<ReturnChallan[]>([])
-
-    useEffect(() => {
-        const fetchReturnChallans = async () => {
-            const challans = await axios.get<ReturnChallansResponse>('/return-challans', {
+    const {
+        isError,
+        isLoading,
+        data: returnChallans,
+    } = useQuery({
+        queryKey: ['return-challans'],
+        queryFn: () =>
+            axios.get<ReturnChallansResponse>('/return-challans', {
                 params: {
                     include: [
                         'store',
                         'store.profile.state',
                         'store.profile.district',
-                    ]
-                }
-            })
-
-            setReturnChallans(challans.data.data)
-        }
-
-        fetchReturnChallans()
-    }, [])
+                    ],
+                },
+            }),
+    })
 
     return (
         <div className="p-12">
@@ -70,8 +85,17 @@ const PackerHome = () => {
                             <Tab>Create challan</Tab>
                         </TabList>
                         <TabPanels>
-                            <TabPanel>
-                                {returnChallans.length > 0 ? (
+                            <TabPanel className="mt-4">
+                                {isError && (
+                                    <Callout title="Oops, something went wrong!">
+                                        Unable to get list of challans, please
+                                        reload the page
+                                    </Callout>
+                                )}
+
+                                {isLoading ? (
+                                    <TableSkeleton numCols={6} numRows={5} />
+                                ) : (
                                     <Table>
                                         <TableHead>
                                             <TableRow>
@@ -96,28 +120,71 @@ const PackerHome = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {returnChallans.map(challan => (
-                                                <TableRow key={challan.code}>
-                                                    <TableCell>{challan.code}</TableCell>
-                                                    <TableCell>{challan.store?.code}</TableCell>
-                                                    <TableCell>{challan.store?.name}</TableCell>
-                                                    <TableCell>
-                                                        {dayjs(challan.created_at).format('DD, MMMM YY')}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Button variant="light" icon={ShoppingBagIcon}>Show order codes</Button>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Link href={process.env.NEXT_PUBLIC_BACKEND_URL + '/api/return-challans/' + challan.code + '/qr?token=' + user?.token} target="_blank">
-                                                            <Button variant="secondary" icon={CameraIcon}>Show QR codes</Button>
-                                                        </Link>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {returnChallans?.data.data.map(
+                                                (challan) => (
+                                                    <TableRow
+                                                        key={challan.code}
+                                                    >
+                                                        <TableCell>
+                                                            {challan.code}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {
+                                                                challan.store
+                                                                    ?.code
+                                                            }
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {
+                                                                challan.store
+                                                                    ?.name
+                                                            }
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {dayjs(
+                                                                challan.created_at,
+                                                            ).format(
+                                                                'DD, MMMM YY',
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Button
+                                                                variant="light"
+                                                                icon={
+                                                                    ShoppingBagIcon
+                                                                }
+                                                            >
+                                                                Show order codes
+                                                            </Button>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Link
+                                                                href={
+                                                                    process.env
+                                                                        .NEXT_PUBLIC_BACKEND_URL +
+                                                                    '/api/return-challans/' +
+                                                                    challan.code +
+                                                                    '/qr?token=' +
+                                                                    user?.token
+                                                                }
+                                                                target="_blank"
+                                                            >
+                                                                <Button
+                                                                    variant="secondary"
+                                                                    icon={
+                                                                        CameraIcon
+                                                                    }
+                                                                >
+                                                                    Show QR
+                                                                    codes
+                                                                </Button>
+                                                            </Link>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ),
+                                            )}
                                         </TableBody>
                                     </Table>
-                                ) : (
-                                    <TableSkeleton numCols={6} numRows={5} />
                                 )}
                             </TabPanel>
 
