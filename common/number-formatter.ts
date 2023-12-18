@@ -21,7 +21,7 @@ const FormatNumber = (cost: number): string => {
             result = (cost / 1000).toFixed(1) + 'K'
             break
         default:
-            result = cost.toString()
+            result = cost.toFixed(2).toString()
     }
 
     return result
