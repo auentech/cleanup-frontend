@@ -106,8 +106,14 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
     useEffect(() => {
         const fetchServices = async () => {
-            const servicesResponse =
-                await axios.get<ServicesResponse>('/services')
+            const servicesResponse = await axios.get<ServicesResponse>(
+                '/services',
+                {
+                    params: {
+                        include: ['garments'],
+                    },
+                },
+            )
             setServices(servicesResponse.data)
         }
 

@@ -92,8 +92,14 @@ const EditOrder = () => {
                 },
             )
 
-            const servicesResponse =
-                await axios.get<ServicesResponse>('/services')
+            const servicesResponse = await axios.get<ServicesResponse>(
+                '/services',
+                {
+                    params: {
+                        include: ['garments'],
+                    },
+                },
+            )
 
             setServices(servicesResponse.data)
             setOrder(orderResponse.data)
