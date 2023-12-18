@@ -54,14 +54,15 @@ const Services = () => {
                 name: serviceName,
             }),
         onSuccess: () => {
-            onClose()
             toast.success(`${serviceName} service added successfully`)
-
             queryClient.invalidateQueries({ queryKey: ['services'] })
         },
         onError: () => {
-            onClose()
             toast.error(`Unable to add ${serviceName} service`)
+        },
+        onSettled: () => {
+            onClose()
+            setServiceName('')
         },
     })
 
