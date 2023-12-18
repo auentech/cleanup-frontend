@@ -243,6 +243,7 @@ export type OrderService = {
     service: string
     created_at: string
     updated_at: string
+    garments_count?: number
     garments?: OrderGarment[]
 }
 
@@ -284,6 +285,10 @@ export type OrderStatusesResponse = {
 
 export type ServicesResponse = {
     data: OrderService[]
+}
+
+export type ServiceResponse = {
+    data: OrderService
 }
 
 export type DeliveryChallan = {

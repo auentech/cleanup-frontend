@@ -1,4 +1,5 @@
 import Navigation from '@/common/navigation'
+import { PencilSquareIcon } from '@heroicons/react/20/solid'
 import {
     BeakerIcon,
     BuildingStorefrontIcon,
@@ -41,6 +42,12 @@ const AdminNavigation = () => {
                     icon: NewspaperIcon,
                     text: 'Reports',
                     path: '/admin/reports',
+                },
+                {
+                    icon: PencilSquareIcon,
+                    text: 'Services',
+                    path: '/admin/services',
+                    subPath: ['/admin/services/[service]/garments'],
                 },
             ]}
         />
