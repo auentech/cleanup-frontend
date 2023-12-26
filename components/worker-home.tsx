@@ -1,12 +1,22 @@
-import { Title, Card, Grid, Col, Text, Italic } from '@tremor/react'
+import {
+    Title,
+    Card,
+    Grid,
+    Col,
+    Text,
+    Italic,
+    Divider,
+    TextInput,
+    Button,
+} from '@tremor/react'
 import { QrReader } from 'react-qr-reader'
 import useAxios from '@/common/axios'
 import { BackendGeneralResponse, UserData } from '@/common/types'
-import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Logout from '@/common/logout'
 import { AxiosError } from 'axios'
+import { toast } from 'react-toastify'
 
 type WorkerHomeType = {
     role: 'washer' | 'packer' | 'ironer'
@@ -14,11 +24,11 @@ type WorkerHomeType = {
 
 const WorkerHome = ({ role }: WorkerHomeType) => {
     const axios = useAxios()
-    const router = useRouter()
     const session = useSession()
 
     const user = session.data?.user as UserData
     const [code, setCode] = useState<string>()
+    const [customCode, setCustomCode] = useState<string>()
 
     const handleScan = (result: any, error: any) => {
         if (typeof result?.text == 'string') {
@@ -31,7 +41,7 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
     }
 
     useEffect(() => {
-        if (code == undefined) {
+        if (code == undefined || code == '') {
             return
         }
 
@@ -59,17 +69,22 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
                     },
                 )
 
-                alert(response.data.message)
-                router.reload()
+                toast.success(response.data.message)
             } catch (e) {
                 const error = e as AxiosError
                 const response = error.response?.data as BackendGeneralResponse
 
-                alert(response.message)
-                router.reload()
+                toast.error(response?.message || 'Unable to update order')
+            } finally {
+                setCode('')
             }
         })()
     }, [code])
+
+    const customSubmit = () => {
+        setCode(customCode)
+        setCustomCode('')
+    }
 
     return (
         <div className="p-12">
@@ -85,7 +100,34 @@ const WorkerHome = ({ role }: WorkerHomeType) => {
                 <Card>
                     <Title>Order scanner</Title>
                     <Text>Time to change the order status</Text>
-                    <Grid numItemsLg={3} className="mt-6">
+                    <Divider />
+                    <Grid
+                        numItemsLg={12}
+                        numItemsMd={12}
+                        numItemsSm={12}
+                        numItems={12}
+                        className="gap-6"
+                    >
+                        <Col numColSpan={10}>
+                            <TextInput
+                                value={customCode}
+                                onInput={(e) =>
+                                    setCustomCode(e.currentTarget.value)
+                                }
+                                placeholder="Enter order code..."
+                            />
+                        </Col>
+                        <Col numColSpan={2}>
+                            <Button
+                                variant="secondary"
+                                className="w-full"
+                                onClick={customSubmit}
+                            >
+                                Submit
+                            </Button>
+                        </Col>
+                    </Grid>
+                    <Grid numItemsLg={3} className="mt-2">
                         <Col numColSpan={1} />
                         <Col numColSpan={1}>
                             <QrReader
