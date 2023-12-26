@@ -1,10 +1,27 @@
-import useAxios from "@/common/axios"
-import { BackendGeneralResponse, Store, StoresResponse } from "@/common/types"
-import { BuildingStorefrontIcon, TruckIcon } from "@heroicons/react/24/outline"
-import { Grid, Col, Card, TextInput, Text, Button, List, ListItem, Callout, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, NumberInput, Flex } from "@tremor/react"
-import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
-import { QrReader } from "react-qr-reader"
+import useAxios from '@/common/axios'
+import { BackendGeneralResponse, Store, StoresResponse } from '@/common/types'
+import { BuildingStorefrontIcon, TruckIcon } from '@heroicons/react/24/outline'
+import {
+    Grid,
+    Col,
+    TextInput,
+    Text,
+    Button,
+    List,
+    ListItem,
+    Callout,
+    Table,
+    TableHead,
+    TableRow,
+    TableHeaderCell,
+    TableBody,
+    TableCell,
+    NumberInput,
+    Flex,
+} from '@tremor/react'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
+import { QrReader } from 'react-qr-reader'
 
 const CreateReturn = () => {
     const axios = useAxios()
@@ -19,7 +36,7 @@ const CreateReturn = () => {
 
     const handleScan = (result: any, error: any) => {
         if (typeof result?.text == 'string') {
-            setCodes(oldCodes => {
+            setCodes((oldCodes) => {
                 if (oldCodes.includes(result.text)) {
                     return oldCodes
                 }
@@ -32,18 +49,23 @@ const CreateReturn = () => {
     const handleCreateRC = async () => {
         setLoading(true)
 
-        const data = codes.map(code => {
+        const data = codes.map((code) => {
+            const bagCount = (
+                document.getElementById(code + '-bags') as HTMLInputElement
+            ).value
             return {
                 order_code: code,
-                //@ts-ignore
-                bags: parseInt(document.getElementById(code + '-bags').value)
+                bags: parseInt(bagCount),
             }
         })
 
-        const res = await axios.post<BackendGeneralResponse>('/return-challans', {
-            store_id: store?.id,
-            items: data
-        })
+        const res = await axios.post<BackendGeneralResponse>(
+            '/return-challans',
+            {
+                store_id: store?.id,
+                items: data,
+            },
+        )
 
         setLoading(false)
         alert(res.data.message)
@@ -52,9 +74,12 @@ const CreateReturn = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const storesResponse = await axios.get<StoresResponse>('search/store', {
-                params: { search }
-            })
+            const storesResponse = await axios.get<StoresResponse>(
+                'search/store',
+                {
+                    params: { search },
+                },
+            )
 
             setStores(storesResponse.data)
         }
@@ -68,23 +93,43 @@ const CreateReturn = () => {
                 <Grid numItemsLg={3} className="mt-6">
                     <Col numColSpan={1} />
                     <Col numColSpan={1}>
-                        <QrReader constraints={{ height: 200, facingMode: 'environment' }} onResult={handleScan} />
+                        <QrReader
+                            constraints={{
+                                height: 200,
+                                facingMode: 'environment',
+                            }}
+                            onResult={handleScan}
+                        />
                     </Col>
                     <Col numColSpan={1} />
                 </Grid>
             )}
 
-            {(stores && store == undefined) && (
+            {stores && store == undefined && (
                 <>
                     <div className="mt-4">
                         <Text>Search store</Text>
-                        <TextInput placeholder="Search..." className="mt-2" onInput={e => setSearch(e.currentTarget.value)} />
+                        <TextInput
+                            placeholder="Search..."
+                            className="mt-2"
+                            onInput={(e) => setSearch(e.currentTarget.value)}
+                        />
                     </div>
                     <List className="mt-4">
-                        {stores.data.map(store => (
+                        {stores.data.map((store) => (
                             <ListItem key={store.id}>
-                                <Text>{store.code} - {store.name} - {store.profile?.state.name} - {store.profile?.district.name}</Text>
-                                <Button size="xs" variant="secondary" color="gray" icon={BuildingStorefrontIcon} onClick={() => setStore(store)}>
+                                <Text>
+                                    {store.code} - {store.name} -{' '}
+                                    {store.profile?.state.name} -{' '}
+                                    {store.profile?.district.name}
+                                </Text>
+                                <Button
+                                    size="xs"
+                                    variant="secondary"
+                                    color="gray"
+                                    icon={BuildingStorefrontIcon}
+                                    onClick={() => setStore(store)}
+                                >
                                     Select store
                                 </Button>
                             </ListItem>
@@ -95,7 +140,8 @@ const CreateReturn = () => {
 
             {store !== undefined && (
                 <Callout title={store.name + ' store selected'}>
-                    All scanned orders will be sent to {store.name} - {store.code}
+                    All scanned orders will be sent to {store.name} -{' '}
+                    {store.code}
                 </Callout>
             )}
 
@@ -132,7 +178,9 @@ const CreateReturn = () => {
                             loading={loading}
                             loadingText="Creating challan..."
                             onClick={handleCreateRC}
-                        >Create Return Challan</Button>
+                        >
+                            Create Return Challan
+                        </Button>
                     </Flex>
                 </>
             )}

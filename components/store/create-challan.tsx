@@ -3,7 +3,6 @@ import {
     BackendGeneralResponse,
     FactoriesResponse,
     Factory,
-    LoginResponse,
     OrdersResponse,
     UserData,
 } from '@/common/types'
