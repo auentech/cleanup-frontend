@@ -53,7 +53,12 @@ import dayjs from 'dayjs'
 import { AxiosError, isAxiosError } from 'axios'
 import lodashSumBy from 'lodash/sumBy'
 import { toast } from 'react-toastify'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import {
+    keepPreviousData,
+    useMutation,
+    useQuery,
+    useQueryClient,
+} from '@tanstack/react-query'
 
 const Loading = () => (
     <Flex alignItems="center" justifyContent="center">
@@ -72,15 +77,13 @@ const OperatorIndex = () => {
     const axios = useAxios()
     const { data } = useSession()
     const user = data?.user as UserData
+    const queryClient = useQueryClient()
 
     const [index, setIndex] = useState<number>(0)
 
     const [orderSearch, setOrderSearch] = useState<string>('')
     const [expense, setExpense] = useState<number>()
     const [remarks, setRemarks] = useState<string>()
-    const [closingLoading, setClosingLoading] = useState<boolean>()
-    const [createClosing, setCreateClosing] =
-        useState<ClosingCreateResponse[]>()
 
     const [closingsPage, setClosingsPage] = useState<number>(1)
     const [ordersPage, setOrdersPage] = useState<number>(1)
@@ -152,46 +155,50 @@ const OperatorIndex = () => {
             }),
     })
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const user = data?.user as UserData
-
-            const closingResponse = await axios.get<ClosingCreateResponse[]>(
+    const { isError: isCreateClosingError, data: createClosing } = useQuery({
+        queryKey: ['closing', user.store_id],
+        queryFn: () =>
+            axios.get<ClosingCreateResponse[]>(
                 '/stores/' + user.store_id + '/closing/create',
-            )
+            ),
+    })
 
-            setCreateClosing(closingResponse.data)
+    useEffect(() => {
+        if (isStoreError) {
+            toast.error('Unable to load store details')
         }
 
-        fetchData()
-    }, [])
-
-    const createDayClosing = async () => {
-        setClosingLoading(true)
-
-        try {
-            const createClosingResponse =
-                await axios.post<BackendGeneralResponse>(
-                    '/stores/' + store?.data.data.id + '/closing',
-                    {
-                        expense,
-                        remarks,
-                    },
-                )
-
-            toast.success(createClosingResponse.data.message)
-        } catch (e) {
-            if (isAxiosError(e)) {
-                const error = e as AxiosError
-                const data = error.response?.data as BackendGeneralResponse
-
-                toast.error(data.message)
-            }
-        } finally {
-            closing.onClose()
-            setClosingLoading(false)
+        if (isOrdersError) {
+            toast.error('Unable to load orders')
         }
-    }
+
+        if (isClosingsError) {
+            toast.error('Unable to load list of closings')
+        }
+
+        if (isCreateClosingError) {
+            toast.error('Unable to get day closing details')
+        }
+    }, [isStoreError, isOrdersError, isClosingsError, isCreateClosingError])
+
+    const createDayClosing = useMutation({
+        mutationFn: () =>
+            axios.post<BackendGeneralResponse>(
+                '/stores/' + store?.data.data.id + '/closing',
+                {
+                    expense,
+                    remarks,
+                },
+            ),
+        onSuccess: (result) => {
+            toast.success(result.data.message)
+            queryClient.invalidateQueries({
+                queryKey: ['closing', user.store_id],
+            })
+        },
+        onError: () => toast.error('Cannot save day closing'),
+        onSettled: () => closing.onClose(),
+    })
 
     return (
         <div className="p-12">
@@ -378,7 +385,9 @@ const OperatorIndex = () => {
                                 <Subtitle>
                                     Income: ₹{' '}
                                     {lodashSumBy(
-                                        createClosing?.map((c) => c.total_cost),
+                                        createClosing?.data?.map(
+                                            (c) => c.total_cost,
+                                        ),
                                     ).toFixed(2)}
                                 </Subtitle>
                                 <List>
@@ -386,7 +395,7 @@ const OperatorIndex = () => {
                                         <Text>UPI</Text>
                                         <Text>
                                             ₹{' '}
-                                            {createClosing
+                                            {createClosing?.data
                                                 ?.filter(
                                                     (c) => c.mode == 'UPI',
                                                 )?.[0]
@@ -397,7 +406,7 @@ const OperatorIndex = () => {
                                         <Text>Card</Text>
                                         <Text>
                                             ₹{' '}
-                                            {createClosing
+                                            {createClosing?.data
                                                 ?.filter(
                                                     (c) => c.mode == 'Card',
                                                 )?.[0]
@@ -408,7 +417,7 @@ const OperatorIndex = () => {
                                         <Text>Cash</Text>
                                         <Text>
                                             ₹{' '}
-                                            {createClosing
+                                            {createClosing?.data
                                                 ?.filter(
                                                     (c) => c.mode == 'Cash',
                                                 )?.[0]
@@ -441,9 +450,9 @@ const OperatorIndex = () => {
                                 </Button>
                                 <Button
                                     icon={ForwardIcon}
-                                    loading={closingLoading}
+                                    loading={createDayClosing.isPending}
                                     loadingText="Creating day closing..."
-                                    onClick={createDayClosing}
+                                    onClick={() => createDayClosing.mutate()}
                                 >
                                     Create day closing
                                 </Button>
