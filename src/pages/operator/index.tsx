@@ -74,19 +74,49 @@ const OperatorIndex = () => {
     const user = data?.user as UserData
 
     const [index, setIndex] = useState<number>(0)
-    const [store, setStore] = useState<StoreResponse>()
-    const [orders, setOrders] = useState<OrdersResponse>()
 
-    const [orderSearch, setOrderSearch] = useState<string>()
+    const [orderSearch, setOrderSearch] = useState<string>('')
     const [expense, setExpense] = useState<number>()
     const [remarks, setRemarks] = useState<string>()
     const [closingLoading, setClosingLoading] = useState<boolean>()
     const [createClosing, setCreateClosing] =
         useState<ClosingCreateResponse[]>()
+
     const [closingsPage, setClosingsPage] = useState<number>(1)
+    const [ordersPage, setOrdersPage] = useState<number>(1)
 
     const closing = useDisclosure()
     const listClosing = useDisclosure()
+
+    const getOrders = async (
+        search: string = '',
+        page: number = 1,
+    ): Promise<OrdersResponse> => {
+        const endpoint =
+            search == ''
+                ? `/stores/${user.store_id}/orders?page=${page}`
+                : `/search/store/${user.store_id}/order?page=${page}`
+
+        const response = await axios.get<OrdersResponse>(endpoint, {
+            params: {
+                search,
+                include: ['customer'],
+            },
+        })
+
+        return response.data
+    }
+
+    const {
+        isLoading: isOrdersLoading,
+        isError: isOrdersError,
+        data: ordersUntyped,
+    } = useQuery({
+        queryKey: ['orders', user.store_id, orderSearch, ordersPage],
+        queryFn: () => getOrders(orderSearch, ordersPage),
+        initialData: keepPreviousData,
+    })
+    const orders = ordersUntyped as OrdersResponse
 
     const {
         isLoading: isClosingsLoading,
@@ -101,53 +131,40 @@ const OperatorIndex = () => {
             ),
     })
 
+    const {
+        isLoading: isStoreLoading,
+        isError: isStoreError,
+        data: store,
+    } = useQuery({
+        queryKey: ['store', user.store_id],
+        queryFn: () =>
+            axios.get<StoreResponse>('/stores/' + user.store_id, {
+                params: {
+                    include: [
+                        'profile.state',
+                        'profile.district',
+
+                        'operators.user',
+                        'operators.user.profile.state',
+                        'operators.user.profile.district',
+                    ],
+                },
+            }),
+    })
+
     useEffect(() => {
         const fetchData = async () => {
             const user = data?.user as UserData
-            const storeResponse = await axios.get<StoreResponse>(
-                '/stores/' + user.store_id,
-                {
-                    params: {
-                        include: [
-                            'profile.state',
-                            'profile.district',
-
-                            'operators.user',
-                            'operators.user.profile.state',
-                            'operators.user.profile.district',
-                        ],
-                    },
-                },
-            )
 
             const closingResponse = await axios.get<ClosingCreateResponse[]>(
                 '/stores/' + user.store_id + '/closing/create',
             )
 
-            setStore(storeResponse.data)
             setCreateClosing(closingResponse.data)
         }
 
         fetchData()
     }, [])
-
-    useEffect(() => {
-        const fetchOrders = async () => {
-            const searchResponse = await axios.get<OrdersResponse>(
-                '/search/store/' + user.store_id + '/order',
-                {
-                    params: {
-                        originals: true,
-                        search: orderSearch,
-                    },
-                },
-            )
-
-            setOrders(searchResponse.data)
-        }
-
-        fetchOrders()
-    }, [orderSearch])
 
     const createDayClosing = async () => {
         setClosingLoading(true)
@@ -155,7 +172,7 @@ const OperatorIndex = () => {
         try {
             const createClosingResponse =
                 await axios.post<BackendGeneralResponse>(
-                    '/stores/' + store?.data.id + '/closing',
+                    '/stores/' + store?.data.data.id + '/closing',
                     {
                         expense,
                         remarks,
@@ -180,7 +197,7 @@ const OperatorIndex = () => {
         <div className="p-12">
             <Title>Welcome, {user.name}</Title>
             <Text>
-                Operator dashboard for {store?.data.name}{' '}
+                Operator dashboard for {store?.data.data.name}{' '}
                 <Italic style={{ color: '#ef4444', cursor: 'pointer' }}>
                     <Logout />
                 </Italic>
@@ -190,7 +207,7 @@ const OperatorIndex = () => {
 
             <div className="mt-6">
                 <Grid numItemsLg={3} numItemsMd={3} className="gap-6">
-                    <StoreKPICards store={store} />
+                    <StoreKPICards store={store?.data} />
                 </Grid>
             </div>
 
@@ -232,32 +249,43 @@ const OperatorIndex = () => {
                     </TabList>
                     <TabPanels>
                         <TabPanel>
-                            {store == undefined || orders == undefined ? (
+                            <TextInput
+                                className="my-4"
+                                value={orderSearch}
+                                onInput={(e) =>
+                                    setOrderSearch(e.currentTarget.value)
+                                }
+                                placeholder="Search orders..."
+                            />
+                            {isStoreLoading || isOrdersLoading ? (
                                 <TableSkeleton numCols={7} numRows={5} />
                             ) : (
                                 <>
-                                    <TextInput
-                                        className="my-4"
-                                        value={orderSearch}
-                                        onInput={(e) =>
-                                            setOrderSearch(
-                                                e.currentTarget.value,
-                                            )
-                                        }
-                                        placeholder="Search orders..."
-                                    />
                                     <StoreOrders
-                                        store={store}
+                                        store={store?.data}
                                         orders={orders}
                                         role="operator"
                                     />
+
+                                    {orders.meta.last_page > 1 && (
+                                        <Flex
+                                            justifyContent="end"
+                                            className="mt-4"
+                                        >
+                                            <Pagination
+                                                total={orders.meta.last_page}
+                                                onChange={setOrdersPage}
+                                                page={ordersPage}
+                                            />
+                                        </Flex>
+                                    )}
                                 </>
                             )}
                         </TabPanel>
                         <TabPanel>
                             {index == 1 && (
                                 <LazyCreateOrder
-                                    store={store as StoreResponse}
+                                    store={store?.data as StoreResponse}
                                 />
                             )}
                         </TabPanel>
