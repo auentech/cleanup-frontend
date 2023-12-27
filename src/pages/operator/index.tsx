@@ -4,6 +4,7 @@ import isUser from '@/common/middlewares/isUser'
 import {
     BackendGeneralResponse,
     ClosingCreateResponse,
+    ClosingsResponse,
     OrdersResponse,
     StoreResponse,
     UserData,
@@ -12,7 +13,7 @@ import OperatorNavigation from '@/components/operator/operator-navigation'
 import StoreKPICards from '@/components/store/store-kpi-cards'
 import StoreOrders from '@/components/store/store-orders'
 import TableSkeleton from '@/components/table-skeleton'
-import { useDisclosure } from '@nextui-org/react'
+import { Pagination, useDisclosure } from '@nextui-org/react'
 import {
     Title,
     Text,
@@ -43,26 +44,32 @@ import {
     ModalBody,
     ModalFooter,
 } from '@nextui-org/modal'
-import { ForwardIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import {
+    ForwardIcon,
+    XMarkIcon,
+    ArrowDownTrayIcon,
+} from '@heroicons/react/24/outline'
 import dayjs from 'dayjs'
 import { AxiosError, isAxiosError } from 'axios'
-import { useRouter } from 'next/router'
 import lodashSumBy from 'lodash/sumBy'
+import { toast } from 'react-toastify'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+
+const Loading = () => (
+    <Flex alignItems="center" justifyContent="center">
+        <Waveform size={20} color="#3b82f6" />
+    </Flex>
+)
 
 const LazyCreateOrder = dynamic(
     () => import('@/components/store/order/create-order'),
     {
-        loading: () => (
-            <Flex alignItems="center" justifyContent="center">
-                <Waveform size={20} color="#3b82f6" />
-            </Flex>
-        ),
+        loading: () => <Loading />,
     },
 )
 
 const OperatorIndex = () => {
     const axios = useAxios()
-    const router = useRouter()
     const { data } = useSession()
     const user = data?.user as UserData
 
@@ -76,8 +83,23 @@ const OperatorIndex = () => {
     const [closingLoading, setClosingLoading] = useState<boolean>()
     const [createClosing, setCreateClosing] =
         useState<ClosingCreateResponse[]>()
+    const [closingsPage, setClosingsPage] = useState<number>(1)
 
     const closing = useDisclosure()
+    const listClosing = useDisclosure()
+
+    const {
+        isLoading: isClosingsLoading,
+        isError: isClosingsError,
+        data: closings,
+    } = useQuery({
+        queryKey: ['closings', user.store_id, closingsPage],
+        placeholderData: keepPreviousData,
+        queryFn: () =>
+            axios.get<ClosingsResponse>(
+                `/stores/${user.store_id}/closing?page=${closingsPage}`,
+            ),
+    })
 
     useEffect(() => {
         const fetchData = async () => {
@@ -140,17 +162,16 @@ const OperatorIndex = () => {
                     },
                 )
 
-            alert(createClosingResponse.data.message)
-            router.reload()
+            toast.success(createClosingResponse.data.message)
         } catch (e) {
             if (isAxiosError(e)) {
                 const error = e as AxiosError
                 const data = error.response?.data as BackendGeneralResponse
 
-                alert(data.message)
-                router.reload()
+                toast.error(data.message)
             }
         } finally {
+            closing.onClose()
             setClosingLoading(false)
         }
     }
@@ -173,7 +194,35 @@ const OperatorIndex = () => {
                 </Grid>
             </div>
 
-            <Card className="mt-6">
+            <Card className="mt-4">
+                <Grid
+                    numItems={2}
+                    numItemsMd={2}
+                    numItemsLg={2}
+                    numItemsSm={2}
+                    className="gap-6"
+                >
+                    <Button
+                        size="xs"
+                        variant="light"
+                        className="w-full"
+                        onClick={() => listClosing.onOpen()}
+                    >
+                        View closings
+                    </Button>
+
+                    <Button
+                        size="xs"
+                        variant="secondary"
+                        className="w-full"
+                        onClick={() => closing.onOpen()}
+                    >
+                        Create closing
+                    </Button>
+                </Grid>
+            </Card>
+
+            <Card className="mt-4">
                 <Title>Orders</Title>
                 <Text>All the orders in your store</Text>
                 <TabGroup className="mt-4" onIndexChange={setIndex}>
@@ -216,15 +265,62 @@ const OperatorIndex = () => {
                 </TabGroup>
             </Card>
 
-            <Card className="mt-4">
-                <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={(e) => closing.onOpen()}
-                >
-                    Create day closing
-                </Button>
-            </Card>
+            <Modal
+                onOpenChange={listClosing.onOpenChange}
+                isOpen={listClosing.isOpen}
+                scrollBehavior="inside"
+                backdrop="blur"
+            >
+                <ModalContent>
+                    <ModalHeader>
+                        <Title>All day closing</Title>
+                    </ModalHeader>
+                    <ModalBody>
+                        {isClosingsLoading && <Loading />}
+                        <List>
+                            {closings?.data.data.map((closing) => (
+                                <ListItem key={closing.id}>
+                                    <span>
+                                        {dayjs(closing?.created_at).format(
+                                            'DD, MMMM YY',
+                                        )}
+                                    </span>
+                                    <span>
+                                        <Button
+                                            variant="secondary"
+                                            size="xs"
+                                            color="gray"
+                                            icon={ArrowDownTrayIcon}
+                                        >
+                                            Download
+                                        </Button>
+                                    </span>
+                                </ListItem>
+                            ))}
+                        </List>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Flex alignItems="center" justifyContent="between">
+                            <Button variant="light" size="xs" color="red">
+                                Close
+                            </Button>
+                            {!isClosingsLoading &&
+                                !isClosingsError &&
+                                (closings?.data.meta.last_page as number) >
+                                    1 && (
+                                    <Pagination
+                                        total={
+                                            closings?.data.meta
+                                                .last_page as number
+                                        }
+                                        page={closingsPage}
+                                        onChange={setClosingsPage}
+                                    />
+                                )}
+                        </Flex>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
 
             <Modal
                 onOpenChange={closing.onOpenChange}

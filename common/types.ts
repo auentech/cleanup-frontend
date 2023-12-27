@@ -355,6 +355,7 @@ export type ClosingCreateResponse = {
 }
 
 export type Closing = {
+    id: number
     card: number
     cash: number
     upi: number
