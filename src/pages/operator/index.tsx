@@ -286,14 +286,19 @@ const OperatorIndex = () => {
                                         )}
                                     </span>
                                     <span>
-                                        <Button
-                                            variant="secondary"
-                                            size="xs"
-                                            color="gray"
-                                            icon={ArrowDownTrayIcon}
+                                        <a
+                                            target="_blank"
+                                            href={`${process.env.NEXT_PUBLIC_BACKEND_URL}api/stores/${user.store_id}/closing/${closing.id}?token=${user.token}`}
                                         >
-                                            Download
-                                        </Button>
+                                            <Button
+                                                variant="secondary"
+                                                size="xs"
+                                                color="gray"
+                                                icon={ArrowDownTrayIcon}
+                                            >
+                                                Download
+                                            </Button>
+                                        </a>
                                     </span>
                                 </ListItem>
                             ))}
@@ -301,7 +306,12 @@ const OperatorIndex = () => {
                     </ModalBody>
                     <ModalFooter>
                         <Flex alignItems="center" justifyContent="between">
-                            <Button variant="light" size="xs" color="red">
+                            <Button
+                                variant="light"
+                                size="xs"
+                                color="red"
+                                onClick={listClosing.onClose}
+                            >
                                 Close
                             </Button>
                             {!isClosingsLoading &&
