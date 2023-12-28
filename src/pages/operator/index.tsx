@@ -50,7 +50,6 @@ import {
     ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline'
 import dayjs from 'dayjs'
-import { AxiosError, isAxiosError } from 'axios'
 import lodashSumBy from 'lodash/sumBy'
 import { toast } from 'react-toastify'
 import {
@@ -59,6 +58,7 @@ import {
     useQuery,
     useQueryClient,
 } from '@tanstack/react-query'
+import { useDebounce } from 'use-debounce'
 
 const Loading = () => (
     <Flex alignItems="center" justifyContent="center">
@@ -82,6 +82,8 @@ const OperatorIndex = () => {
     const [index, setIndex] = useState<number>(0)
 
     const [orderSearch, setOrderSearch] = useState<string>('')
+    const [bouncedOrderSearch] = useDebounce(orderSearch, 500)
+
     const [expense, setExpense] = useState<number>()
     const [remarks, setRemarks] = useState<string>()
 
@@ -115,8 +117,8 @@ const OperatorIndex = () => {
         isError: isOrdersError,
         data: ordersUntyped,
     } = useQuery({
-        queryKey: ['orders', user.store_id, orderSearch, ordersPage],
-        queryFn: () => getOrders(orderSearch, ordersPage),
+        queryKey: ['orders', user.store_id, bouncedOrderSearch, ordersPage],
+        queryFn: () => getOrders(bouncedOrderSearch, ordersPage),
         initialData: keepPreviousData,
     })
     const orders = ordersUntyped as OrdersResponse
