@@ -16,6 +16,8 @@ import {
     UserIcon,
     UserPlusIcon,
 } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon } from '@heroicons/react/24/solid'
+import { useQuery } from '@tanstack/react-query'
 import {
     Button,
     Callout,
@@ -39,6 +41,7 @@ import {
 import { AxiosError, isAxiosError } from 'axios'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { useDebounce } from 'use-debounce'
 
 type LocalOrders = {
     service_id: number
@@ -61,14 +64,14 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const router = useRouter()
 
     const [showCustomerForm, setShowCustomerForm] = useState(false)
-    const [customers, setCustomers] = useState<UserSearchResponse>()
-    const [customerSearch, setCustomerSearch] = useState<string>()
     const [selectedCustomer, setSelectedCustomer] = useState<UserData>()
+
+    const [customerSearch, setCustomerSearch] = useState<string>()
+    const [bouncedCustomerSearch] = useDebounce(customerSearch, 500)
 
     const [speed, setSpeed] = useState<number>(0)
     const [thePackage, setThePackage] = useState<string>('executive')
     const [installment, setInstallment] = useState<'full' | 'half' | 'nil'>()
-    const [services, setServices] = useState<ServicesResponse>()
     const [renderer, setRenderer] = useState<OrderEntry[]>([
         { service: 0, garment: 0, count: 0 },
     ])
@@ -87,38 +90,34 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     const [loading, setLoading] = useState<boolean>(false)
     const [dueDate, setDueDate] = useState<DatePickerValue>()
 
-    useEffect(() => {
-        const fetchCustomers = async () => {
-            const customersResponse = await axios.get<UserSearchResponse>(
-                '/search/customer',
-                {
-                    params: {
-                        search: customerSearch,
-                    },
+    const {
+        isLoading: isCustomerSearchLoading,
+        isError: isCustomerSearchError,
+        data: customers,
+    } = useQuery({
+        enabled: !showCustomerForm,
+        queryKey: ['customers-search', bouncedCustomerSearch],
+        queryFn: () =>
+            axios.get<UserSearchResponse>('/search/customer', {
+                params: {
+                    search: bouncedCustomerSearch,
                 },
-            )
+            }),
+    })
 
-            setCustomers(customersResponse.data)
-        }
-
-        fetchCustomers()
-    }, [customerSearch])
-
-    useEffect(() => {
-        const fetchServices = async () => {
-            const servicesResponse = await axios.get<ServicesResponse>(
-                '/services',
-                {
-                    params: {
-                        include: ['garments'],
-                    },
+    const {
+        isLoading: isServicesLoading,
+        isError: isServicesError,
+        data: services,
+    } = useQuery({
+        queryKey: ['services', 'garments'],
+        queryFn: () =>
+            axios.get<ServicesResponse>('/services', {
+                params: {
+                    include: ['garments'],
                 },
-            )
-            setServices(servicesResponse.data)
-        }
-
-        fetchServices()
-    }, [])
+            }),
+    })
 
     useEffect(() => {
         let updatedCost = ogCost
@@ -160,7 +159,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
         let newCost = 0
 
         renderer.forEach((render) => {
-            const service = services?.data.find(
+            const service = services?.data.data.find(
                 (service) => service.id == render.service,
             )
             const garment = service?.garments?.find(
@@ -262,7 +261,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     }
 
     const renderGarments = (serviceID: number) => {
-        const service = services?.data.find(
+        const service = services?.data.data.find(
             (service) => service.id == serviceID,
         )
 
@@ -326,12 +325,33 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                     title="Customer selected"
                     icon={UserIcon}
                 >
-                    This order is now created for {selectedCustomer.name}
+                    This order is now created for {selectedCustomer.name} -{' '}
+                    <Button
+                        variant="light"
+                        onClick={() => setSelectedCustomer(undefined)}
+                    >
+                        Change customer?
+                    </Button>
                 </Callout>
             )}
 
             {!showCustomerForm && selectedCustomer == undefined && (
                 <>
+                    <List>
+                        <ListItem>
+                            <Text>New customer?</Text>
+                            <Button
+                                size="xs"
+                                variant="secondary"
+                                color="blue"
+                                icon={UserPlusIcon}
+                                onClick={() => setShowCustomerForm(true)}
+                            >
+                                Create customer
+                            </Button>
+                        </ListItem>
+                    </List>
+
                     <div className="mt-4">
                         <Text>Search customer</Text>
                         <TextInput
@@ -345,19 +365,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
                     {customers && (
                         <List className="mt-4">
-                            <ListItem>
-                                <Text>New customer?</Text>
-                                <Button
-                                    size="xs"
-                                    variant="secondary"
-                                    color="blue"
-                                    icon={UserPlusIcon}
-                                    onClick={() => setShowCustomerForm(true)}
-                                >
-                                    Create customer
-                                </Button>
-                            </ListItem>
-                            {customers.data.map((customer) => (
+                            {customers.data.data.map((customer) => (
                                 <ListItem key={customer.id}>
                                     <Text>
                                         {customer.name} - {customer.phone} -{' '}
@@ -383,6 +391,21 @@ const CreateOrder = ({ store }: CreateOrderType) => {
 
             {showCustomerForm && (
                 <>
+                    <List>
+                        <ListItem>
+                            <Text>Select existing customer?</Text>
+                            <Button
+                                size="xs"
+                                variant="secondary"
+                                color="blue"
+                                icon={MagnifyingGlassIcon}
+                                onClick={() => setShowCustomerForm(false)}
+                            >
+                                Search customer
+                            </Button>
+                        </ListItem>
+                    </List>
+
                     <div className="mt-4">
                         <Text>Customer name</Text>
                         <TextInput
@@ -453,7 +476,7 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                         value={render.service + ''}
                                         enableClear={false}
                                     >
-                                        {services?.data.map((service) => (
+                                        {services?.data.data.map((service) => (
                                             <SearchSelectItem
                                                 key={service.id}
                                                 value={service.id + ''}
