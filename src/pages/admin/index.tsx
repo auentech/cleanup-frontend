@@ -133,6 +133,7 @@ const AdminIndex = () => {
                     {
                         params: {
                             store: selectedStore.id,
+                            include: ['customer', 'store'],
                         },
                     },
                 )
@@ -142,8 +143,14 @@ const AdminIndex = () => {
                 return
             }
 
-            const dataResponse =
-                await axios.get<AdminDashboardResponse>('dashboard/admin')
+            const dataResponse = await axios.get<AdminDashboardResponse>(
+                'dashboard/admin',
+                {
+                    params: {
+                        include: ['customer', 'store'],
+                    },
+                },
+            )
 
             setStoreOrders(dataResponse.data.data)
             setMetrics(dataResponse.data)
