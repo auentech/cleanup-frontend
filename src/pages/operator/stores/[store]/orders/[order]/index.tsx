@@ -40,7 +40,6 @@ import {
     Title,
     SelectItem,
 } from '@tremor/react'
-import { Waveform } from '@uiball/loaders'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
@@ -60,6 +59,10 @@ import { useDisclosure } from '@nextui-org/react'
 import groupBy from 'lodash/groupBy'
 import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import TableSkeleton from '@/components/table-skeleton'
+import Loading from '@/components/loading'
+import { toast } from 'react-toastify'
 
 type Consolidate = {
     service: OrderService
@@ -72,24 +75,34 @@ const ShowOrderInfo = () => {
     const axios = useAxios()
     const router = useRouter()
     const { data } = useSession()
+    const queryClient = useQueryClient()
 
     const user = data?.user as UserData
-    const storeID = router.query.store
+    const storeID = parseInt(router.query.store as string)
     const orderID = router.query.order
 
-    const [loading, setLoading] = useState<boolean>(true)
-    const [order, setOrder] = useState<OrderResponse>()
-    const [store, setStore] = useState<StoreResponse>()
-    const [statuses, setStatuses] = useState<OrderStatusesResponse>()
-    const [deliveryLoading, setDeliveryLoading] = useState<boolean>(false)
     const [balanceMode, setBalanceMode] = useState<PaymentMode>('Cash')
     const [consolidate, setConsolidate] = useState<Consolidate[]>()
 
     const deliveryModal = useDisclosure()
 
-    useEffect(() => {
-        const getOrderDetails = async () => {
-            const orderResponse = await axios.get<OrderResponse>(
+    const {
+        isLoading: isStoreLoading,
+        isError: isStoreError,
+        data: store,
+    } = useQuery({
+        queryKey: ['stores', storeID],
+        queryFn: () => axios.get<StoreResponse>('/stores/' + storeID),
+    })
+
+    const {
+        isLoading: isOrderLoading,
+        isError: isOrderError,
+        data: order,
+    } = useQuery({
+        queryKey: ['orders', orderID],
+        queryFn: () =>
+            axios.get<OrderResponse>(
                 '/stores/' + storeID + '/orders/' + orderID,
                 {
                     params: {
@@ -101,71 +114,86 @@ const ShowOrderInfo = () => {
                         ],
                     },
                 },
-            )
+            ),
+    })
 
-            const storeResponse = await axios.get<StoreResponse>(
-                '/stores/' + storeID,
-            )
-            const statusResponse = await axios.get<OrderStatusesResponse>(
-                '/orders/' + orderID + '/status',
-                {
-                    params: {
-                        include: [
-                            'performer',
-                            'performer.profile.state',
-                            'performer.profile.district',
-                        ],
-                    },
+    const {
+        isLoading: isStatusesLoading,
+        isError: isStatusesError,
+        data: statuses,
+    } = useQuery({
+        queryKey: ['orders', orderID, 'status'],
+        queryFn: () =>
+            axios.get<OrderStatusesResponse>('/orders/' + orderID + '/status', {
+                params: {
+                    include: [
+                        'performer',
+                        'performer.profile.state',
+                        'performer.profile.district',
+                    ],
                 },
-            )
+            }),
+    })
 
-            setOrder(orderResponse.data)
-            setStore(storeResponse.data)
-            setStatuses(statusResponse.data)
-
-            const groupedOrders = groupBy(
-                orderResponse.data?.data.items,
-                (item) => `${item.garment.id}-${item.service.id}`,
-            )
-
-            const consolidatedOrders = map(groupedOrders, (gOrder) => {
-                return {
-                    service: gOrder[0].service,
-                    garment: gOrder[0].garment,
-                    total: sumBy(gOrder, 'cost'),
-                    quantity: gOrder.length,
-                }
-            })
-
-            setConsolidate(consolidatedOrders)
-            setLoading(false)
+    useEffect(() => {
+        if (isStoreError) {
+            toast.error('Unable to load store information')
         }
 
-        getOrderDetails()
-    }, [])
+        if (isOrderError) {
+            toast.error('Unable to load order information')
+        }
 
-    const deliverOrder = async () => {
-        setDeliveryLoading(true)
+        if (isStatusesError) {
+            toast.error('Unable to load order statuses')
+        }
+    }, [isStoreError, isOrderError, isStatusesError])
 
-        try {
-            await axios.put<BackendGeneralResponse>(
+    useEffect(() => {
+        const groupedOrders = groupBy(
+            order?.data?.data.items,
+            (item) => `${item.garment.id}-${item.service.id}`,
+        )
+
+        const consolidatedOrders = map(groupedOrders, (gOrder) => {
+            return {
+                service: gOrder[0].service,
+                garment: gOrder[0].garment,
+                total: sumBy(gOrder, 'cost'),
+                quantity: gOrder.length,
+            }
+        })
+
+        setConsolidate(consolidatedOrders)
+    }, [order])
+
+    const deliverOrder = useMutation({
+        mutationFn: () =>
+            axios.put<BackendGeneralResponse>(
                 '/stores/' + storeID + '/orders/' + orderID + '/deliver',
                 {
                     mode: balanceMode,
                 },
-            )
+            ),
+        onSuccess: () => {
+            toast.success('Delivered order successfully')
+            queryClient.invalidateQueries({
+                queryKey: ['orders', orderID],
+            })
+            queryClient.invalidateQueries({
+                queryKey: ['orders', orderID, 'status'],
+            })
+        },
+        onError: () => {
+            toast.error('Unable to deliver order')
+        },
+        onSettled: () => {
+            deliveryModal.onClose()
+        },
+    })
 
-            alert('Order marked as delivered')
-            router.reload()
-        } catch {
-            alert('Unable to deliver order')
-        } finally {
-            setDeliveryLoading(false)
-        }
-    }
-
-    const OrderDisplay = () => (
-        <>
+    return (
+        <div className="p-12">
             <div>
                 <Flex justifyContent="start">
                     <Icon
@@ -173,26 +201,40 @@ const ShowOrderInfo = () => {
                         onClick={() => router.back()}
                         style={{ cursor: 'pointer' }}
                     ></Icon>
-                    <Title>{store?.data.name} store</Title>
+                    <Title>
+                        {isStoreLoading
+                            ? 'Loading...'
+                            : `${store?.data.data.name} store`}
+                    </Title>
                     <Badge
                         icon={BuildingStorefrontIcon}
                         size="xs"
                         className="ml-4"
                     >
-                        {store?.data.code}
+                        {isStoreLoading
+                            ? 'Loading...'
+                            : `${store?.data.data.code}`}
                     </Badge>
                 </Flex>
                 <Subtitle>
-                    {order?.data.customer?.name}'s order from{' '}
-                    {order?.data.customer?.profile?.address}
+                    {isOrderLoading
+                        ? 'Loading...'
+                        : `${order?.data.data.customer?.name}'s order from${' '}
+                    ${order?.data.data.customer?.profile?.address}`}
                 </Subtitle>
             </div>
 
             <OperatorNavigation />
 
-            <Grid numItemsSm={2} numItemsLg={4} className="mt-6 gap-6">
-                <OrderKPICards order={order} />
-            </Grid>
+            {isOrderLoading ? (
+                <Card className="mt-6">
+                    <Loading />
+                </Card>
+            ) : (
+                <Grid numItemsSm={2} numItemsLg={4} className="mt-6 gap-6">
+                    <OrderKPICards order={order?.data} />
+                </Grid>
+            )}
 
             <div className="mt-6">
                 <Card>
@@ -201,34 +243,40 @@ const ShowOrderInfo = () => {
                         All garments and services availed by this customer
                     </Text>
 
-                    <Table className="mt-4">
-                        <TableHead>
-                            <TableRow>
-                                <TableHeaderCell>S.No</TableHeaderCell>
-                                <TableHeaderCell>Service</TableHeaderCell>
-                                <TableHeaderCell>Garment</TableHeaderCell>
-                                <TableHeaderCell>Quantity</TableHeaderCell>
-                                <TableHeaderCell>Cost</TableHeaderCell>
-                                <TableHeaderCell>Total</TableHeaderCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {consolidate?.map((item, index) => (
-                                <TableRow key={item.garment.id}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>
-                                        {item.service.service}
-                                    </TableCell>
-                                    <TableCell>{item.garment.name}</TableCell>
-                                    <TableCell>{item.quantity}</TableCell>
-                                    <TableCell>
-                                        ₹ {item.garment.price_max}
-                                    </TableCell>
-                                    <TableCell>₹ {item.total}</TableCell>
+                    {isOrderLoading ? (
+                        <TableSkeleton numRows={5} numCols={6} />
+                    ) : (
+                        <Table className="mt-4">
+                            <TableHead>
+                                <TableRow>
+                                    <TableHeaderCell>S.No</TableHeaderCell>
+                                    <TableHeaderCell>Service</TableHeaderCell>
+                                    <TableHeaderCell>Garment</TableHeaderCell>
+                                    <TableHeaderCell>Quantity</TableHeaderCell>
+                                    <TableHeaderCell>Cost</TableHeaderCell>
+                                    <TableHeaderCell>Total</TableHeaderCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHead>
+                            <TableBody>
+                                {consolidate?.map((item, index) => (
+                                    <TableRow key={item.garment.id}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell>
+                                            {item.service.service}
+                                        </TableCell>
+                                        <TableCell>
+                                            {item.garment.name}
+                                        </TableCell>
+                                        <TableCell>{item.quantity}</TableCell>
+                                        <TableCell>
+                                            ₹ {item.garment.price_max}
+                                        </TableCell>
+                                        <TableCell>₹ {item.total}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
                 </Card>
             </div>
 
@@ -241,40 +289,49 @@ const ShowOrderInfo = () => {
                         <List>
                             <ListItem>
                                 <Text>Name</Text>
-                                <Text>{order?.data.customer?.name}</Text>
+                                <Text>{order?.data.data.customer?.name}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Email</Text>
-                                <Text>{order?.data.customer?.email}</Text>
+                                <Text>{order?.data.data.customer?.email}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Phone</Text>
-                                <Text>{order?.data.customer?.phone}</Text>
+                                <Text>{order?.data.data.customer?.phone}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Address</Text>
                                 <Text>
-                                    {order?.data.customer?.profile?.address}
+                                    {
+                                        order?.data.data.customer?.profile
+                                            ?.address
+                                    }
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Pincode</Text>
                                 <Text>
-                                    {order?.data.customer?.profile?.pincode}
+                                    {
+                                        order?.data.data.customer?.profile
+                                            ?.pincode
+                                    }
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <Text>State</Text>
                                 <Text>
-                                    {order?.data.customer?.profile?.state.name}
+                                    {
+                                        order?.data.data.customer?.profile
+                                            ?.state.name
+                                    }
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <Text>District</Text>
                                 <Text>
                                     {
-                                        order?.data.customer?.profile?.district
-                                            .name
+                                        order?.data.data.customer?.profile
+                                            ?.district.name
                                     }
                                 </Text>
                             </ListItem>
@@ -338,24 +395,20 @@ const ShowOrderInfo = () => {
                                     className="w-full"
                                     icon={ForwardIcon}
                                     variant="secondary"
-                                    disabled={!!order?.data.delivery_challan_id}
+                                    disabled={
+                                        !!order?.data.data.delivery_challan_id
+                                    }
                                 >
                                     Edit order
                                 </Button>
                             </Link>
-                            {/* <Link href="/operator/scanner" className="w-full">
-                                <Button className="w-full" variant="secondary" icon={ArrowPathIcon}>
-                                    Scan status
-                                </Button>
-                            </Link>
-                            */}
                             <Button
                                 className="w-full"
                                 icon={ShoppingBagIcon}
                                 variant="secondary"
                                 disabled={
                                     !['processed', 'in_store'].includes(
-                                        order?.data.status as string,
+                                        order?.data.data.status as string,
                                     )
                                 }
                                 onClick={deliveryModal.onOpen}
@@ -374,27 +427,28 @@ const ShowOrderInfo = () => {
                         <List>
                             <ListItem>
                                 <Text>Code</Text>
-                                <Text>{order?.data.code}</Text>
+                                <Text>{order?.data.data.code}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Package</Text>
-                                <Text>{order?.data.package}</Text>
+                                <Text>{order?.data.data.package}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Speed</Text>
                                 <Text>
-                                    {order?.data.speed == 0
+                                    {order?.data.data.speed == 0
                                         ? 'General delivery'
-                                        : order?.data.speed + ' day delivery'}
+                                        : order?.data.data.speed +
+                                          ' day delivery'}
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Due on</Text>
                                 <Text>
-                                    {order?.data.due_date
-                                        ? dayjs(order?.data.due_date).format(
-                                              'DD, MMMM YY',
-                                          )
+                                    {order?.data.data.due_date
+                                        ? dayjs(
+                                              order?.data.data.due_date,
+                                          ).format('DD, MMMM YY')
                                         : 'General'}
                                 </Text>
                             </ListItem>
@@ -402,25 +456,27 @@ const ShowOrderInfo = () => {
                                 <Text>CGST</Text>
                                 <Text>
                                     ₹{' '}
-                                    {order?.data.cost &&
-                                        (order.data.cost * (9 / 100)).toFixed(
-                                            2,
-                                        )}
+                                    {order?.data.data.cost &&
+                                        (
+                                            order.data.data.cost *
+                                            (9 / 100)
+                                        ).toFixed(2)}
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <Text>SGST</Text>
                                 <Text>
                                     ₹{' '}
-                                    {order?.data.cost &&
-                                        (order.data.cost * (9 / 100)).toFixed(
-                                            2,
-                                        )}
+                                    {order?.data.data.cost &&
+                                        (
+                                            order.data.data.cost *
+                                            (9 / 100)
+                                        ).toFixed(2)}
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <Text>First installment mode</Text>
-                                <Text>{order?.data.mode}</Text>
+                                <Text>{order?.data.data.mode}</Text>
                             </ListItem>
                         </List>
                     </div>
@@ -428,46 +484,59 @@ const ShowOrderInfo = () => {
             </Grid>
 
             <div className="mt-6">
-                <OrderRemarks order={order as OrderResponse} />
+                {isOrderLoading || isOrderError ? (
+                    <Card>
+                        <Loading />
+                    </Card>
+                ) : (
+                    <OrderRemarks order={order?.data as OrderResponse} />
+                )}
             </div>
 
             <div className="mt-6">
                 <Card>
                     <Title>Order timeline</Title>
-                    <Subtitle>
-                        Washed: {order?.meta?.washedCount} | Ironed:{' '}
-                        {order?.meta?.ironedCount}
-                    </Subtitle>
 
-                    <ol className="relative mt-4 border-l border-gray-200 dark:border-gray-700">
-                        {statuses?.data.map((status) => (
-                            <li className="ml-4" key={status.id}>
-                                <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full border border-white bg-gray-200 dark:border-gray-900 dark:bg-gray-700"></div>
-                                <time className="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                                    {dayjs(status.created_at).format(
-                                        'DD, MMMM YY',
-                                    )}
-                                </time>
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    {status.performer?.name +
-                                        ' ' +
-                                        status.action +
-                                        ' the order'}
-                                </h3>
-                                <p className="text-base font-normal text-gray-500 dark:text-gray-400">
-                                    {'Action was performed at ' +
-                                        dayjs(status.created_at).format(
-                                            'hh:mm A',
-                                        ) +
-                                        ' by ' +
-                                        status.performer?.name +
-                                        " who's role is " +
-                                        status.performer?.role}
-                                </p>
-                                <br />
-                            </li>
-                        ))}
-                    </ol>
+                    {isStatusesLoading ? (
+                        <Loading />
+                    ) : (
+                        <>
+                            <Subtitle>
+                                Washed: {order?.data.meta?.washedCount} |
+                                Ironed: {order?.data.meta?.ironedCount}
+                            </Subtitle>
+
+                            <ol className="relative mt-4 border-l border-gray-200 dark:border-gray-700">
+                                {statuses?.data.data.map((status) => (
+                                    <li className="ml-4" key={status.id}>
+                                        <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full border border-white bg-gray-200 dark:border-gray-900 dark:bg-gray-700"></div>
+                                        <time className="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                            {dayjs(status.created_at).format(
+                                                'DD, MMMM YY',
+                                            )}
+                                        </time>
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                            {status.performer?.name +
+                                                ' ' +
+                                                status.action +
+                                                ' the order'}
+                                        </h3>
+                                        <p className="text-base font-normal text-gray-500 dark:text-gray-400">
+                                            {'Action was performed at ' +
+                                                dayjs(status.created_at).format(
+                                                    'hh:mm A',
+                                                ) +
+                                                ' by ' +
+                                                status.performer?.name +
+                                                " who's role is " +
+                                                status.performer?.role}
+                                        </p>
+                                        <br />
+                                    </li>
+                                ))}
+                            </ol>
+                        </>
+                    )}
                 </Card>
             </div>
 
@@ -491,7 +560,8 @@ const ShowOrderInfo = () => {
                                     Mark the order as delivered? Pending balance
                                     has to be paid if there is any.
                                 </p>
-                                {order?.data.cost != order?.data.paid && (
+                                {order?.data.data.cost !=
+                                    order?.data.data.paid && (
                                     <Select
                                         enableClear={false}
                                         value={balanceMode}
@@ -520,9 +590,9 @@ const ShowOrderInfo = () => {
                                 </Button>
                                 <Button
                                     icon={ForwardIcon}
-                                    loading={deliveryLoading}
+                                    loading={deliverOrder.isPending}
                                     loadingText="Marking as delivered..."
-                                    onClick={(_) => deliverOrder()}
+                                    onClick={(_) => deliverOrder.mutate()}
                                 >
                                     Mark as delivered
                                 </Button>
@@ -531,21 +601,6 @@ const ShowOrderInfo = () => {
                     )}
                 </ModalContent>
             </Modal>
-        </>
-    )
-
-    return (
-        <div className="p-12">
-            {loading ? (
-                <Card>
-                    <Flex alignItems="center" justifyContent="center">
-                        <Waveform size={20} color="#3b82f6" />
-                        <div className="h-60" />
-                    </Flex>
-                </Card>
-            ) : (
-                <OrderDisplay />
-            )}
         </div>
     )
 }

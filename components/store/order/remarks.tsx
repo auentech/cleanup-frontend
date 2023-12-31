@@ -151,7 +151,9 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                                     handleRemarksChange(item, 'color', v)
                                 }
                                 disabled={
-                                    loading || !!order.data.delivery_challan_id
+                                    loading ||
+                                    !!order.data.delivery_challan_id ||
+                                    order.data.status == 'delivered'
                                 }
                                 defaultValue={getRemarkForItem(item, 'color')}
                             >
@@ -171,7 +173,9 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                                     handleRemarksChange(item, 'texture', v)
                                 }
                                 disabled={
-                                    loading || !!order.data.delivery_challan_id
+                                    loading ||
+                                    !!order.data.delivery_challan_id ||
+                                    order.data.status == 'delivered'
                                 }
                                 defaultValue={getRemarkForItem(item, 'texture')}
                             >
@@ -198,7 +202,9 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                                     )
                                 }
                                 disabled={
-                                    loading || !!order.data.delivery_challan_id
+                                    loading ||
+                                    !!order.data.delivery_challan_id ||
+                                    order.data.status == 'delivered'
                                 }
                                 defaultValue={getRemarkForItem(item, 'brand')}
                             />
