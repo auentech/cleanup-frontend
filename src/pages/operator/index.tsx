@@ -117,7 +117,12 @@ const OperatorIndex = () => {
         isError: isOrdersError,
         data: ordersUntyped,
     } = useQuery({
-        queryKey: ['orders', user.store_id, bouncedOrderSearch, ordersPage],
+        queryKey: [
+            'operator dashboard',
+            user.store_id,
+            bouncedOrderSearch,
+            ordersPage,
+        ],
         queryFn: () => getOrders(bouncedOrderSearch, ordersPage),
         initialData: keepPreviousData,
     })
@@ -141,7 +146,7 @@ const OperatorIndex = () => {
         isError: isStoreError,
         data: store,
     } = useQuery({
-        queryKey: ['store', user.store_id],
+        queryKey: ['stores', user.store_id],
         queryFn: () =>
             axios.get<StoreResponse>('/stores/' + user.store_id, {
                 params: {
@@ -158,7 +163,7 @@ const OperatorIndex = () => {
     })
 
     const { isError: isCreateClosingError, data: createClosing } = useQuery({
-        queryKey: ['closing', user.store_id],
+        queryKey: ['closings', user.store_id, 'create'],
         queryFn: () =>
             axios.get<ClosingCreateResponse[]>(
                 '/stores/' + user.store_id + '/closing/create',
@@ -195,7 +200,7 @@ const OperatorIndex = () => {
         onSuccess: (result) => {
             toast.success(result.data.message)
             queryClient.invalidateQueries({
-                queryKey: ['closing', user.store_id],
+                queryKey: ['closings', user.store_id, 'create'],
             })
         },
         onError: () => toast.error('Cannot save day closing'),
