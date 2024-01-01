@@ -2,6 +2,7 @@ import useAxios from '@/common/axios'
 import Logout from '@/common/logout'
 import isUser from '@/common/middlewares/isUser'
 import { ReturnChallansResponse, UserData } from '@/common/types'
+import Loading from '@/components/loading'
 import TableSkeleton from '@/components/table-skeleton'
 import { CameraIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { useQuery } from '@tanstack/react-query'
@@ -25,19 +26,15 @@ import {
     Button,
     Callout,
 } from '@tremor/react'
-import { Waveform } from '@uiball/loaders'
 import dayjs from 'dayjs'
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
+import Head from 'next/head'
 import Link from 'next/link'
 import { useState } from 'react'
 
 const LazyCreateReturn = dynamic(() => import('@/components/create-return'), {
-    loading: () => (
-        <Flex alignItems="center" justifyContent="center">
-            <Waveform size={20} color="#3b82f6" />
-        </Flex>
-    ),
+    loading: () => <Loading />,
 })
 
 const PackerHome = () => {
@@ -66,9 +63,12 @@ const PackerHome = () => {
 
     return (
         <div className="p-12">
-            <Title>Operator dashboard</Title>
+            <Head>
+                <title key="title">{user?.name} packer | Cleanup</title>
+            </Head>
+            <Title>Packer dashboard</Title>
             <Subtitle>
-                Operator dashboard for {user?.name}{' '}
+                Packer dashboard for {user?.name}{' '}
                 <Italic style={{ color: '#ef4444', cursor: 'pointer' }}>
                     <Logout />
                 </Italic>
@@ -162,7 +162,7 @@ const PackerHome = () => {
                                                                 href={
                                                                     process.env
                                                                         .NEXT_PUBLIC_BACKEND_URL +
-                                                                    '/api/return-challans/' +
+                                                                    'api/return-challans/' +
                                                                     challan.code +
                                                                     '/qr?token=' +
                                                                     user?.token

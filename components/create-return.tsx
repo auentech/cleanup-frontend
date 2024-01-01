@@ -1,6 +1,7 @@
 import useAxios from '@/common/axios'
 import { BackendGeneralResponse, Store, StoresResponse } from '@/common/types'
 import { BuildingStorefrontIcon, TruckIcon } from '@heroicons/react/24/outline'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
     Grid,
     Col,
@@ -20,19 +21,24 @@ import {
     Flex,
 } from '@tremor/react'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { QrReader } from 'react-qr-reader'
+import { useDebounce } from 'use-debounce'
+import Loading from './loading'
+import { toast } from 'react-toastify'
+import { isAxiosError } from 'axios'
+import Head from 'next/head'
 
 const CreateReturn = () => {
     const axios = useAxios()
     const router = useRouter()
 
     const [codes, setCodes] = useState<string[]>([])
-    const [stores, setStores] = useState<StoresResponse>()
-    const [loading, setLoading] = useState<boolean>(false)
-
-    const [search, setSearch] = useState<string>()
     const [store, setStore] = useState<Store>()
+
+    const [page, setPage] = useState<number>(1)
+    const [search, setSearch] = useState<string>('')
+    const [debouncedSearch] = useDebounce(search, 300)
 
     const handleScan = (result: any, error: any) => {
         if (typeof result?.text == 'string') {
@@ -41,54 +47,74 @@ const CreateReturn = () => {
                     return oldCodes
                 }
 
+                toast.success(result.text + ' order added')
                 return [...oldCodes, result.text]
             })
         }
     }
 
-    const handleCreateRC = async () => {
-        setLoading(true)
+    const getStores = async (
+        search: string = '',
+        page: number = 1,
+    ): Promise<StoresResponse> => {
+        const endpoint =
+            search == '' ? `/stores?page=${page}` : `/search/store?page=${page}`
 
-        const data = codes.map((code) => {
-            const bagCount = (
-                document.getElementById(code + '-bags') as HTMLInputElement
-            ).value
-            return {
-                order_code: code,
-                bags: parseInt(bagCount),
-            }
+        const response = await axios.get<StoresResponse>(endpoint, {
+            params: { search, include: ['profile.state', 'profile.district'] },
         })
 
-        const res = await axios.post<BackendGeneralResponse>(
-            '/return-challans',
-            {
-                store_id: store?.id,
-                items: data,
-            },
-        )
-
-        setLoading(false)
-        alert(res.data.message)
-        router.reload()
+        return response.data as StoresResponse
     }
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const storesResponse = await axios.get<StoresResponse>(
-                'search/store',
-                {
-                    params: { search },
-                },
-            )
+    const { data: stores, isLoading: isStoresLoading } = useQuery({
+        queryKey: ['packer create rc', debouncedSearch, page],
+        queryFn: () => getStores(debouncedSearch, page),
+    })
 
-            setStores(storesResponse.data)
-        }
+    const createRC = useMutation({
+        mutationFn: () => {
+            const data = codes.map((code) => {
+                const bagCount = (
+                    document.getElementById(code + '-bags') as HTMLInputElement
+                ).value
+                return {
+                    order_code: code,
+                    bags: parseInt(bagCount),
+                }
+            })
 
-        fetchData()
-    }, [search])
+            return axios.post<BackendGeneralResponse>('/return-challans', {
+                store_id: store?.id,
+                items: data,
+            })
+        },
+        onError(error, variables, context) {
+            if (isAxiosError(error)) {
+                if (error.response) {
+                    const res = error.response?.data as BackendGeneralResponse
+                    toast.error(res.message)
+
+                    return
+                }
+
+                toast.error('Server did not respond, retry!')
+                return
+            }
+
+            toast.error('Unable to talk with server. Retry!')
+        },
+        onSuccess: () => {
+            toast.success('Return challan created')
+            setTimeout(() => router.reload(), 1000)
+        },
+    })
 
     return (
         <>
+            <Head>
+                <title key="title">Create RC | Cleanup</title>
+            </Head>
             {store !== undefined && (
                 <Grid numItemsLg={3} className="mt-6">
                     <Col numColSpan={1} />
@@ -105,35 +131,43 @@ const CreateReturn = () => {
                 </Grid>
             )}
 
-            {stores && store == undefined && (
+            {store == undefined && (
+                <div className="mt-4">
+                    <Text>Search store</Text>
+                    <TextInput
+                        placeholder="Search..."
+                        className="mt-2"
+                        value={search}
+                        onInput={(e) => setSearch(e.currentTarget.value)}
+                    />
+                </div>
+            )}
+
+            {isStoresLoading ? (
+                <Loading />
+            ) : (
                 <>
-                    <div className="mt-4">
-                        <Text>Search store</Text>
-                        <TextInput
-                            placeholder="Search..."
-                            className="mt-2"
-                            onInput={(e) => setSearch(e.currentTarget.value)}
-                        />
-                    </div>
                     <List className="mt-4">
-                        {stores.data.map((store) => (
-                            <ListItem key={store.id}>
-                                <Text>
-                                    {store.code} - {store.name} -{' '}
-                                    {store.profile?.state.name} -{' '}
-                                    {store.profile?.district.name}
-                                </Text>
-                                <Button
-                                    size="xs"
-                                    variant="secondary"
-                                    color="gray"
-                                    icon={BuildingStorefrontIcon}
-                                    onClick={() => setStore(store)}
-                                >
-                                    Select store
-                                </Button>
-                            </ListItem>
-                        ))}
+                        {store != undefined
+                            ? ''
+                            : stores?.data.map((store) => (
+                                  <ListItem key={store.id}>
+                                      <Text>
+                                          {store.code} - {store.name} -{' '}
+                                          {store.profile?.state?.name} -{' '}
+                                          {store.profile?.district?.name}
+                                      </Text>
+                                      <Button
+                                          size="xs"
+                                          variant="secondary"
+                                          color="gray"
+                                          icon={BuildingStorefrontIcon}
+                                          onClick={() => setStore(store)}
+                                      >
+                                          Select store
+                                      </Button>
+                                  </ListItem>
+                              ))}
                     </List>
                 </>
             )}
@@ -175,9 +209,9 @@ const CreateReturn = () => {
                     <Flex justifyContent="end">
                         <Button
                             icon={TruckIcon}
-                            loading={loading}
+                            loading={createRC.isPending}
                             loadingText="Creating challan..."
-                            onClick={handleCreateRC}
+                            onClick={() => createRC.mutate()}
                         >
                             Create Return Challan
                         </Button>
