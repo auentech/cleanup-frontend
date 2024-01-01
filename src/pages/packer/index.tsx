@@ -121,7 +121,7 @@ const PackerHome = () => {
                                                     Created at
                                                 </TableHeaderCell>
                                                 <TableHeaderCell>
-                                                    Order codes
+                                                    Export
                                                 </TableHeaderCell>
                                                 <TableHeaderCell>
                                                     QR Codes
@@ -157,17 +157,29 @@ const PackerHome = () => {
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Button
-                                                                variant="light"
-                                                                icon={
-                                                                    ShoppingBagIcon
+                                                            <a
+                                                                href={
+                                                                    process.env
+                                                                        .NEXT_PUBLIC_BACKEND_URL +
+                                                                    'api/return-challans/' +
+                                                                    challan.code +
+                                                                    '/pdf?token=' +
+                                                                    user?.token
                                                                 }
+                                                                target="_blank"
                                                             >
-                                                                Show order codes
-                                                            </Button>
+                                                                <Button
+                                                                    variant="light"
+                                                                    icon={
+                                                                        ShoppingBagIcon
+                                                                    }
+                                                                >
+                                                                    Export PDF
+                                                                </Button>
+                                                            </a>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Link
+                                                            <a
                                                                 href={
                                                                     process.env
                                                                         .NEXT_PUBLIC_BACKEND_URL +
@@ -187,7 +199,7 @@ const PackerHome = () => {
                                                                     Show QR
                                                                     codes
                                                                 </Button>
-                                                            </Link>
+                                                            </a>
                                                         </TableCell>
                                                     </TableRow>
                                                 ),
