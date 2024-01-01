@@ -25,6 +25,7 @@ import {
     TableCell,
     Button,
     Callout,
+    Flex,
 } from '@tremor/react'
 import { AxiosResponse } from 'axios'
 import dayjs from 'dayjs'
@@ -195,19 +196,22 @@ const PackerHome = () => {
                                     </Table>
                                 )}
 
-                                {!isLoading &&
-                                    (typedReturnChallans?.data.meta
-                                        .last_page as number) > 1 && (
-                                        <Pagination
-                                            className="mt-4"
-                                            total={
-                                                typedReturnChallans?.data.meta
-                                                    .last_page as number
-                                            }
-                                            page={page}
-                                            onChange={setPage}
-                                        />
-                                    )}
+                                <Flex justifyContent="end">
+                                    {!isLoading &&
+                                        (typedReturnChallans?.data.meta
+                                            .last_page as number) > 1 && (
+                                            <Pagination
+                                                className="mt-4"
+                                                total={
+                                                    typedReturnChallans?.data
+                                                        .meta
+                                                        .last_page as number
+                                                }
+                                                page={page}
+                                                onChange={setPage}
+                                            />
+                                        )}
+                                </Flex>
                             </TabPanel>
 
                             <TabPanel>
