@@ -5,7 +5,8 @@ import { ReturnChallansResponse, UserData } from '@/common/types'
 import Loading from '@/components/loading'
 import TableSkeleton from '@/components/table-skeleton'
 import { CameraIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
-import { useQuery } from '@tanstack/react-query'
+import { Pagination } from '@nextui-org/react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
     Subtitle,
     Title,
@@ -16,7 +17,6 @@ import {
     Tab,
     TabPanels,
     TabPanel,
-    Flex,
     Table,
     TableHead,
     TableHeaderCell,
@@ -26,6 +26,7 @@ import {
     Button,
     Callout,
 } from '@tremor/react'
+import { AxiosResponse } from 'axios'
 import dayjs from 'dayjs'
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
@@ -42,15 +43,18 @@ const PackerHome = () => {
     const { data } = useSession()
     const user = data?.user as UserData
 
+    const [page, setPage] = useState<number>(1)
     const [index, setIndex] = useState<number>(0)
+
     const {
         isError,
         isLoading,
         data: returnChallans,
     } = useQuery({
-        queryKey: ['return-challans'],
+        initialData: keepPreviousData,
+        queryKey: ['return-challans', page],
         queryFn: () =>
-            axios.get<ReturnChallansResponse>('/return-challans', {
+            axios.get<ReturnChallansResponse>(`/return-challans?page=${page}`, {
                 params: {
                     include: [
                         'store',
@@ -60,6 +64,10 @@ const PackerHome = () => {
                 },
             }),
     })
+
+    const typedReturnChallans = returnChallans as
+        | AxiosResponse<ReturnChallansResponse, any>
+        | undefined
 
     return (
         <div className="p-12">
@@ -120,7 +128,7 @@ const PackerHome = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {returnChallans?.data.data.map(
+                                            {typedReturnChallans?.data.data.map(
                                                 (challan) => (
                                                     <TableRow
                                                         key={challan.code}
@@ -186,6 +194,20 @@ const PackerHome = () => {
                                         </TableBody>
                                     </Table>
                                 )}
+
+                                {!isLoading &&
+                                    (typedReturnChallans?.data.meta
+                                        .last_page as number) > 1 && (
+                                        <Pagination
+                                            className="mt-4"
+                                            total={
+                                                typedReturnChallans?.data.meta
+                                                    .last_page as number
+                                            }
+                                            page={page}
+                                            onChange={setPage}
+                                        />
+                                    )}
                             </TabPanel>
 
                             <TabPanel>
