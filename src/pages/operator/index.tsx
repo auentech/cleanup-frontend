@@ -59,12 +59,7 @@ import {
     useQueryClient,
 } from '@tanstack/react-query'
 import { useDebounce } from 'use-debounce'
-
-const Loading = () => (
-    <Flex alignItems="center" justifyContent="center">
-        <Waveform size={20} color="#3b82f6" />
-    </Flex>
-)
+import Loading from '@/components/loading'
 
 const LazyCreateOrder = dynamic(
     () => import('@/components/store/order/create-order'),
@@ -187,6 +182,10 @@ const OperatorIndex = () => {
             toast.error('Unable to get day closing details')
         }
     }, [isStoreError, isOrdersError, isClosingsError, isCreateClosingError])
+
+    useEffect(() => {
+        setOrdersPage(1)
+    }, [bouncedOrderSearch])
 
     const createDayClosing = useMutation({
         mutationFn: () =>
