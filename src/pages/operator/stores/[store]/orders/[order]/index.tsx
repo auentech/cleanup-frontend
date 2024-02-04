@@ -2,6 +2,7 @@ import useAxios from '@/common/axios'
 import isUser from '@/common/middlewares/isUser'
 import {
     BackendGeneralResponse,
+    Order,
     OrderGarment,
     OrderResponse,
     OrderService,
@@ -48,13 +49,7 @@ import OperatorNavigation from '@/components/operator/operator-navigation'
 import OrderRemarks from '@/components/store/order/remarks'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import {
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-} from '@nextui-org/modal'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@nextui-org/modal'
 import { useDisclosure } from '@nextui-org/react'
 import groupBy from 'lodash/groupBy'
 import map from 'lodash/map'
@@ -102,19 +97,16 @@ const ShowOrderInfo = () => {
     } = useQuery({
         queryKey: ['orders', orderID],
         queryFn: () =>
-            axios.get<OrderResponse>(
-                '/stores/' + storeID + '/orders/' + orderID,
-                {
-                    params: {
-                        include: [
-                            'customer.profile.state',
-                            'customer.profile.district',
-                            'orderItems.garment',
-                            'orderItems.service',
-                        ],
-                    },
+            axios.get<OrderResponse>('/stores/' + storeID + '/orders/' + orderID, {
+                params: {
+                    include: [
+                        'customer.profile.state',
+                        'customer.profile.district',
+                        'orderItems.garment',
+                        'orderItems.service',
+                    ],
                 },
-            ),
+            }),
     })
 
     const {
@@ -126,11 +118,7 @@ const ShowOrderInfo = () => {
         queryFn: () =>
             axios.get<OrderStatusesResponse>('/orders/' + orderID + '/status', {
                 params: {
-                    include: [
-                        'performer',
-                        'performer.profile.state',
-                        'performer.profile.district',
-                    ],
+                    include: ['performer', 'performer.profile.state', 'performer.profile.district'],
                 },
             }),
     })
@@ -202,18 +190,10 @@ const ShowOrderInfo = () => {
                         style={{ cursor: 'pointer' }}
                     ></Icon>
                     <Title>
-                        {isStoreLoading
-                            ? 'Loading...'
-                            : `${store?.data.data.name} store`}
+                        {isStoreLoading ? 'Loading...' : `${store?.data.data.name} store`}
                     </Title>
-                    <Badge
-                        icon={BuildingStorefrontIcon}
-                        size="xs"
-                        className="ml-4"
-                    >
-                        {isStoreLoading
-                            ? 'Loading...'
-                            : `${store?.data.data.code}`}
+                    <Badge icon={BuildingStorefrontIcon} size="xs" className="ml-4">
+                        {isStoreLoading ? 'Loading...' : `${store?.data.data.code}`}
                     </Badge>
                 </Flex>
                 <Subtitle>
@@ -232,16 +212,14 @@ const ShowOrderInfo = () => {
                 </Card>
             ) : (
                 <Grid numItemsSm={2} numItemsLg={4} className="mt-6 gap-6">
-                    <OrderKPICards order={order?.data} />
+                    <OrderKPICards order={order?.data.data as Order} />
                 </Grid>
             )}
 
             <div className="mt-6">
                 <Card>
                     <Title>Order Items</Title>
-                    <Text>
-                        All garments and services availed by this customer
-                    </Text>
+                    <Text>All garments and services availed by this customer</Text>
 
                     {isOrderLoading ? (
                         <TableSkeleton numRows={5} numCols={6} />
@@ -261,16 +239,10 @@ const ShowOrderInfo = () => {
                                 {consolidate?.map((item, index) => (
                                     <TableRow key={item.garment.id}>
                                         <TableCell>{index + 1}</TableCell>
-                                        <TableCell>
-                                            {item.service.service}
-                                        </TableCell>
-                                        <TableCell>
-                                            {item.garment.name}
-                                        </TableCell>
+                                        <TableCell>{item.service.service}</TableCell>
+                                        <TableCell>{item.garment.name}</TableCell>
                                         <TableCell>{item.quantity}</TableCell>
-                                        <TableCell>
-                                            ₹ {item.garment.price_max}
-                                        </TableCell>
+                                        <TableCell>₹ {item.garment.price_max}</TableCell>
                                         <TableCell>₹ {item.total}</TableCell>
                                     </TableRow>
                                 ))}
@@ -301,39 +273,19 @@ const ShowOrderInfo = () => {
                             </ListItem>
                             <ListItem>
                                 <Text>Address</Text>
-                                <Text>
-                                    {
-                                        order?.data.data.customer?.profile
-                                            ?.address
-                                    }
-                                </Text>
+                                <Text>{order?.data.data.customer?.profile?.address}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Pincode</Text>
-                                <Text>
-                                    {
-                                        order?.data.data.customer?.profile
-                                            ?.pincode
-                                    }
-                                </Text>
+                                <Text>{order?.data.data.customer?.profile?.pincode}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>State</Text>
-                                <Text>
-                                    {
-                                        order?.data.data.customer?.profile
-                                            ?.state.name
-                                    }
-                                </Text>
+                                <Text>{order?.data.data.customer?.profile?.state.name}</Text>
                             </ListItem>
                             <ListItem>
                                 <Text>District</Text>
-                                <Text>
-                                    {
-                                        order?.data.data.customer?.profile
-                                            ?.district.name
-                                    }
-                                </Text>
+                                <Text>{order?.data.data.customer?.profile?.district.name}</Text>
                             </ListItem>
                         </List>
                     </div>
@@ -379,11 +331,7 @@ const ShowOrderInfo = () => {
                                 }
                                 className="w-full"
                             >
-                                <Button
-                                    className="w-full"
-                                    variant="secondary"
-                                    icon={CameraIcon}
-                                >
+                                <Button className="w-full" variant="secondary" icon={CameraIcon}>
                                     Download QR Codes
                                 </Button>
                             </a>
@@ -395,9 +343,7 @@ const ShowOrderInfo = () => {
                                     className="w-full"
                                     icon={ForwardIcon}
                                     variant="secondary"
-                                    disabled={
-                                        !!order?.data.data.delivery_challan_id
-                                    }
+                                    disabled={!!order?.data.data.delivery_challan_id}
                                 >
                                     Edit order
                                 </Button>
@@ -438,17 +384,14 @@ const ShowOrderInfo = () => {
                                 <Text>
                                     {order?.data.data.speed == 0
                                         ? 'General delivery'
-                                        : order?.data.data.speed +
-                                          ' day delivery'}
+                                        : order?.data.data.speed + ' day delivery'}
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <Text>Due on</Text>
                                 <Text>
                                     {order?.data.data.due_date
-                                        ? dayjs(
-                                              order?.data.data.due_date,
-                                          ).format('DD, MMMM YY')
+                                        ? dayjs(order?.data.data.due_date).format('DD, MMMM YY')
                                         : 'General'}
                                 </Text>
                             </ListItem>
@@ -457,10 +400,7 @@ const ShowOrderInfo = () => {
                                 <Text>
                                     ₹{' '}
                                     {order?.data.data.cost &&
-                                        (
-                                            order.data.data.cost *
-                                            (9 / 100)
-                                        ).toFixed(2)}
+                                        (order.data.data.cost * (9 / 100)).toFixed(2)}
                                 </Text>
                             </ListItem>
                             <ListItem>
@@ -468,10 +408,7 @@ const ShowOrderInfo = () => {
                                 <Text>
                                     ₹{' '}
                                     {order?.data.data.cost &&
-                                        (
-                                            order.data.data.cost *
-                                            (9 / 100)
-                                        ).toFixed(2)}
+                                        (order.data.data.cost * (9 / 100)).toFixed(2)}
                                 </Text>
                             </ListItem>
                             <ListItem>
@@ -489,7 +426,7 @@ const ShowOrderInfo = () => {
                         <Loading />
                     </Card>
                 ) : (
-                    <OrderRemarks order={order?.data as OrderResponse} />
+                    <OrderRemarks order={order?.data.data as Order} />
                 )}
             </div>
 
@@ -502,8 +439,8 @@ const ShowOrderInfo = () => {
                     ) : (
                         <>
                             <Subtitle>
-                                Washed: {order?.data.meta?.washedCount} |
-                                Ironed: {order?.data.meta?.ironedCount}
+                                Washed: {order?.data.meta?.washedCount} | Ironed:{' '}
+                                {order?.data.meta?.ironedCount}
                             </Subtitle>
 
                             <ol className="relative mt-4 border-l border-gray-200 dark:border-gray-700">
@@ -511,9 +448,7 @@ const ShowOrderInfo = () => {
                                     <li className="ml-4" key={status.id}>
                                         <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full border border-white bg-gray-200 dark:border-gray-900 dark:bg-gray-700"></div>
                                         <time className="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                                            {dayjs(status.created_at).format(
-                                                'DD, MMMM YY',
-                                            )}
+                                            {dayjs(status.created_at).format('DD, MMMM YY')}
                                         </time>
                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                             {status.performer?.name +
@@ -523,9 +458,7 @@ const ShowOrderInfo = () => {
                                         </h3>
                                         <p className="text-base font-normal text-gray-500 dark:text-gray-400">
                                             {'Action was performed at ' +
-                                                dayjs(status.created_at).format(
-                                                    'hh:mm A',
-                                                ) +
+                                                dayjs(status.created_at).format('hh:mm A') +
                                                 ' by ' +
                                                 status.performer?.name +
                                                 " who's role is " +
@@ -557,11 +490,10 @@ const ShowOrderInfo = () => {
                             </ModalHeader>
                             <ModalBody>
                                 <p>
-                                    Mark the order as delivered? Pending balance
-                                    has to be paid if there is any.
+                                    Mark the order as delivered? Pending balance has to be paid if
+                                    there is any.
                                 </p>
-                                {order?.data.data.cost !=
-                                    order?.data.data.paid && (
+                                {order?.data.data.cost != order?.data.data.paid && (
                                     <Select
                                         enableClear={false}
                                         value={balanceMode}
@@ -570,12 +502,8 @@ const ShowOrderInfo = () => {
                                         }
                                     >
                                         <SelectItem value="UPI">UPI</SelectItem>
-                                        <SelectItem value="Card">
-                                            Card
-                                        </SelectItem>
-                                        <SelectItem value="Cash">
-                                            Cash
-                                        </SelectItem>
+                                        <SelectItem value="Card">Card</SelectItem>
+                                        <SelectItem value="Cash">Cash</SelectItem>
                                     </Select>
                                 )}
                             </ModalBody>

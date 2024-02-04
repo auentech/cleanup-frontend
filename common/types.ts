@@ -261,7 +261,7 @@ export type OrderResponse = {
     }
 }
 
-type OrderStatus = {
+export type OrderStatus = {
     id: number
     data?: any
     action: string
