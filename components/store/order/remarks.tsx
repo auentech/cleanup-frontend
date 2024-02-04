@@ -1,10 +1,5 @@
 import useAxios from '@/common/axios'
-import {
-    BackendGeneralResponse,
-    OrderItem,
-    OrderResponse,
-    RemarkItem,
-} from '@/common/types'
+import { BackendGeneralResponse, OrderItem, Order, RemarkItem } from '@/common/types'
 import { PencilSquareIcon } from '@heroicons/react/24/outline'
 import {
     Text,
@@ -23,7 +18,7 @@ import { useRouter } from 'next/router'
 import { useState } from 'react'
 
 type OrderRemarksType = {
-    order: OrderResponse
+    order: Order
 }
 
 type RemarksAllowedType = 'color' | 'brand' | 'texture'
@@ -74,9 +69,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
     const storeID = router.query.store
 
     const [loading, setLoading] = useState<boolean>(false)
-    const [remarks, setRemarks] = useState<RemarkItem[]>(
-        order.data?.remarks as RemarkItem[],
-    )
+    const [remarks, setRemarks] = useState<RemarkItem[]>(order.remarks as RemarkItem[])
 
     const handleRemarksChange = async (
         item: OrderItem,
@@ -85,9 +78,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
     ) => {
         setRemarks((prevRemarks) => {
             const updatedRemarks = [...prevRemarks]
-            const itemIndex = updatedRemarks.findIndex(
-                (remark) => remark.item_id === item.id,
-            )
+            const itemIndex = updatedRemarks.findIndex((remark) => remark.item_id === item.id)
 
             if (itemIndex !== -1) {
                 updatedRemarks[itemIndex] = {
@@ -110,7 +101,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
     const handleRemarksUpdate = async () => {
         setLoading(true)
         await axios.put<BackendGeneralResponse>(
-            '/stores/' + storeID + '/orders/' + order.data.code + '/remarks',
+            '/stores/' + storeID + '/orders/' + order.code + '/remarks',
             {
                 remarks,
             },
@@ -122,9 +113,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
     }
 
     const getRemarkForItem = (item: OrderItem, type: RemarksAllowedType) => {
-        const theRemark = remarks?.filter(
-            (remark) => remark.item_id == item.id,
-        )[0]
+        const theRemark = remarks?.filter((remark) => remark.item_id == item.id)[0]
 
         if (theRemark) {
             return theRemark[type]
@@ -137,7 +126,7 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
         <Card>
             <Title>Remarks</Title>
 
-            {order.data.items?.map((item) => (
+            {order.items?.map((item) => (
                 <div className="mt-6" key={item.id}>
                     <Title className="mb-2">
                         {item.garment.name} - {item.service.service}
@@ -147,13 +136,11 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                             <Text>{item.garment.name} color</Text>
                             <SearchSelect
                                 className="mt-2"
-                                onValueChange={(v) =>
-                                    handleRemarksChange(item, 'color', v)
-                                }
+                                onValueChange={(v) => handleRemarksChange(item, 'color', v)}
                                 disabled={
                                     loading ||
-                                    !!order.data.delivery_challan_id ||
-                                    order.data.status == 'delivered'
+                                    !!order.delivery_challan_id ||
+                                    order.status == 'delivered'
                                 }
                                 defaultValue={getRemarkForItem(item, 'color')}
                             >
@@ -169,21 +156,16 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                             <Text>{item.garment.name} texture</Text>
                             <SearchSelect
                                 className="mt-2"
-                                onValueChange={(v) =>
-                                    handleRemarksChange(item, 'texture', v)
-                                }
+                                onValueChange={(v) => handleRemarksChange(item, 'texture', v)}
                                 disabled={
                                     loading ||
-                                    !!order.data.delivery_challan_id ||
-                                    order.data.status == 'delivered'
+                                    !!order.delivery_challan_id ||
+                                    order.status == 'delivered'
                                 }
                                 defaultValue={getRemarkForItem(item, 'texture')}
                             >
                                 {textures.map((texture) => (
-                                    <SearchSelectItem
-                                        key={texture}
-                                        value={texture}
-                                    >
+                                    <SearchSelectItem key={texture} value={texture}>
                                         {texture}
                                     </SearchSelectItem>
                                 ))}
@@ -195,16 +177,12 @@ const OrderRemarks = ({ order }: OrderRemarksType) => {
                             <TextInput
                                 className="mt-2"
                                 onInput={(e) =>
-                                    handleRemarksChange(
-                                        item,
-                                        'brand',
-                                        e.currentTarget.value,
-                                    )
+                                    handleRemarksChange(item, 'brand', e.currentTarget.value)
                                 }
                                 disabled={
                                     loading ||
-                                    !!order.data.delivery_challan_id ||
-                                    order.data.status == 'delivered'
+                                    !!order.delivery_challan_id ||
+                                    order.status == 'delivered'
                                 }
                                 defaultValue={getRemarkForItem(item, 'brand')}
                             />
