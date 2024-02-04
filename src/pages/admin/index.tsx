@@ -1,13 +1,6 @@
 import Logout from '@/common/logout'
 import isUser from '@/common/middlewares/isUser'
-import {
-    AdminDashboardResponse,
-    Order,
-    OrdersResponse,
-    Store,
-    StoresResponse,
-    UserData,
-} from '@/common/types'
+import { GodMetricsResponse, OrdersResponse, Store, StoresResponse, UserData } from '@/common/types'
 import {
     Title,
     Text,
@@ -26,9 +19,8 @@ import {
     TableHead,
     TableHeaderCell,
     TableRow,
-    List,
-    ListItem,
-    Callout,
+    SearchSelect,
+    SearchSelectItem,
 } from '@tremor/react'
 import { useSession } from 'next-auth/react'
 import AdminNavigation from '@/components/admin/admin-navigation'
@@ -36,7 +28,6 @@ import useAxios from '@/common/axios'
 import { useEffect, useState } from 'react'
 import {
     ArchiveBoxArrowDownIcon,
-    CheckIcon,
     CurrencyRupeeIcon,
     ReceiptPercentIcon,
     MagnifyingGlassIcon,
@@ -45,12 +36,16 @@ import lodashSumBy from 'lodash/sumBy'
 import lodashMap from 'lodash/map'
 import lodashSortBy from 'lodash/sortBy'
 import lodashReverse from 'lodash/reverse'
+import lodashFind from 'lodash/find'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import TableSkeleton from '@/components/table-skeleton'
-import { Skeleton } from '@nextui-org/react'
+import { Pagination, Skeleton } from '@nextui-org/react'
 import FormatNumber from '@/common/number-formatter'
 import StatusBadger from '@/common/status-badger'
+import { useDebounce } from 'use-debounce'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { AxiosResponse } from 'axios'
 
 type SalesMetricType = {
     date: string
@@ -67,134 +62,124 @@ const AdminIndex = () => {
     const { data } = useSession()
     const user = data?.user as UserData
 
-    const [stores, setStores] = useState<Store[]>()
     const [cost, setCost] = useState<SalesMetricType[]>()
     const [orders, setOrders] = useState<OrdersMetricType[]>()
     const [collected, setCollected] = useState<SalesMetricType[]>()
 
     const [storeSearch, setStoreSearch] = useState<string>('')
-    const [orderSearch, setOrderSearch] = useState<string>('')
+    const [storeSearchBounced] = useDebounce<string>(storeSearch, 500)
 
-    const [loading, setLoading] = useState<boolean>(true)
+    const [orderSearch, setOrderSearch] = useState<string>('')
+    const [orderSearchBounced] = useDebounce<string>(orderSearch, 500)
+
+    const [page, setPage] = useState<number>(1)
     const [selectedStore, setSelectedStore] = useState<Store>()
-    const [metrics, setMetrics] = useState<AdminDashboardResponse>()
-    const [storeOrders, setStoreOrders] = useState<Order[]>()
+
+    const getOrders = async (): Promise<OrdersResponse> => {
+        const params = {
+            page,
+            search: orderSearchBounced,
+            filter: {
+                store_id: selectedStore?.id,
+            },
+            include: ['customer', 'store'],
+        }
+
+        const endpoint = orderSearchBounced == '' ? 'orders/god-view' : 'search/admin/order'
+        const data = await axios.get<OrdersResponse>(endpoint, { params })
+
+        return data.data
+    }
+
+    const {
+        isLoading: ordersLoading,
+        isError: ordersError,
+        data: ordersResponse,
+    } = useQuery({
+        initialData: keepPreviousData,
+        queryKey: ['admin dashboard', selectedStore?.id, orderSearchBounced, page],
+        queryFn: () => getOrders(),
+        select: (data) => data as OrdersResponse,
+    })
+
+    const {
+        data: metricsResponse,
+        isLoading: metricsLoading,
+        isError: metricsError,
+    } = useQuery({
+        initialData: keepPreviousData,
+        queryKey: ['admin metrics', selectedStore?.id],
+        queryFn: ({ signal }) =>
+            axios.get<GodMetricsResponse>('dashboard/god-metrics', {
+                params: {
+                    store_id: selectedStore?.id,
+                },
+                signal,
+            }),
+        select: (data) => {
+            const typedData = data as AxiosResponse<GodMetricsResponse, any>
+            return typedData.data
+        },
+    })
+
+    const {
+        data: stores,
+        isLoading: storesLoading,
+        isError: storesError,
+    } = useQuery({
+        initialData: keepPreviousData,
+        queryKey: ['admin store', storeSearchBounced],
+        queryFn: ({ signal }) =>
+            axios.get<StoresResponse>('search/store', {
+                params: { search: storeSearchBounced },
+                signal,
+            }),
+        select: (data) => {
+            const typed = data as AxiosResponse<StoresResponse, any>
+            return typed.data
+        },
+    })
 
     const calculateCost = () => {
-        const orderMetrics = metrics?.metrics
-        const data: SalesMetricType[] = lodashMap(
-            orderMetrics,
-            (theMetrics, date) => {
-                return {
-                    date,
-                    Cost: lodashSumBy(theMetrics, 'cost'),
-                }
-            },
-        )
+        const data: SalesMetricType[] = lodashMap(metricsResponse.metrics, (theMetrics, date) => {
+            return {
+                date,
+                Cost: lodashSumBy(theMetrics, 'cost'),
+            }
+        })
 
         setCost(lodashReverse(lodashSortBy(data, 'date')))
     }
 
     const calculateCollected = () => {
-        const orderMetrics = metrics?.metrics
-        const data: SalesMetricType[] = lodashMap(
-            orderMetrics,
-            (theMetrics, date) => {
-                return {
-                    date,
-                    Cost: lodashSumBy(theMetrics, 'paid'),
-                }
-            },
-        )
+        const data: SalesMetricType[] = lodashMap(metricsResponse.metrics, (theMetrics, date) => {
+            return {
+                date,
+                Cost: lodashSumBy(theMetrics, 'paid'),
+            }
+        })
 
         setCollected(lodashReverse(lodashSortBy(data, 'date')))
     }
 
     const calculateOrders = () => {
-        const orderMetrics = metrics?.metrics
-        const data: OrdersMetricType[] = lodashMap(
-            orderMetrics,
-            (theMetrics, date) => {
-                return {
-                    date,
-                    Orders: theMetrics.length,
-                }
-            },
-        )
+        const data: OrdersMetricType[] = lodashMap(metricsResponse.metrics, (theMetrics, date) => {
+            return {
+                date,
+                Orders: theMetrics.length,
+            }
+        })
 
         setOrders(lodashReverse(lodashSortBy(data, 'date')))
     }
 
     useEffect(() => {
-        const initData = async () => {
-            if (selectedStore) {
-                const dataResponse = await axios.get<AdminDashboardResponse>(
-                    'dashboard/admin',
-                    {
-                        params: {
-                            store: selectedStore.id,
-                            include: ['customer', 'store'],
-                        },
-                    },
-                )
-
-                setStoreOrders(dataResponse.data.data)
-                setMetrics(dataResponse.data)
-                return
-            }
-
-            const dataResponse = await axios.get<AdminDashboardResponse>(
-                'dashboard/admin',
-                {
-                    params: {
-                        include: ['customer', 'store'],
-                    },
-                },
-            )
-
-            setStoreOrders(dataResponse.data.data)
-            setMetrics(dataResponse.data)
-            setLoading(false)
+        if (!metricsLoading) {
+            calculateCost()
+            calculateCollected()
+            calculateOrders()
         }
-
-        initData()
-    }, [selectedStore])
-
-    useEffect(() => {
-        calculateCost()
-        calculateCollected()
-        calculateOrders()
-    }, [metrics])
-
-    useEffect(() => {
-        const searchStore = async () => {
-            const storesResponse = await axios.get<StoresResponse>(
-                'search/store',
-                {
-                    params: { search: storeSearch },
-                },
-            )
-
-            setStores(storesResponse.data.data)
-        }
-
-        searchStore()
-    }, [storeSearch])
-
-    useEffect(() => {
-        const searchOrders = async () => {
-            const ordersResponse = await axios.get<OrdersResponse>(
-                '/search/admin/order',
-                {
-                    params: { search: orderSearch },
-                },
-            )
-
-            setStoreOrders(ordersResponse.data.data)
-        }
-
-        searchOrders()
-    }, [orderSearch])
+    }, [metricsResponse])
 
     return (
         <div className="p-12">
@@ -208,61 +193,31 @@ const AdminIndex = () => {
 
             <AdminNavigation />
 
-            <div className="mt-6">
-                <Card>
-                    {!selectedStore && (
-                        <>
-                            <TextInput
-                                placeholder="Search store"
-                                onInput={(e) =>
-                                    setStoreSearch(e.currentTarget.value)
-                                }
-                            />
-
-                            {storeSearch && stores && (
-                                <div className="mt-4">
-                                    <List>
-                                        {stores.map((theStore) => (
-                                            <ListItem key={theStore.id}>
-                                                <Text>
-                                                    {theStore.name} -{' '}
-                                                    {theStore.code} -{' '}
-                                                    {
-                                                        theStore.profile
-                                                            ?.district.name
-                                                    }
-                                                </Text>
-                                                <Button
-                                                    size="xs"
-                                                    icon={CheckIcon}
-                                                    variant="secondary"
-                                                    onClick={(e) =>
-                                                        setSelectedStore(
-                                                            theStore,
-                                                        )
-                                                    }
-                                                >
-                                                    Select store
-                                                </Button>
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </div>
-                            )}
-                        </>
-                    )}
-
-                    {selectedStore && (
-                        <Callout
-                            color="green"
-                            title="Reports for selected store"
-                        >
-                            Reports for {selectedStore.name} store with code{' '}
-                            {selectedStore.code} will be displayed
-                        </Callout>
-                    )}
-                </Card>
-            </div>
+            <SearchSelect
+                className="mt-6"
+                placeholder="Search store"
+                icon={MagnifyingGlassIcon}
+                value={`${selectedStore?.id}`}
+                onValueChange={(v) =>
+                    setSelectedStore(lodashFind(stores.data, (store) => store.id == Number(v)))
+                }
+                onInput={(e) =>
+                    setStoreSearch(
+                        // @ts-ignore
+                        e.currentTarget.childNodes[0].childNodes[1].value,
+                    )
+                }
+            >
+                {storesLoading ? (
+                    <SearchSelectItem value="">Loading...</SearchSelectItem>
+                ) : (
+                    stores?.data?.map((store) => (
+                        <SearchSelectItem key={store.id} value={`${store.id}`}>
+                            {store.code} - {store.name}
+                        </SearchSelectItem>
+                    ))
+                )}
+            </SearchSelect>
 
             <div className="mt-4">
                 <Grid numItemsLg={3} className="gap-6">
@@ -277,11 +232,10 @@ const AdminIndex = () => {
                             <div className="truncate">
                                 <Title>Billing</Title>
                                 <Metric>
-                                    {loading ? (
+                                    {ordersLoading ? (
                                         <Skeleton className="h-3 w-full rounded-lg" />
                                     ) : (
-                                        '₹ ' +
-                                        FormatNumber(lodashSumBy(cost, 'Cost'))
+                                        '₹ ' + FormatNumber(lodashSumBy(cost, 'Cost'))
                                     )}
                                 </Metric>
                             </div>
@@ -312,13 +266,10 @@ const AdminIndex = () => {
                             <div className="truncate">
                                 <Title>Collected</Title>
                                 <Metric>
-                                    {loading ? (
+                                    {ordersLoading ? (
                                         <Skeleton className="h-3 w-full rounded-lg" />
                                     ) : (
-                                        '₹ ' +
-                                        FormatNumber(
-                                            lodashSumBy(collected, 'Cost'),
-                                        )
+                                        '₹ ' + FormatNumber(lodashSumBy(collected, 'Cost'))
                                     )}
                                 </Metric>
                             </div>
@@ -349,7 +300,7 @@ const AdminIndex = () => {
                             <div className="truncate">
                                 <Title>Orders</Title>
                                 <Metric>
-                                    {loading ? (
+                                    {ordersLoading ? (
                                         <Skeleton className="h-3 w-full rounded-lg" />
                                     ) : (
                                         lodashSumBy(orders, 'Orders')
@@ -377,9 +328,7 @@ const AdminIndex = () => {
             <div className="mt-4">
                 <Card>
                     <Title>Live orders</Title>
-                    <Text>
-                        Orders across stores will be displayed in realtime
-                    </Text>
+                    <Text>Orders across stores will be displayed in realtime</Text>
 
                     <TextInput
                         value={orderSearch}
@@ -390,88 +339,74 @@ const AdminIndex = () => {
                     />
 
                     <div className="mt-2">
-                        {loading ? (
+                        {ordersLoading ? (
                             <TableSkeleton numRows={5} numCols={8} />
                         ) : (
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableHeaderCell>Code</TableHeaderCell>
-                                        <TableHeaderCell>
-                                            Customer
-                                        </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            Order date
-                                        </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            Store code
-                                        </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            Due Date
-                                        </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            Status
-                                        </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            Amount
-                                        </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            Action
-                                        </TableHeaderCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {storeOrders?.map((order) => (
-                                        <TableRow key={order.id}>
-                                            <TableCell>{order.code}</TableCell>
-                                            <TableCell>
-                                                {order.customer?.name}
-                                            </TableCell>
-                                            <TableCell>
-                                                {dayjs(order.created_at).format(
-                                                    'DD, MMMM YY',
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {order.store?.code}
-                                            </TableCell>
-                                            <TableCell>
-                                                {order.due_date
-                                                    ? dayjs(
-                                                          order.due_date,
-                                                      ).format('DD, MMMM YY')
-                                                    : 'General'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {StatusBadger(order.status)}
-                                            </TableCell>
-                                            <TableCell>
-                                                ₹ {FormatNumber(order.cost)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Link
-                                                    href={
-                                                        '/admin/stores/' +
-                                                        order?.store?.id +
-                                                        '/orders/' +
-                                                        order.code
-                                                    }
-                                                >
-                                                    <Button
-                                                        variant="secondary"
-                                                        color="gray"
-                                                        icon={
-                                                            ReceiptPercentIcon
+                            <>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableHeaderCell>Code</TableHeaderCell>
+                                            <TableHeaderCell>Customer</TableHeaderCell>
+                                            <TableHeaderCell>Order date</TableHeaderCell>
+                                            <TableHeaderCell>Store code</TableHeaderCell>
+                                            <TableHeaderCell>Due Date</TableHeaderCell>
+                                            <TableHeaderCell>Status</TableHeaderCell>
+                                            <TableHeaderCell>Amount</TableHeaderCell>
+                                            <TableHeaderCell>Action</TableHeaderCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {ordersResponse?.data?.map((order) => (
+                                            <TableRow key={order.id}>
+                                                <TableCell>{order.code}</TableCell>
+                                                <TableCell>{order.customer?.name}</TableCell>
+                                                <TableCell>
+                                                    {dayjs(order.created_at).format('DD, MMMM YY')}
+                                                </TableCell>
+                                                <TableCell>{order.store?.code}</TableCell>
+                                                <TableCell>
+                                                    {order.due_date
+                                                        ? dayjs(order.due_date).format(
+                                                              'DD, MMMM YY',
+                                                          )
+                                                        : 'General'}
+                                                </TableCell>
+                                                <TableCell>{StatusBadger(order.status)}</TableCell>
+                                                <TableCell>₹ {FormatNumber(order.cost)}</TableCell>
+                                                <TableCell>
+                                                    <Link
+                                                        href={
+                                                            '/admin/stores/' +
+                                                            order?.store?.id +
+                                                            '/orders/' +
+                                                            order.code
                                                         }
                                                     >
-                                                        Show order
-                                                    </Button>
-                                                </Link>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                                        <Button
+                                                            variant="secondary"
+                                                            color="gray"
+                                                            icon={ReceiptPercentIcon}
+                                                        >
+                                                            Show order
+                                                        </Button>
+                                                    </Link>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+
+                                {ordersResponse.meta.last_page > 1 && (
+                                    <Flex justifyContent="end" className="mt-4">
+                                        <Pagination
+                                            total={ordersResponse.meta.last_page}
+                                            onChange={setPage}
+                                            page={page}
+                                        />
+                                    </Flex>
+                                )}
+                            </>
                         )}
                     </div>
                 </Card>

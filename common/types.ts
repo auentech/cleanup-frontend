@@ -43,14 +43,7 @@ export type UserSearchResponse = {
     data: UserData[]
 }
 
-export type Role =
-    | 'admin'
-    | 'manager'
-    | 'operator'
-    | 'washer'
-    | 'packer'
-    | 'ironer'
-    | 'customer'
+export type Role = 'admin' | 'manager' | 'operator' | 'washer' | 'packer' | 'ironer' | 'customer'
 
 type Links = {
     first: string
@@ -95,12 +88,7 @@ export type Store = {
     updated_at: string
 }
 
-export type StatusEnum =
-    | 'received'
-    | 'in_process'
-    | 'processed'
-    | 'in_store'
-    | 'delivered'
+export type StatusEnum = 'received' | 'in_process' | 'processed' | 'in_store' | 'delivered'
 
 export type RemarkItem = {
     item_id: number
@@ -314,8 +302,7 @@ export type DeliveryChallanResponse = {
     data: DeliveryChallan
 }
 
-export type AdminDashboardResponse = {
-    data: Order[]
+export type GodMetricsResponse = {
     metrics: {
         [date: string]: {
             id: number
