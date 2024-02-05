@@ -23,7 +23,7 @@ import {
     SearchSelectItem,
 } from '@tremor/react'
 import { useSession } from 'next-auth/react'
-import AdminNavigation from '@/components/admin/admin-navigation'
+import ManagerNavigation from '@/components/manager/manager-navigation'
 import useAxios from '@/common/axios'
 import { useEffect, useState } from 'react'
 import {
@@ -97,7 +97,7 @@ const ManagerIndex = () => {
         data: ordersResponse,
     } = useQuery({
         initialData: keepPreviousData,
-        queryKey: ['admin dashboard', selectedStore?.id, orderSearchBounced, page],
+        queryKey: ['manager dashboard', selectedStore?.id, orderSearchBounced, page],
         queryFn: () => getOrders(),
         select: (data) => data as OrdersResponse,
     })
@@ -108,7 +108,7 @@ const ManagerIndex = () => {
         isError: metricsError,
     } = useQuery({
         initialData: keepPreviousData,
-        queryKey: ['admin metrics', selectedStore?.id],
+        queryKey: ['manager metrics', selectedStore?.id],
         queryFn: ({ signal }) =>
             axios.get<GodMetricsResponse>('dashboard/god-metrics', {
                 params: {
@@ -128,7 +128,7 @@ const ManagerIndex = () => {
         isError: storesError,
     } = useQuery({
         initialData: keepPreviousData,
-        queryKey: ['admin store', storeSearchBounced],
+        queryKey: ['manager store', storeSearchBounced],
         queryFn: ({ signal }) =>
             axios.get<StoresResponse>('search/store', {
                 params: { search: storeSearchBounced },
@@ -191,7 +191,7 @@ const ManagerIndex = () => {
                 </Italic>
             </Text>
 
-            <AdminNavigation />
+            <ManagerNavigation />
 
             <SearchSelect
                 className="mt-6"
@@ -377,7 +377,7 @@ const ManagerIndex = () => {
                                                 <TableCell>
                                                     <Link
                                                         href={
-                                                            '/admin/stores/' +
+                                                            '/manager/stores/' +
                                                             order?.store?.id +
                                                             '/orders/' +
                                                             order.code
