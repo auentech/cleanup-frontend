@@ -181,10 +181,6 @@ const AdminIndex = () => {
         setOrders(lodashReverse(lodashSortBy(data, 'date')))
     }
 
-    const handleSorting = (sort: SortDescriptor) => {
-        setSortDescriptor(sort)
-    }
-
     useEffect(() => {
         if (!metricsLoading) {
             calculateCost()
@@ -357,7 +353,7 @@ const AdminIndex = () => {
                     ) : (
                         <>
                             <Next.Table
-                                onSortChange={(data) => handleSorting(data)}
+                                onSortChange={setSortDescriptor}
                                 sortDescriptor={sortDescriptor}
                                 bottomContent={
                                     <Flex justifyContent="center">
