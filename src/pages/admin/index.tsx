@@ -12,15 +12,10 @@ import {
     Flex,
     Icon,
     Metric,
-    Table,
     Button,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeaderCell,
-    TableRow,
     SearchSelect,
     SearchSelectItem,
+    Divider,
 } from '@tremor/react'
 import { useSession } from 'next-auth/react'
 import AdminNavigation from '@/components/admin/admin-navigation'
@@ -46,6 +41,14 @@ import StatusBadger from '@/common/status-badger'
 import { useDebounce } from 'use-debounce'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { AxiosResponse } from 'axios'
+import * as Next from '@nextui-org/react'
+
+type SortDescriptor = {
+    column?: any
+    direction?: SortDirection
+}
+
+type SortDirection = 'ascending' | 'descending'
 
 type SalesMetricType = {
     date: string
@@ -65,6 +68,7 @@ const AdminIndex = () => {
     const [cost, setCost] = useState<SalesMetricType[]>()
     const [orders, setOrders] = useState<OrdersMetricType[]>()
     const [collected, setCollected] = useState<SalesMetricType[]>()
+    const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>()
 
     const [storeSearch, setStoreSearch] = useState<string>('')
     const [storeSearchBounced] = useDebounce<string>(storeSearch, 500)
@@ -75,18 +79,22 @@ const AdminIndex = () => {
     const [page, setPage] = useState<number>(1)
     const [selectedStore, setSelectedStore] = useState<Store>()
 
-    const getOrders = async (): Promise<OrdersResponse> => {
-        const params = {
+    const getOrders = async (signal: AbortSignal): Promise<OrdersResponse> => {
+        let params = {
             page,
             search: orderSearchBounced,
             filter: {
                 store_id: selectedStore?.id,
             },
             include: ['customer', 'store'],
+            sort:
+                sortDescriptor?.direction == 'descending'
+                    ? `-${sortDescriptor.column}`
+                    : sortDescriptor?.column,
         }
 
         const endpoint = orderSearchBounced == '' ? 'orders/god-view' : 'search/admin/order'
-        const data = await axios.get<OrdersResponse>(endpoint, { params })
+        const data = await axios.get<OrdersResponse>(endpoint, { params, signal })
 
         return data.data
     }
@@ -97,8 +105,8 @@ const AdminIndex = () => {
         data: ordersResponse,
     } = useQuery({
         initialData: keepPreviousData,
-        queryKey: ['admin dashboard', selectedStore?.id, orderSearchBounced, page],
-        queryFn: () => getOrders(),
+        queryKey: ['admin dashboard', selectedStore?.id, orderSearchBounced, page, sortDescriptor],
+        queryFn: ({ signal }) => getOrders(signal),
         select: (data) => data as OrdersResponse,
     })
 
@@ -171,6 +179,10 @@ const AdminIndex = () => {
         })
 
         setOrders(lodashReverse(lodashSortBy(data, 'date')))
+    }
+
+    const handleSorting = (sort: SortDescriptor) => {
+        setSortDescriptor(sort)
     }
 
     useEffect(() => {
@@ -325,91 +337,103 @@ const AdminIndex = () => {
                 </Grid>
             </div>
 
-            <div className="mt-4">
-                <Card>
-                    <Title>Live orders</Title>
-                    <Text>Orders across stores will be displayed in realtime</Text>
+            <div>
+                <Divider />
 
-                    <TextInput
-                        value={orderSearch}
-                        icon={MagnifyingGlassIcon}
-                        onInput={(e) => setOrderSearch(e.currentTarget.value)}
-                        placeholder="Search orders..."
-                        className="my-2"
-                    />
+                <Title>Live orders</Title>
+                <Text>Orders across stores will be displayed in realtime</Text>
 
-                    <div className="mt-2">
-                        {ordersLoading ? (
-                            <TableSkeleton numRows={5} numCols={8} />
-                        ) : (
-                            <>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableHeaderCell>Code</TableHeaderCell>
-                                            <TableHeaderCell>Customer</TableHeaderCell>
-                                            <TableHeaderCell>Order date</TableHeaderCell>
-                                            <TableHeaderCell>Store code</TableHeaderCell>
-                                            <TableHeaderCell>Due Date</TableHeaderCell>
-                                            <TableHeaderCell>Status</TableHeaderCell>
-                                            <TableHeaderCell>Amount</TableHeaderCell>
-                                            <TableHeaderCell>Action</TableHeaderCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {ordersResponse?.data?.map((order) => (
-                                            <TableRow key={order.id}>
-                                                <TableCell>{order.code}</TableCell>
-                                                <TableCell>{order.customer?.name}</TableCell>
-                                                <TableCell>
-                                                    {dayjs(order.created_at).format('DD, MMMM YY')}
-                                                </TableCell>
-                                                <TableCell>{order.store?.code}</TableCell>
-                                                <TableCell>
-                                                    {order.due_date
-                                                        ? dayjs(order.due_date).format(
-                                                              'DD, MMMM YY',
-                                                          )
-                                                        : 'General'}
-                                                </TableCell>
-                                                <TableCell>{StatusBadger(order.status)}</TableCell>
-                                                <TableCell>₹ {FormatNumber(order.cost)}</TableCell>
-                                                <TableCell>
-                                                    <Link
-                                                        href={
-                                                            '/admin/stores/' +
-                                                            order?.store?.id +
-                                                            '/orders/' +
-                                                            order.code
-                                                        }
-                                                    >
-                                                        <Button
-                                                            variant="secondary"
-                                                            color="gray"
-                                                            icon={ReceiptPercentIcon}
-                                                        >
-                                                            Show order
-                                                        </Button>
-                                                    </Link>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                <TextInput
+                    value={orderSearch}
+                    icon={MagnifyingGlassIcon}
+                    onInput={(e) => setOrderSearch(e.currentTarget.value)}
+                    placeholder="Search orders..."
+                    className="my-2"
+                />
 
-                                {ordersResponse.meta.last_page > 1 && (
-                                    <Flex justifyContent="end" className="mt-4">
+                <div className="mt-2">
+                    {ordersLoading ? (
+                        <TableSkeleton numRows={5} numCols={8} />
+                    ) : (
+                        <>
+                            <Next.Table
+                                onSortChange={(data) => handleSorting(data)}
+                                sortDescriptor={sortDescriptor}
+                                bottomContent={
+                                    <Flex justifyContent="center">
                                         <Pagination
                                             total={ordersResponse.meta.last_page}
                                             onChange={setPage}
                                             page={page}
                                         />
                                     </Flex>
-                                )}
-                            </>
-                        )}
-                    </div>
-                </Card>
+                                }
+                            >
+                                <Next.TableHeader>
+                                    <Next.TableColumn key="code">Code</Next.TableColumn>
+                                    <Next.TableColumn key="customer">Customer</Next.TableColumn>
+                                    <Next.TableColumn key="created_at" allowsSorting>
+                                        Order Date
+                                    </Next.TableColumn>
+                                    <Next.TableColumn key="store_code">Store Code</Next.TableColumn>
+                                    <Next.TableColumn key="due_date" allowsSorting>
+                                        Due Date
+                                    </Next.TableColumn>
+                                    <Next.TableColumn key="status">Status</Next.TableColumn>
+                                    <Next.TableColumn key="cost" allowsSorting>
+                                        Amount
+                                    </Next.TableColumn>
+                                    <Next.TableColumn key="action">Action</Next.TableColumn>
+                                </Next.TableHeader>
+                                <Next.TableBody
+                                    items={ordersResponse.data}
+                                    isLoading={ordersLoading}
+                                    loadingContent={'Loading....'}
+                                >
+                                    {(item) => (
+                                        <Next.TableRow key={item.id}>
+                                            <Next.TableCell>{item.code}</Next.TableCell>
+                                            <Next.TableCell>{item.customer?.name}</Next.TableCell>
+                                            <Next.TableCell>
+                                                {dayjs(item.created_at).format('DD, MMMM YY')}
+                                            </Next.TableCell>
+                                            <Next.TableCell>{item.store?.code}</Next.TableCell>
+                                            <Next.TableCell>
+                                                {item.due_date
+                                                    ? dayjs(item.due_date).format('DD, MMMM YY')
+                                                    : 'General'}
+                                            </Next.TableCell>
+                                            <Next.TableCell>
+                                                {StatusBadger(item.status)}
+                                            </Next.TableCell>
+                                            <Next.TableCell>
+                                                ₹ {FormatNumber(item.cost)}
+                                            </Next.TableCell>
+                                            <Next.TableCell>
+                                                <Link
+                                                    href={
+                                                        '/admin/stores/' +
+                                                        item.store?.id +
+                                                        '/orders/' +
+                                                        item.code
+                                                    }
+                                                >
+                                                    <Button
+                                                        variant="secondary"
+                                                        color="gray"
+                                                        icon={ReceiptPercentIcon}
+                                                    >
+                                                        Show order
+                                                    </Button>
+                                                </Link>
+                                            </Next.TableCell>
+                                        </Next.TableRow>
+                                    )}
+                                </Next.TableBody>
+                            </Next.Table>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     )
