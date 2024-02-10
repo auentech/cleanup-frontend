@@ -12,13 +12,7 @@ import {
     Flex,
     Icon,
     Metric,
-    Table,
     Button,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeaderCell,
-    TableRow,
     SearchSelect,
     SearchSelectItem,
     Divider,
@@ -420,7 +414,7 @@ const ManagerIndex = () => {
                                             <Next.TableCell>
                                                 <Link
                                                     href={
-                                                        '/admin/stores/' +
+                                                        '/manager/stores/' +
                                                         item.store?.id +
                                                         '/orders/' +
                                                         item.code
