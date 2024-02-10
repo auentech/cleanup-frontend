@@ -358,7 +358,7 @@ const AdminIndex = () => {
                                 bottomContent={
                                     <Flex justifyContent="center">
                                         <Pagination
-                                            total={ordersResponse.meta.last_page}
+                                            total={ordersResponse?.meta?.last_page}
                                             onChange={setPage}
                                             page={page}
                                         />
