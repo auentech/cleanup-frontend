@@ -46,6 +46,7 @@ const colors: string[] = [
 ]
 
 const textures: string[] = [
+    'None',
     'Silky',
     'Cross pattern',
     'Stripped',
