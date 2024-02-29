@@ -36,8 +36,6 @@ import {
     List,
     ListItem,
     Metric,
-    Select,
-    SelectItem,
     Text,
     TextInput,
     Title,
@@ -86,12 +84,9 @@ const AdminReports = () => {
 
     useEffect(() => {
         const searchStore = async () => {
-            const storesResponse = await axios.get<StoresResponse>(
-                'search/store',
-                {
-                    params: { search },
-                },
-            )
+            const storesResponse = await axios.get<StoresResponse>('search/store', {
+                params: { search },
+            })
 
             setStores(storesResponse.data.data)
         }
@@ -101,16 +96,13 @@ const AdminReports = () => {
 
     useEffect(() => {
         const initData = async () => {
-            const response = await axios.get<StoreReportsResponse>(
-                'reports/stores',
-                {
-                    params: {
-                        store_id: store?.id,
-                        from: range.from,
-                        to: range.to,
-                    },
+            const response = await axios.get<StoreReportsResponse>('reports/stores', {
+                params: {
+                    store_id: store?.id,
+                    from: range.from,
+                    to: range.to,
                 },
-            )
+            })
 
             setMetrics(response.data)
         }
@@ -133,9 +125,7 @@ const AdminReports = () => {
                         {store == undefined ? (
                             <>
                                 <TextInput
-                                    onInput={(e) =>
-                                        setSearch(e.currentTarget.value)
-                                    }
+                                    onInput={(e) => setSearch(e.currentTarget.value)}
                                     placeholder="Search store..."
                                 />
 
@@ -145,20 +135,14 @@ const AdminReports = () => {
                                             {stores.map((theStore) => (
                                                 <ListItem key={theStore.id}>
                                                     <Text>
-                                                        {theStore.name} -{' '}
-                                                        {theStore.code} -{' '}
-                                                        {
-                                                            theStore.profile
-                                                                ?.district.name
-                                                        }
+                                                        {theStore.name} - {theStore.code} -{' '}
+                                                        {theStore.profile?.district.name}
                                                     </Text>
                                                     <Button
                                                         size="xs"
                                                         icon={CheckIcon}
                                                         variant="secondary"
-                                                        onClick={(e) =>
-                                                            setStore(theStore)
-                                                        }
+                                                        onClick={(e) => setStore(theStore)}
                                                     >
                                                         Select store
                                                     </Button>
@@ -170,8 +154,8 @@ const AdminReports = () => {
                             </>
                         ) : (
                             <Callout title="Store selected">
-                                Reports for {store.name} store with code{' '}
-                                {store.code} will be displayed
+                                Reports for {store.name} store with code {store.code} will be
+                                displayed
                             </Callout>
                         )}
                     </Col>
@@ -209,29 +193,16 @@ const AdminReports = () => {
                 <>
                     <div className="mt-6">
                         <Title>Order details</Title>
-                        <Grid
-                            numItemsLg={5}
-                            numItemsMd={3}
-                            className="mt-4 gap-6"
-                        >
+                        <Grid numItemsLg={5} numItemsMd={3} className="mt-4 gap-6">
                             <Card decoration="top" decorationColor="blue">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
-                                    <Icon
-                                        icon={ClockIcon}
-                                        variant="light"
-                                        color="blue"
-                                        size="xl"
-                                    />
+                                <Flex justifyContent="start" className="space-x-6">
+                                    <Icon icon={ClockIcon} variant="light" color="blue" size="xl" />
                                     <div className="truncate">
                                         <Title>In Store</Title>
                                         <Metric>
                                             {loFilter(
                                                 metrics?.count,
-                                                (count) =>
-                                                    count.status == 'received',
+                                                (count) => count.status == 'received',
                                             )?.[0]?.status_count || 0}
                                         </Metric>
                                     </div>
@@ -239,10 +210,7 @@ const AdminReports = () => {
                             </Card>
 
                             <Card decoration="top" decorationColor="orange">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
+                                <Flex justifyContent="start" className="space-x-6">
                                     <Icon
                                         icon={BuildingStorefrontIcon}
                                         variant="light"
@@ -254,8 +222,7 @@ const AdminReports = () => {
                                         <Metric>
                                             {loFilter(
                                                 metrics?.count,
-                                                (count) =>
-                                                    count.status == 'processed',
+                                                (count) => count.status == 'processed',
                                             )?.[0]?.status_count || 0}
                                         </Metric>
                                     </div>
@@ -263,10 +230,7 @@ const AdminReports = () => {
                             </Card>
 
                             <Card decoration="top" decorationColor="fuchsia">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
+                                <Flex justifyContent="start" className="space-x-6">
                                     <Icon
                                         icon={BeakerIcon}
                                         variant="light"
@@ -278,9 +242,7 @@ const AdminReports = () => {
                                         <Metric>
                                             {loFilter(
                                                 metrics?.count,
-                                                (count) =>
-                                                    count.status ==
-                                                    'in_process',
+                                                (count) => count.status == 'in_process',
                                             )?.[0]?.status_count || 0}
                                         </Metric>
                                     </div>
@@ -288,10 +250,7 @@ const AdminReports = () => {
                             </Card>
 
                             <Card decoration="top" decorationColor="teal">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
+                                <Flex justifyContent="start" className="space-x-6">
                                     <Icon
                                         icon={ArchiveBoxArrowDownIcon}
                                         variant="light"
@@ -303,8 +262,7 @@ const AdminReports = () => {
                                         <Metric>
                                             {loFilter(
                                                 metrics?.count,
-                                                (count) =>
-                                                    count.status == 'delivered',
+                                                (count) => count.status == 'delivered',
                                             )?.[0]?.status_count || 0}
                                         </Metric>
                                     </div>
@@ -312,10 +270,7 @@ const AdminReports = () => {
                             </Card>
 
                             <Card decoration="top" decorationColor="indigo">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
+                                <Flex justifyContent="start" className="space-x-6">
                                     <Icon
                                         icon={ReceiptRefundIcon}
                                         variant="light"
@@ -333,16 +288,9 @@ const AdminReports = () => {
 
                     <div className="mt-6">
                         <Title>Order totals</Title>
-                        <Grid
-                            numItemsLg={5}
-                            numItemsMd={3}
-                            className="mt-4 gap-6"
-                        >
+                        <Grid numItemsLg={5} numItemsMd={3} className="mt-4 gap-6">
                             <Card decoration="top" decorationColor="blue">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
+                                <Flex justifyContent="start" className="space-x-6">
                                     <Icon
                                         icon={ArchiveBoxIcon}
                                         variant="light"
@@ -351,21 +299,13 @@ const AdminReports = () => {
                                     />
                                     <div className="truncate">
                                         <Title>Orders</Title>
-                                        <Metric>
-                                            {loSumBy(
-                                                metrics.count,
-                                                'status_count',
-                                            )}
-                                        </Metric>
+                                        <Metric>{loSumBy(metrics.count, 'status_count')}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
 
                             <Card decoration="top" decorationColor="orange">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
+                                <Flex justifyContent="start" className="space-x-6">
                                     <Icon
                                         icon={CurrencyRupeeIcon}
                                         variant="light"
@@ -374,19 +314,13 @@ const AdminReports = () => {
                                     />
                                     <div className="truncate">
                                         <Title>Billing</Title>
-                                        <Metric>
-                                            ₹{' '}
-                                            {metrics.numbers[0].total_cost || 0}
-                                        </Metric>
+                                        <Metric>₹ {metrics.numbers[0].total_cost || 0}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
 
                             <Card decoration="top" decorationColor="fuchsia">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
+                                <Flex justifyContent="start" className="space-x-6">
                                     <Icon
                                         icon={TicketIcon}
                                         variant="light"
@@ -395,41 +329,23 @@ const AdminReports = () => {
                                     />
                                     <div className="truncate">
                                         <Title>Collected</Title>
-                                        <Metric>
-                                            ₹{' '}
-                                            {metrics.numbers[0].total_paid || 0}
-                                        </Metric>
+                                        <Metric>₹ {metrics.numbers[0].total_paid || 0}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
 
                             <Card decoration="top" decorationColor="teal">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
-                                    <Icon
-                                        icon={GiftIcon}
-                                        variant="light"
-                                        color="teal"
-                                        size="xl"
-                                    />
+                                <Flex justifyContent="start" className="space-x-6">
+                                    <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
                                     <div className="truncate">
                                         <Title>Discount</Title>
-                                        <Metric>
-                                            ₹{' '}
-                                            {metrics.numbers[0]
-                                                .total_discount || 0}
-                                        </Metric>
+                                        <Metric>₹ {metrics.numbers[0].total_discount || 0}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
 
                             <Card decoration="top" decorationColor="indigo">
-                                <Flex
-                                    justifyContent="start"
-                                    className="space-x-6"
-                                >
+                                <Flex justifyContent="start" className="space-x-6">
                                     <Icon
                                         icon={ArrowPathIcon}
                                         variant="light"
@@ -442,15 +358,9 @@ const AdminReports = () => {
                                             ₹{' '}
                                             {(() => {
                                                 const total =
-                                                    parseInt(
-                                                        metrics.numbers[0]
-                                                            .total_cost,
-                                                    ) || 0
+                                                    parseInt(metrics.numbers[0].total_cost) || 0
                                                 const paid =
-                                                    parseInt(
-                                                        metrics.numbers[0]
-                                                            .total_paid,
-                                                    ) || 0
+                                                    parseInt(metrics.numbers[0].total_paid) || 0
                                                 return total - paid
                                             })()}
                                         </Metric>
@@ -463,26 +373,13 @@ const AdminReports = () => {
                     <div className="mt-6">
                         <AccordionList>
                             <Accordion>
-                                <AccordionHeader>
-                                    Factory reports
-                                </AccordionHeader>
+                                <AccordionHeader>Factory reports</AccordionHeader>
                                 <AccordionBody>
-                                    <Grid
-                                        numItemsLg={3}
-                                        className="mb-4 mt-4 gap-6"
-                                    >
-                                        <Card
-                                            decoration="top"
-                                            decorationColor="teal"
-                                        >
-                                            <Flex
-                                                justifyContent="start"
-                                                className="space-x-6"
-                                            >
+                                    <Grid numItemsLg={3} className="mb-4 mt-4 gap-6">
+                                        <Card decoration="top" decorationColor="teal">
+                                            <Flex justifyContent="start" className="space-x-6">
                                                 <Icon
-                                                    icon={
-                                                        ArchiveBoxArrowDownIcon
-                                                    }
+                                                    icon={ArchiveBoxArrowDownIcon}
                                                     variant="light"
                                                     color="teal"
                                                     size="xl"
@@ -492,24 +389,15 @@ const AdminReports = () => {
                                                     <Metric>
                                                         {loFilter(
                                                             metrics?.status,
-                                                            (count) =>
-                                                                count.action ==
-                                                                'washed',
-                                                        )?.[0]?.action_count ||
-                                                            0}
+                                                            (count) => count.action == 'washed',
+                                                        )?.[0]?.action_count || 0}
                                                     </Metric>
                                                 </div>
                                             </Flex>
                                         </Card>
 
-                                        <Card
-                                            decoration="top"
-                                            decorationColor="indigo"
-                                        >
-                                            <Flex
-                                                justifyContent="start"
-                                                className="space-x-6"
-                                            >
+                                        <Card decoration="top" decorationColor="indigo">
+                                            <Flex justifyContent="start" className="space-x-6">
                                                 <Icon
                                                     icon={CheckIcon}
                                                     variant="light"
@@ -521,24 +409,15 @@ const AdminReports = () => {
                                                     <Metric>
                                                         {loFilter(
                                                             metrics?.status,
-                                                            (count) =>
-                                                                count.action ==
-                                                                'ironed',
-                                                        )?.[0]?.action_count ||
-                                                            0}
+                                                            (count) => count.action == 'ironed',
+                                                        )?.[0]?.action_count || 0}
                                                     </Metric>
                                                 </div>
                                             </Flex>
                                         </Card>
 
-                                        <Card
-                                            decoration="top"
-                                            decorationColor="purple"
-                                        >
-                                            <Flex
-                                                justifyContent="start"
-                                                className="space-x-6"
-                                            >
+                                        <Card decoration="top" decorationColor="purple">
+                                            <Flex justifyContent="start" className="space-x-6">
                                                 <Icon
                                                     icon={ShoppingBagIcon}
                                                     variant="light"
@@ -550,11 +429,8 @@ const AdminReports = () => {
                                                     <Metric>
                                                         {loFilter(
                                                             metrics?.status,
-                                                            (count) =>
-                                                                count.action ==
-                                                                'packed',
-                                                        )?.[0]?.action_count ||
-                                                            0}
+                                                            (count) => count.action == 'packed',
+                                                        )?.[0]?.action_count || 0}
                                                     </Metric>
                                                 </div>
                                             </Flex>
@@ -571,11 +447,9 @@ const AdminReports = () => {
                             <a
                                 href={`${
                                     process.env.NEXT_PUBLIC_BACKEND_URL
-                                }api/reports/exports/stores?from=${dayjs(
-                                    range.from,
-                                ).format('YYYY-MM-DD')}&to=${dayjs(
-                                    range.to,
-                                ).format('YYYY-MM-DD')}&token=${user.token}`}
+                                }api/reports/exports/stores?from=${dayjs(range.from).format(
+                                    'YYYY-MM-DD',
+                                )}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`}
                                 className="w-full"
                                 target="_blank"
                             >
@@ -590,19 +464,13 @@ const AdminReports = () => {
                             <a
                                 href={`${
                                     process.env.NEXT_PUBLIC_BACKEND_URL
-                                }api/reports/exports/customers?from=${dayjs(
-                                    range.from,
-                                ).format('YYYY-MM-DD')}&to=${dayjs(
-                                    range.to,
-                                ).format('YYYY-MM-DD')}&token=${user.token}`}
+                                }api/reports/exports/customers?from=${dayjs(range.from).format(
+                                    'YYYY-MM-DD',
+                                )}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`}
                                 className="w-full"
                                 target="_blank"
                             >
-                                <Button
-                                    className="w-full"
-                                    variant="secondary"
-                                    icon={UsersIcon}
-                                >
+                                <Button className="w-full" variant="secondary" icon={UsersIcon}>
                                     Download users
                                 </Button>
                             </a>
@@ -611,9 +479,9 @@ const AdminReports = () => {
                                     process.env.NEXT_PUBLIC_BACKEND_URL
                                 }api/reports/exports/collection/${store?.id}?from=${dayjs(
                                     range.from,
-                                ).format('YYYY-MM-DD')}&to=${dayjs(
-                                    range.to,
-                                ).format('YYYY-MM-DD')}&token=${user.token}`}
+                                ).format('YYYY-MM-DD')}&to=${dayjs(range.to).format(
+                                    'YYYY-MM-DD',
+                                )}&token=${user.token}`}
                                 className="w-full"
                                 target="_blank"
                             >
@@ -630,9 +498,9 @@ const AdminReports = () => {
                                     process.env.NEXT_PUBLIC_BACKEND_URL
                                 }api/reports/exports/undelivered/${store?.id}?from=${dayjs(
                                     range.from,
-                                ).format('YYYY-MM-DD')}&to=${dayjs(
-                                    range.to,
-                                ).format('YYYY-MM-DD')}&token=${user.token}`}
+                                ).format('YYYY-MM-DD')}&to=${dayjs(range.to).format(
+                                    'YYYY-MM-DD',
+                                )}&token=${user.token}`}
                                 className="w-full"
                                 target="_blank"
                             >
