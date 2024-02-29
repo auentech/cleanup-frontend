@@ -33,40 +33,21 @@ import {
     NumberInput,
     TextInput,
 } from '@tremor/react'
-import { Waveform } from '@uiball/loaders'
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
-import {
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-} from '@nextui-org/modal'
-import {
-    ForwardIcon,
-    XMarkIcon,
-    ArrowDownTrayIcon,
-} from '@heroicons/react/24/outline'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@nextui-org/modal'
+import { ForwardIcon, XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import dayjs from 'dayjs'
 import lodashSumBy from 'lodash/sumBy'
 import { toast } from 'react-toastify'
-import {
-    keepPreviousData,
-    useMutation,
-    useQuery,
-    useQueryClient,
-} from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDebounce } from 'use-debounce'
 import Loading from '@/components/loading'
 
-const LazyCreateOrder = dynamic(
-    () => import('@/components/store/order/create-order'),
-    {
-        loading: () => <Loading />,
-    },
-)
+const LazyCreateOrder = dynamic(() => import('@/components/store/order/create-order'), {
+    loading: () => <Loading />,
+})
 
 const OperatorIndex = () => {
     const axios = useAxios()
@@ -88,10 +69,7 @@ const OperatorIndex = () => {
     const closing = useDisclosure()
     const listClosing = useDisclosure()
 
-    const getOrders = async (
-        search: string = '',
-        page: number = 1,
-    ): Promise<OrdersResponse> => {
+    const getOrders = async (search: string = '', page: number = 1): Promise<OrdersResponse> => {
         const endpoint =
             search == ''
                 ? `/stores/${user.store_id}/orders?page=${page}`
@@ -112,12 +90,7 @@ const OperatorIndex = () => {
         isError: isOrdersError,
         data: ordersUntyped,
     } = useQuery({
-        queryKey: [
-            'operator dashboard',
-            user.store_id,
-            bouncedOrderSearch,
-            ordersPage,
-        ],
+        queryKey: ['operator dashboard', user.store_id, bouncedOrderSearch, ordersPage],
         queryFn: () => getOrders(bouncedOrderSearch, ordersPage),
         initialData: keepPreviousData,
     })
@@ -131,9 +104,7 @@ const OperatorIndex = () => {
         queryKey: ['closings', user.store_id, closingsPage],
         placeholderData: keepPreviousData,
         queryFn: () =>
-            axios.get<ClosingsResponse>(
-                `/stores/${user.store_id}/closing?page=${closingsPage}`,
-            ),
+            axios.get<ClosingsResponse>(`/stores/${user.store_id}/closing?page=${closingsPage}`),
     })
 
     const {
@@ -160,9 +131,7 @@ const OperatorIndex = () => {
     const { isError: isCreateClosingError, data: createClosing } = useQuery({
         queryKey: ['closings', user.store_id, 'create'],
         queryFn: () =>
-            axios.get<ClosingCreateResponse[]>(
-                '/stores/' + user.store_id + '/closing/create',
-            ),
+            axios.get<ClosingCreateResponse[]>('/stores/' + user.store_id + '/closing/create'),
     })
 
     useEffect(() => {
@@ -189,13 +158,10 @@ const OperatorIndex = () => {
 
     const createDayClosing = useMutation({
         mutationFn: () =>
-            axios.post<BackendGeneralResponse>(
-                '/stores/' + store?.data.data.id + '/closing',
-                {
-                    expense,
-                    remarks,
-                },
-            ),
+            axios.post<BackendGeneralResponse>('/stores/' + store?.data.data.id + '/closing', {
+                expense,
+                remarks,
+            }),
         onSuccess: (result) => {
             toast.success(result.data.message)
             queryClient.invalidateQueries({
@@ -225,13 +191,7 @@ const OperatorIndex = () => {
             </div>
 
             <Card className="mt-4">
-                <Grid
-                    numItems={2}
-                    numItemsMd={2}
-                    numItemsLg={2}
-                    numItemsSm={2}
-                    className="gap-6"
-                >
+                <Grid numItems={2} numItemsMd={2} numItemsLg={2} numItemsSm={2} className="gap-6">
                     <Button
                         size="xs"
                         variant="light"
@@ -265,9 +225,7 @@ const OperatorIndex = () => {
                             <TextInput
                                 className="my-4"
                                 value={orderSearch}
-                                onInput={(e) =>
-                                    setOrderSearch(e.currentTarget.value)
-                                }
+                                onInput={(e) => setOrderSearch(e.currentTarget.value)}
                                 placeholder="Search orders..."
                             />
                             {isStoreLoading || isOrdersLoading ? (
@@ -281,10 +239,7 @@ const OperatorIndex = () => {
                                     />
 
                                     {orders.meta.last_page > 1 && (
-                                        <Flex
-                                            justifyContent="end"
-                                            className="mt-4"
-                                        >
+                                        <Flex justifyContent="end" className="mt-4">
                                             <Pagination
                                                 total={orders.meta.last_page}
                                                 onChange={setOrdersPage}
@@ -296,11 +251,7 @@ const OperatorIndex = () => {
                             )}
                         </TabPanel>
                         <TabPanel>
-                            {index == 1 && (
-                                <LazyCreateOrder
-                                    store={store?.data as StoreResponse}
-                                />
-                            )}
+                            {index == 1 && <LazyCreateOrder store={store?.data as StoreResponse} />}
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>
@@ -321,11 +272,7 @@ const OperatorIndex = () => {
                         <List>
                             {closings?.data.data.map((closing) => (
                                 <ListItem key={closing.id}>
-                                    <span>
-                                        {dayjs(closing?.created_at).format(
-                                            'DD, MMMM YY',
-                                        )}
-                                    </span>
+                                    <span>{dayjs(closing?.created_at).format('DD, MMMM YY')}</span>
                                     <span>
                                         <a
                                             target="_blank"
@@ -357,13 +304,9 @@ const OperatorIndex = () => {
                             </Button>
                             {!isClosingsLoading &&
                                 !isClosingsError &&
-                                (closings?.data.meta.last_page as number) >
-                                    1 && (
+                                (closings?.data.meta.last_page as number) > 1 && (
                                     <Pagination
-                                        total={
-                                            closings?.data.meta
-                                                .last_page as number
-                                        }
+                                        total={closings?.data.meta.last_page as number}
                                         page={closingsPage}
                                         onChange={setClosingsPage}
                                     />
@@ -383,17 +326,13 @@ const OperatorIndex = () => {
                     {(onClose) => (
                         <>
                             <ModalHeader>
-                                <Title>
-                                    Day closing: {dayjs().format('DD, MMMM YY')}
-                                </Title>
+                                <Title>Day closing: {dayjs().format('DD, MMMM YY')}</Title>
                             </ModalHeader>
                             <ModalBody>
                                 <Subtitle>
                                     Income: ₹{' '}
                                     {lodashSumBy(
-                                        createClosing?.data?.map(
-                                            (c) => c.total_cost,
-                                        ),
+                                        createClosing?.data?.map((c) => c.total_cost),
                                     ).toFixed(2)}
                                 </Subtitle>
                                 <List>
@@ -402,9 +341,7 @@ const OperatorIndex = () => {
                                         <Text>
                                             ₹{' '}
                                             {createClosing?.data
-                                                ?.filter(
-                                                    (c) => c.mode == 'UPI',
-                                                )?.[0]
+                                                ?.filter((c) => c.mode == 'UPI')?.[0]
                                                 ?.total_cost.toFixed(2)}
                                         </Text>
                                     </ListItem>
@@ -413,9 +350,7 @@ const OperatorIndex = () => {
                                         <Text>
                                             ₹{' '}
                                             {createClosing?.data
-                                                ?.filter(
-                                                    (c) => c.mode == 'Card',
-                                                )?.[0]
+                                                ?.filter((c) => c.mode == 'Card')?.[0]
                                                 ?.total_cost.toFixed(2)}
                                         </Text>
                                     </ListItem>
@@ -424,9 +359,7 @@ const OperatorIndex = () => {
                                         <Text>
                                             ₹{' '}
                                             {createClosing?.data
-                                                ?.filter(
-                                                    (c) => c.mode == 'Cash',
-                                                )?.[0]
+                                                ?.filter((c) => c.mode == 'Cash')?.[0]
                                                 ?.total_cost.toFixed(2)}
                                         </Text>
                                     </ListItem>
@@ -439,9 +372,7 @@ const OperatorIndex = () => {
                                 />
                                 <TextInput
                                     value={remarks}
-                                    onInput={(e) =>
-                                        setRemarks(e.currentTarget.value)
-                                    }
+                                    onInput={(e) => setRemarks(e.currentTarget.value)}
                                     placeholder="Enter reason..."
                                 />
                             </ModalBody>
