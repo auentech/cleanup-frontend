@@ -155,10 +155,10 @@ const ManagerIndex = () => {
     })
 
     const calculateCost = () => {
-        const data: SalesMetricType[] = lodashMap(metricsResponse.metrics, (theMetrics, date) => {
+        const data: SalesMetricType[] = lodashMap(metricsResponse.billing, (theMetrics, date) => {
             return {
                 date,
-                Cost: lodashSumBy(theMetrics, 'cost'),
+                Cost: theMetrics,
             }
         })
 
@@ -166,21 +166,24 @@ const ManagerIndex = () => {
     }
 
     const calculateCollected = () => {
-        const data: SalesMetricType[] = lodashMap(metricsResponse.metrics, (theMetrics, date) => {
-            return {
-                date,
-                Cost: lodashSumBy(theMetrics, 'paid'),
-            }
-        })
+        const data: SalesMetricType[] = lodashMap(
+            metricsResponse.collections,
+            (theMetrics, date) => {
+                return {
+                    date,
+                    Cost: theMetrics,
+                }
+            },
+        )
 
         setCollected(lodashReverse(lodashSortBy(data, 'date')))
     }
 
     const calculateOrders = () => {
-        const data: OrdersMetricType[] = lodashMap(metricsResponse.metrics, (theMetrics, date) => {
+        const data: OrdersMetricType[] = lodashMap(metricsResponse.orders, (theMetrics, date) => {
             return {
                 date,
-                Orders: theMetrics.length,
+                Orders: theMetrics,
             }
         })
 

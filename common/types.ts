@@ -303,14 +303,14 @@ export type DeliveryChallanResponse = {
 }
 
 export type GodMetricsResponse = {
-    metrics: {
-        [date: string]: {
-            id: number
-            cost: number
-            paid: number
-            discount: number
-            created_at: string
-        }[]
+    collections: {
+        [date: string]: number
+    }
+    billing: {
+        [date: string]: number
+    }
+    orders: {
+        [date: string]: number
     }
 }
 
