@@ -16,6 +16,8 @@ import {
     SearchSelect,
     SearchSelectItem,
     Divider,
+    Col,
+    DatePicker,
 } from '@tremor/react'
 import { useSession } from 'next-auth/react'
 import AdminNavigation from '@/components/admin/admin-navigation'
@@ -42,6 +44,7 @@ import { useDebounce } from 'use-debounce'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { AxiosResponse } from 'axios'
 import * as Next from '@nextui-org/react'
+import dayjsUTC from 'dayjs/plugin/utc'
 
 type SortDescriptor = {
     column?: any
@@ -61,12 +64,15 @@ type OrdersMetricType = {
 }
 
 const AdminIndex = () => {
+    dayjs.extend(dayjsUTC)
+
     const axios = useAxios()
     const { data } = useSession()
     const user = data?.user as UserData
 
     const [cost, setCost] = useState<SalesMetricType[]>()
     const [orders, setOrders] = useState<OrdersMetricType[]>()
+    const [dueDate, setDueDate] = useState<Date>()
     const [collected, setCollected] = useState<SalesMetricType[]>()
     const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>()
 
@@ -80,7 +86,7 @@ const AdminIndex = () => {
     const [selectedStore, setSelectedStore] = useState<Store>()
 
     const getOrders = async (signal: AbortSignal): Promise<OrdersResponse> => {
-        let params = {
+        let params: { [key: string]: any } = {
             page,
             search: orderSearchBounced,
             filter: {
@@ -91,6 +97,13 @@ const AdminIndex = () => {
                 sortDescriptor?.direction == 'descending'
                     ? `-${sortDescriptor.column}`
                     : sortDescriptor?.column,
+        }
+
+        if (dueDate != undefined) {
+            params.filter = {
+                ...params.filter,
+                due_date: dayjs(dueDate).utc().format('YYYY-MM-DD'),
+            }
         }
 
         const endpoint = orderSearchBounced == '' ? 'orders/god-view' : 'search/admin/order'
@@ -105,7 +118,14 @@ const AdminIndex = () => {
         data: ordersResponse,
     } = useQuery({
         initialData: keepPreviousData,
-        queryKey: ['admin dashboard', selectedStore?.id, orderSearchBounced, page, sortDescriptor],
+        queryKey: [
+            'admin dashboard',
+            selectedStore?.id,
+            orderSearchBounced,
+            page,
+            sortDescriptor,
+            dueDate,
+        ],
         queryFn: ({ signal }) => getOrders(signal),
         select: (data) => data as OrdersResponse,
     })
@@ -342,13 +362,25 @@ const AdminIndex = () => {
                 <Title>Live orders</Title>
                 <Text>Orders across stores will be displayed in realtime</Text>
 
-                <TextInput
-                    value={orderSearch}
-                    icon={MagnifyingGlassIcon}
-                    onInput={(e) => setOrderSearch(e.currentTarget.value)}
-                    placeholder="Search orders..."
-                    className="my-2"
-                />
+                <Grid numItemsMd={12} className="mb-4 mt-4 gap-6">
+                    <Col numColSpanMd={8}>
+                        <TextInput
+                            value={orderSearch}
+                            icon={MagnifyingGlassIcon}
+                            onInput={(e) => setOrderSearch(e.currentTarget.value)}
+                            placeholder="Search orders..."
+                            disabled={dueDate != undefined}
+                        />
+                    </Col>
+                    <Col numColSpanMd={4}>
+                        <DatePicker
+                            placeholder="Due Date"
+                            onValueChange={setDueDate}
+                            value={dueDate}
+                            enableClear
+                        />
+                    </Col>
+                </Grid>
 
                 <div className="mt-2">
                     {ordersLoading ? (
