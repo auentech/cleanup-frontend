@@ -474,19 +474,22 @@ const AdminReports = () => {
                                 </Button>
                             </a>
                             <a
-                                href={`${process.env.NEXT_PUBLIC_BACKEND_URL
-                                    }api/reports/exports/collection/${store?.id}?from=${dayjs(
-                                        range.from,
-                                    ).format('YYYY-MM-DD')}&to=${dayjs(range.to).format(
-                                        'YYYY-MM-DD',
-                                    )}&token=${user.token}`}
+                                href={(() => {
+                                    const url = new URL('api/reports/exports/collection', process.env.NEXT_PUBLIC_BACKEND_URL!)
+
+                                    url.searchParams.append('from', dayjs(range.from).format('YYYY-MM-DD'))
+                                    url.searchParams.append('to', dayjs(range.to).format('YYYY-MM-DD'))
+                                    url.searchParams.append('token', user.token!)
+                                    url.searchParams.append('store_id', store?.id + '')
+
+                                    return url.toString()
+                                })()}
                                 className="w-full"
                                 target="_blank"
                             >
                                 <Button
                                     className="w-full"
                                     variant="secondary"
-                                    disabled={store == undefined}
                                 >
                                     Collection report
                                 </Button>
