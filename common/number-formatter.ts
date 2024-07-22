@@ -20,8 +20,9 @@ const FormatNumber = (cost: number): string => {
         case cost >= 1000:
             result = (cost / 1000).toFixed(1) + 'K'
             break
-        default:
-            result = cost.toFixed(2).toString()
+        default: {
+            result = Math.round(cost).toString()
+        }
     }
 
     return result
