@@ -6,6 +6,7 @@ import {
     ChartPieIcon,
 } from '@heroicons/react/24/outline'
 import { Card, Flex, Icon, Title, Metric } from '@tremor/react'
+import FormatNumber from '@/common/number-formatter'
 
 type OrderKPICardsType = {
     order: Order
@@ -19,7 +20,7 @@ const OrderKPICards = ({ order }: OrderKPICardsType) => {
                     <Icon icon={CurrencyRupeeIcon} variant="light" color="blue" size="xl" />
                     <div className="truncate">
                         <Title>Cost</Title>
-                        <Metric>₹ {order.cost}</Metric>
+                        <Metric>₹ {FormatNumber(order.cost)}</Metric>
                     </div>
                 </Flex>
             </Card>
@@ -37,7 +38,7 @@ const OrderKPICards = ({ order }: OrderKPICardsType) => {
                     <Icon icon={ReceiptRefundIcon} variant="light" color="fuchsia" size="xl" />
                     <div className="truncate">
                         <Title>Balance</Title>
-                        <Metric>₹ {(order.cost as number) - (order.paid as number)}</Metric>
+                        <Metric>₹ {FormatNumber(order.cost - order.paid)}</Metric>
                     </div>
                 </Flex>
             </Card>
@@ -46,7 +47,7 @@ const OrderKPICards = ({ order }: OrderKPICardsType) => {
                     <Icon icon={ChartPieIcon} variant="light" color="teal" size="xl" />
                     <div className="truncate">
                         <Title>Discount</Title>
-                        <Metric>₹ {order.discount}</Metric>
+                        <Metric>₹ {FormatNumber(order.discount)}</Metric>
                     </div>
                 </Flex>
             </Card>
