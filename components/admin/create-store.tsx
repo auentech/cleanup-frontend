@@ -1,21 +1,15 @@
 import useAxios from '@/common/axios'
 import {
     BackendGeneralResponse,
-    CreateStoreError,
     DistrictsResponse,
     FreeOperatorsResponse,
     StatesResponse,
 } from '@/common/types'
 import {
-    ArrowPathIcon,
     CheckCircleIcon,
-    GlobeAsiaAustraliaIcon,
-    UsersIcon,
 } from '@heroicons/react/24/outline'
 import {
     Text,
-    Select,
-    SelectItem,
     TextInput,
     SearchSelect,
     SearchSelectItem,
@@ -25,266 +19,253 @@ import {
     Divider,
     NumberInput,
 } from '@tremor/react'
-import { AxiosError } from 'axios'
 import { useEffect, useState } from 'react'
-import Axios from 'axios'
 import { useRouter } from 'next/router'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { SubmitHandler, useForm, Controller, useWatch } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Skeleton } from '@nextui-org/react'
+
+const CreateStoreProfileSchema = z.object({
+    address: z.string().min(5),
+    pincode: z.number(),
+    state: z.string().min(1),
+    district: z.string().min(1),
+    emergency_contact: z.number(),
+})
+
+const CreateStoreSchema = z.object({
+    name: z.string().min(5),
+    operator: z.string().min(1),
+    custom_code: z.string().min(2),
+    profile: CreateStoreProfileSchema
+})
+
+type CreateStore = z.infer<typeof CreateStoreSchema>
 
 const CreateStore = () => {
-    const [loading, setLoading] = useState<boolean>(false)
-    const [success, setSuccess] = useState<BackendGeneralResponse>()
-    const [errors, setErrors] = useState<CreateStoreError>()
-
-    const [operator, setOperator] = useState<string>('')
-    const [storeName, setStoreName] = useState<string>('')
-    const [address, setAddress] = useState<string>('')
-    const [code, setCode] = useState<string>('')
-    const [pincode, setPincode] = useState<string>('')
-    const [state, setState] = useState<string>('')
-    const [district, setDistrict] = useState<string>('')
-    const [contact, setContact] = useState<number>()
-
-    const [states, setStates] = useState<StatesResponse>()
-    const [operators, setOperators] = useState<FreeOperatorsResponse>()
-    const [districts, setDistricts] = useState<DistrictsResponse>()
-
     const router = useRouter()
     const axios = useAxios()
 
-    useEffect(() => {
-        ;(async () => {
-            const response = await axios.get<FreeOperatorsResponse>(
-                '/workers/free-operators',
-            )
-            setOperators(response.data)
-        })()
-    }, [])
+    const [selectedState, setSelectedState] = useState<string>('')
+
+    const { data: states, isLoading: statesLoading } = useQuery({
+        queryKey: ['states'],
+        queryFn: ({ signal }) => axios.get<StatesResponse>('/states/', { signal }),
+        select: data => data.data
+    })
+
+    const { data: districts, isLoading: districtsLoading } = useQuery({
+        queryKey: ['states', selectedState, 'districts'],
+        queryFn: ({ signal }) => axios.get<DistrictsResponse>('/states/' + selectedState, { signal }),
+        select: data => data.data,
+        enabled: selectedState !== ''
+    })
+
+    const { data: operators, isLoading: operatorsLoading } = useQuery({
+        queryKey: ['free operators'],
+        queryFn: () => axios.get<FreeOperatorsResponse>('/workers/free-operators'),
+        select: data => data.data
+    })
+
+    const { register, reset, handleSubmit, control, formState: { errors } } = useForm<CreateStore>({
+        defaultValues: {
+            name: '',
+            operator: '',
+            custom_code: '',
+            profile: {
+                address: '',
+                pincode: 0,
+                state: '',
+                district: '',
+                emergency_contact: 0,
+            },
+        },
+        resolver: zodResolver(CreateStoreSchema)
+    })
+
+    const createStoreMutation = useMutation({
+        mutationFn: (data: CreateStore) => axios.post<BackendGeneralResponse>('/stores', data),
+        onSuccess: () => reset()
+    })
+    const createStoreSubmit: SubmitHandler<CreateStore> = data => createStoreMutation.mutate(data)
+    const stateSelection = useWatch({ control, name: 'profile.state' })
 
     useEffect(() => {
-        ;(async () => {
-            const response = await axios.get<StatesResponse>('/states/')
-            setStates(response.data)
-        })()
-    }, [operator])
-
-    useEffect(() => {
-        const fetchDistricts = async () => {
-            const response = await axios.get<DistrictsResponse>(
-                '/states/' + state,
-            )
-            setDistricts(response.data)
-        }
-
-        if (state != '') {
-            fetchDistricts()
-        }
-    }, [state])
-
-    const handleStoreCreate = async () => {
-        setLoading(true)
-
-        try {
-            const response = await axios.post<BackendGeneralResponse>(
-                '/stores',
-                {
-                    name: storeName,
-                    operator,
-                    custom_code: code,
-                    profile: {
-                        address,
-                        pincode,
-                        state,
-                        district,
-                        emergency_contact: contact,
-                    },
-                },
-            )
-
-            setSuccess(response.data)
-            alert(response.data.message)
-            router.reload()
-        } catch (e) {
-            if (Axios.isAxiosError(e)) {
-                const error = e as AxiosError
-                setErrors(error.response?.data as any)
-            }
-        } finally {
-            setLoading(false)
-        }
-    }
+        setSelectedState(stateSelection)
+    }, [stateSelection])
 
     return (
         <>
             <div className="mt-4">
-                {success && (
+                {createStoreMutation.isSuccess && (
                     <Callout
                         title="Action successfull"
                         color="green"
+                        className='mt-4'
                         icon={CheckCircleIcon}
                     >
-                        Store was created successfully
+                        Store was created successfully - <span onClick={() => router.reload()}>Go back</span>
                     </Callout>
                 )}
             </div>
 
-            <div className="mt-4">
-                <Text>Store Operator</Text>
-                <Select
-                    className="mt-2"
-                    onValueChange={(value) => setOperator(value)}
-                >
-                    {operators != undefined ? (
-                        operators.data.map((theOperator) => (
-                            <SelectItem
-                                value={theOperator.id}
-                                key={theOperator.id}
-                                icon={UsersIcon}
-                            >
-                                {theOperator.name} - {theOperator.email} -{' '}
-                                {theOperator.phone}
-                            </SelectItem>
-                        ))
+            <form onSubmit={handleSubmit(createStoreSubmit)}>
+                <div className="mt-4">
+                    <Text>Store Operator</Text>
+                    {operatorsLoading ? (
+                        <Skeleton className="mt-2 w-full h-9 rounded-lg" />
                     ) : (
-                        <SelectItem value="" icon={ArrowPathIcon}>
-                            Loading...
-                        </SelectItem>
+                        <Controller
+                            control={control}
+                            name='operator'
+                            rules={{
+                                required: 'Operator has to be selected'
+                            }}
+                            render={({ field }) => (
+                                <SearchSelect
+                                    {...field}
+                                    className='mt-2'
+                                    disabled={createStoreMutation.isPending}
+                                >
+                                    {operators?.data.map(op => (
+                                        <SearchSelectItem key={op.id} value={op.id + ''}>
+                                            {op.name} - {op.email} - {op.phone}
+                                        </SearchSelectItem>
+                                    ))}
+                                </SearchSelect>
+                            )}
+                        />
                     )}
-                </Select>
-                {errors?.errors['profile.state'] && (
-                    <Text color="red" className="mt-1">
-                        Please select an Operator
-                    </Text>
-                )}
-            </div>
+                </div>
 
-            <div className="mt-4">
-                <Text>Store Name</Text>
-                <TextInput
-                    value={storeName}
-                    onInput={(e) => setStoreName(e.currentTarget.value)}
-                    error={errors?.errors.name != undefined}
-                    errorMessage="Store name is required"
-                    className="mt-2"
-                />
-            </div>
+                <div className="mt-4">
+                    <Text>Store Name</Text>
+                    <TextInput
+                        className="mt-2"
+                        disabled={createStoreMutation.isPending}
+                        {...register('name', { required: 'Name for the store is required' })}
+                    />
+                </div>
 
-            <div className="mt-4">
-                <Text>Store Address</Text>
-                <TextInput
-                    value={address}
-                    onInput={(e) => setAddress(e.currentTarget.value)}
-                    error={errors?.errors['profile.address'] != undefined}
-                    errorMessage="Store address is required"
-                    className="mt-2"
-                />
-            </div>
+                <div className="mt-4">
+                    <Text>Store Address</Text>
+                    <TextInput
+                        className="mt-2"
+                        disabled={createStoreMutation.isPending}
+                        {...register('profile.address', { required: 'Address for the store is required' })}
+                    />
+                </div>
 
-            <div className="mt-4">
-                <Text>Store Contact</Text>
-                <NumberInput
-                    value={contact}
-                    onValueChange={setContact}
-                    error={
-                        errors?.errors['profile.emergency_contact'] != undefined
-                    }
-                    errorMessage="Proper contact number required"
-                    className="mt-2"
-                    enableStepper={false}
-                />
-            </div>
+                <div className="mt-4">
+                    <Text>Store Contact</Text>
+                    <Controller
+                        control={control}
+                        name='profile.emergency_contact'
+                        render={({ field }) => (
+                            <NumberInput
+                                className="mt-2"
+                                enableStepper={false}
+                                disabled={createStoreMutation.isPending}
+                                {...field}
+                                onValueChange={field.onChange}
+                                onChange={v => { }}
+                            />
+                        )}
+                    />
+                </div>
 
-            <div className="mt-4">
-                <Text>Store custom code</Text>
-                <TextInput
-                    value={code}
-                    onInput={(e) => setCode(e.currentTarget.value)}
-                    error={errors?.errors.custom_code != undefined}
-                    errorMessage="Custom code for store is required"
-                    className="mt-2"
-                />
-            </div>
+                <div className="mt-4">
+                    <Text>Store custom code</Text>
+                    <TextInput
+                        className="mt-2"
+                        disabled={createStoreMutation.isPending}
+                        {...register('custom_code', { required: 'Code for the store is required' })}
+                    />
+                </div>
 
-            <div className="mt-4">
-                <Text>Store Pincode</Text>
-                <TextInput
-                    value={pincode}
-                    onInput={(e) => setPincode(e.currentTarget.value)}
-                    error={errors?.errors['profile.pincode'] != undefined}
-                    errorMessage="Store pincode is required"
-                    className="mt-2"
-                />
-            </div>
+                <div className="mt-4">
+                    <Text>Store Pincode</Text>
+                    <Controller
+                        control={control}
+                        name='profile.pincode'
+                        render={({ field }) => (
+                            <NumberInput
+                                className="mt-2"
+                                enableStepper={false}
+                                disabled={createStoreMutation.isPending}
+                                {...field}
+                                onValueChange={field.onChange}
+                                onChange={v => { }}
+                            />
+                        )}
+                    />
+                </div>
 
-            <div className="mt-4">
-                <Text>Store State</Text>
-                <SearchSelect
-                    className="mt-2"
-                    onValueChange={(value) => setState(value)}
-                >
-                    {states != undefined ? (
-                        states.data.map((theState) => (
-                            <SearchSelectItem
-                                value={theState.id as unknown as string}
-                                key={theState.id}
-                                icon={GlobeAsiaAustraliaIcon}
-                            >
-                                {theState.name}
-                            </SearchSelectItem>
-                        ))
+                <div className="mt-4">
+                    <Text>Store State</Text>
+                    {statesLoading ? (
+                        <Skeleton className="mt-2 w-full h-9 rounded-lg" />
                     ) : (
-                        <SearchSelectItem value="" icon={ArrowPathIcon}>
-                            Loading...
-                        </SearchSelectItem>
+                        <Controller
+                            control={control}
+                            name='profile.state'
+                            render={({ field }) => (
+                                <SearchSelect
+                                    {...field}
+                                    className='mt-2'
+                                    disabled={createStoreMutation.isPending}
+                                >
+                                    {states?.data.map(state => (
+                                        <SearchSelectItem key={state.id} value={state.id + ''}>
+                                            {state.name}
+                                        </SearchSelectItem>
+                                    ))}
+                                </SearchSelect>
+                            )}
+                        />
                     )}
-                </SearchSelect>
-                {errors?.errors['profile.state'] && (
-                    <Text color="red" className="mt-1">
-                        Please select a state
-                    </Text>
-                )}
-            </div>
+                </div>
 
-            <div className="mt-4">
-                <Text>Store District</Text>
-                <SearchSelect
-                    className="mt-2"
-                    onValueChange={(value) => setDistrict(value)}
-                >
-                    {districts != undefined ? (
-                        districts.data.districts.map((theDistrict) => (
-                            <SearchSelectItem
-                                value={theDistrict.id as unknown as string}
-                                key={theDistrict.id}
-                                icon={GlobeAsiaAustraliaIcon}
-                            >
-                                {theDistrict.name}
-                            </SearchSelectItem>
-                        ))
+                <div className="mt-4">
+                    <Text>Store District</Text>
+                    {districtsLoading ? (
+                        <Skeleton className="mt-2 w-full h-9 rounded-lg" />
                     ) : (
-                        <SearchSelectItem value="" icon={ArrowPathIcon}>
-                            Loading...
-                        </SearchSelectItem>
+                        <Controller
+                            control={control}
+                            name='profile.district'
+                            render={({ field }) => (
+                                <SearchSelect
+                                    {...field}
+                                    className='mt-2'
+                                    disabled={createStoreMutation.isPending}
+                                >
+                                    {districts?.data.districts.map(district => (
+                                        <SearchSelectItem key={district.id} value={district.id + ''}>
+                                            {district.name}
+                                        </SearchSelectItem>
+                                    ))}
+                                </SearchSelect>
+                            )}
+                        />
                     )}
-                </SearchSelect>
-                {errors?.errors['profile.district'] && (
-                    <Text color="red" className="mt-1">
-                        Please select a district
-                    </Text>
-                )}
-            </div>
+                </div>
 
-            <Divider />
+                <Divider />
 
-            <Flex justifyContent="end" className="space-x-2">
-                <Button
-                    size="xs"
-                    loading={loading}
-                    loadingText="Creating store..."
-                    onClick={handleStoreCreate}
-                >
-                    Create new Store
-                </Button>
-            </Flex>
+                <Flex justifyContent="end" className="space-x-2">
+                    <Button
+                        size="xs"
+                        type='submit'
+                        loadingText="Creating store..."
+                        loading={createStoreMutation.isPending}
+                    >
+                        Create new Store
+                    </Button>
+                </Flex>
+            </form>
         </>
     )
 }
