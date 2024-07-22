@@ -1,5 +1,6 @@
 import useAxios from '@/common/axios'
 import isUser from '@/common/middlewares/isUser'
+import FormatNumber from '@/common/number-formatter'
 import { Store, StoresResponse, UserData } from '@/common/types'
 import AdminNavigation from '@/components/admin/admin-navigation'
 import {
@@ -314,7 +315,7 @@ const AdminReports = () => {
                                     />
                                     <div className="truncate">
                                         <Title>Billing</Title>
-                                        <Metric>₹ {metrics.numbers[0].total_cost || 0}</Metric>
+                                        <Metric>₹ {FormatNumber(Number(metrics.numbers[0].total_cost || 0))}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -329,7 +330,7 @@ const AdminReports = () => {
                                     />
                                     <div className="truncate">
                                         <Title>Collected</Title>
-                                        <Metric>₹ {metrics.numbers[0].total_paid || 0}</Metric>
+                                        <Metric>₹ {FormatNumber(Number(metrics.numbers[0].total_paid || 0))}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -339,7 +340,7 @@ const AdminReports = () => {
                                     <Icon icon={GiftIcon} variant="light" color="teal" size="xl" />
                                     <div className="truncate">
                                         <Title>Discount</Title>
-                                        <Metric>₹ {metrics.numbers[0].total_discount || 0}</Metric>
+                                        <Metric>₹ {FormatNumber(Number(metrics.numbers[0].total_discount || 0))}</Metric>
                                     </div>
                                 </Flex>
                             </Card>
@@ -361,7 +362,7 @@ const AdminReports = () => {
                                                     parseInt(metrics.numbers[0].total_cost) || 0
                                                 const paid =
                                                     parseInt(metrics.numbers[0].total_paid) || 0
-                                                return total - paid
+                                                return FormatNumber(total - paid)
                                             })()}
                                         </Metric>
                                     </div>
@@ -445,11 +446,16 @@ const AdminReports = () => {
                         <Title className="mb-2">Downloads</Title>
                         <Grid numItemsMd={4} className="gap-6">
                             <a
-                                href={`${
-                                    process.env.NEXT_PUBLIC_BACKEND_URL
-                                }api/reports/exports/stores?from=${dayjs(range.from).format(
-                                    'YYYY-MM-DD',
-                                )}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`}
+                                href={(() => {
+                                    const url = new URL('api/reports/exports/stores', process.env.NEXT_PUBLIC_BACKEND_URL!)
+
+                                    url.searchParams.append('from', dayjs(range.from).format('YYYY-MM-DD'))
+                                    url.searchParams.append('to', dayjs(range.to).format('YYYY-MM-DD'))
+                                    url.searchParams.append('token', user.token!)
+                                    url.searchParams.append('store_id', store?.id + '')
+
+                                    return url.toString()
+                                })()}
                                 className="w-full"
                                 target="_blank"
                             >
@@ -462,11 +468,10 @@ const AdminReports = () => {
                                 </Button>
                             </a>
                             <a
-                                href={`${
-                                    process.env.NEXT_PUBLIC_BACKEND_URL
-                                }api/reports/exports/customers?from=${dayjs(range.from).format(
-                                    'YYYY-MM-DD',
-                                )}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`}
+                                href={`${process.env.NEXT_PUBLIC_BACKEND_URL
+                                    }api/reports/exports/customers?from=${dayjs(range.from).format(
+                                        'YYYY-MM-DD',
+                                    )}&to=${dayjs(range.to).format('YYYY-MM-DD')}&token=${user.token}`}
                                 className="w-full"
                                 target="_blank"
                             >
@@ -475,13 +480,12 @@ const AdminReports = () => {
                                 </Button>
                             </a>
                             <a
-                                href={`${
-                                    process.env.NEXT_PUBLIC_BACKEND_URL
-                                }api/reports/exports/collection/${store?.id}?from=${dayjs(
-                                    range.from,
-                                ).format('YYYY-MM-DD')}&to=${dayjs(range.to).format(
-                                    'YYYY-MM-DD',
-                                )}&token=${user.token}`}
+                                href={`${process.env.NEXT_PUBLIC_BACKEND_URL
+                                    }api/reports/exports/collection/${store?.id}?from=${dayjs(
+                                        range.from,
+                                    ).format('YYYY-MM-DD')}&to=${dayjs(range.to).format(
+                                        'YYYY-MM-DD',
+                                    )}&token=${user.token}`}
                                 className="w-full"
                                 target="_blank"
                             >
@@ -494,13 +498,12 @@ const AdminReports = () => {
                                 </Button>
                             </a>
                             <a
-                                href={`${
-                                    process.env.NEXT_PUBLIC_BACKEND_URL
-                                }api/reports/exports/undelivered/${store?.id}?from=${dayjs(
-                                    range.from,
-                                ).format('YYYY-MM-DD')}&to=${dayjs(range.to).format(
-                                    'YYYY-MM-DD',
-                                )}&token=${user.token}`}
+                                href={`${process.env.NEXT_PUBLIC_BACKEND_URL
+                                    }api/reports/exports/undelivered/${store?.id}?from=${dayjs(
+                                        range.from,
+                                    ).format('YYYY-MM-DD')}&to=${dayjs(range.to).format(
+                                        'YYYY-MM-DD',
+                                    )}&token=${user.token}`}
                                 className="w-full"
                                 target="_blank"
                             >
