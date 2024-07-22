@@ -50,6 +50,7 @@ import sumBy from 'lodash/sumBy'
 import { useQuery } from '@tanstack/react-query'
 import TableSkeleton from '@/components/table-skeleton'
 import Loading from '@/components/loading'
+import FormatNumber from '@/common/number-formatter'
 
 type Consolidate = {
     service: OrderService
@@ -177,7 +178,7 @@ const ShowOrder = () => {
                                         <TableCell>{item.garment.name}</TableCell>
                                         <TableCell>{item.quantity}</TableCell>
                                         <TableCell>₹ {item.garment.price_max}</TableCell>
-                                        <TableCell>₹ {item.total}</TableCell>
+                                        <TableCell>₹ {FormatNumber(item.total)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
