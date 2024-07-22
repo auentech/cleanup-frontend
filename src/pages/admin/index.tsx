@@ -36,7 +36,6 @@ import lodashReverse from 'lodash/reverse'
 import lodashFind from 'lodash/find'
 import dayjs from 'dayjs'
 import Link from 'next/link'
-import TableSkeleton from '@/components/table-skeleton'
 import { Pagination, Skeleton } from '@nextui-org/react'
 import FormatNumber from '@/common/number-formatter'
 import StatusBadger from '@/common/status-badger'
@@ -45,6 +44,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { AxiosResponse } from 'axios'
 import * as Next from '@nextui-org/react'
 import dayjsUTC from 'dayjs/plugin/utc'
+import Loading from '@/components/loading'
 
 type SortDescriptor = {
     column?: any
@@ -113,11 +113,12 @@ const AdminIndex = () => {
     }
 
     const {
-        isLoading: ordersLoading,
+        isLoading: ordersFirstLoad,
+        isFetching: ordersFetching,
         isError: ordersError,
         data: ordersResponse,
     } = useQuery({
-        initialData: keepPreviousData,
+        placeholderData: keepPreviousData,
         queryKey: [
             'admin dashboard',
             selectedStore?.id,
@@ -127,7 +128,6 @@ const AdminIndex = () => {
             dueDate,
         ],
         queryFn: ({ signal }) => getOrders(signal),
-        select: (data) => data as OrdersResponse,
     })
 
     const {
@@ -135,7 +135,7 @@ const AdminIndex = () => {
         isLoading: metricsLoading,
         isError: metricsError,
     } = useQuery({
-        initialData: keepPreviousData,
+        placeholderData: keepPreviousData,
         queryKey: ['admin metrics', selectedStore?.id],
         queryFn: ({ signal }) =>
             axios.get<GodMetricsResponse>('dashboard/god-metrics', {
@@ -144,10 +144,7 @@ const AdminIndex = () => {
                 },
                 signal,
             }),
-        select: (data) => {
-            const typedData = data as AxiosResponse<GodMetricsResponse, any>
-            return typedData.data
-        },
+        select: (data) => data.data
     })
 
     const {
@@ -169,7 +166,7 @@ const AdminIndex = () => {
     })
 
     const calculateCost = () => {
-        const data: SalesMetricType[] = lodashMap(metricsResponse.billing, (theMetrics, date) => {
+        const data: SalesMetricType[] = lodashMap(metricsResponse?.billing, (theMetrics, date) => {
             return {
                 date,
                 Cost: theMetrics,
@@ -181,7 +178,7 @@ const AdminIndex = () => {
 
     const calculateCollected = () => {
         const data: SalesMetricType[] = lodashMap(
-            metricsResponse.collections,
+            metricsResponse?.collections,
             (theMetrics, date) => {
                 return {
                     date,
@@ -194,7 +191,7 @@ const AdminIndex = () => {
     }
 
     const calculateOrders = () => {
-        const data: OrdersMetricType[] = lodashMap(metricsResponse.orders, (theMetrics, date) => {
+        const data: OrdersMetricType[] = lodashMap(metricsResponse?.orders, (theMetrics, date) => {
             return {
                 date,
                 Orders: theMetrics,
@@ -263,7 +260,7 @@ const AdminIndex = () => {
                             <div className="truncate">
                                 <Title>Billing</Title>
                                 <Metric>
-                                    {ordersLoading ? (
+                                    {ordersFirstLoad ? (
                                         <Skeleton className="h-3 w-full rounded-lg" />
                                     ) : (
                                         '₹ ' + FormatNumber(lodashSumBy(cost, 'Cost'))
@@ -297,7 +294,7 @@ const AdminIndex = () => {
                             <div className="truncate">
                                 <Title>Collected</Title>
                                 <Metric>
-                                    {ordersLoading ? (
+                                    {ordersFirstLoad ? (
                                         <Skeleton className="h-3 w-full rounded-lg" />
                                     ) : (
                                         '₹ ' + FormatNumber(lodashSumBy(collected, 'Cost'))
@@ -331,7 +328,7 @@ const AdminIndex = () => {
                             <div className="truncate">
                                 <Title>Orders</Title>
                                 <Metric>
-                                    {ordersLoading ? (
+                                    {ordersFirstLoad ? (
                                         <Skeleton className="h-3 w-full rounded-lg" />
                                     ) : (
                                         lodashSumBy(orders, 'Orders')
@@ -383,87 +380,86 @@ const AdminIndex = () => {
                 </Grid>
 
                 <div className="mt-2">
-                    {ordersLoading ? (
-                        <TableSkeleton numRows={5} numCols={8} />
-                    ) : (
-                        <>
-                            <Next.Table
-                                onSortChange={setSortDescriptor}
-                                sortDescriptor={sortDescriptor}
-                                bottomContent={
-                                    <Flex justifyContent="center">
-                                        <Pagination
-                                            total={ordersResponse?.meta?.last_page}
-                                            onChange={setPage}
-                                            page={page}
-                                        />
-                                    </Flex>
-                                }
-                            >
-                                <Next.TableHeader>
-                                    <Next.TableColumn key="code">Code</Next.TableColumn>
-                                    <Next.TableColumn key="customer">Customer</Next.TableColumn>
-                                    <Next.TableColumn key="created_at" allowsSorting>
-                                        Order Date
-                                    </Next.TableColumn>
-                                    <Next.TableColumn key="store_code">Store Code</Next.TableColumn>
-                                    <Next.TableColumn key="due_date" allowsSorting>
-                                        Due Date
-                                    </Next.TableColumn>
-                                    <Next.TableColumn key="status">Status</Next.TableColumn>
-                                    <Next.TableColumn key="cost" allowsSorting>
-                                        Amount
-                                    </Next.TableColumn>
-                                    <Next.TableColumn key="action">Action</Next.TableColumn>
-                                </Next.TableHeader>
-                                <Next.TableBody
-                                    items={ordersResponse.data}
-                                    isLoading={ordersLoading}
-                                    loadingContent={'Loading....'}
-                                >
-                                    {(item) => (
-                                        <Next.TableRow key={item.id}>
-                                            <Next.TableCell>{item.code}</Next.TableCell>
-                                            <Next.TableCell>{item.customer?.name}</Next.TableCell>
-                                            <Next.TableCell>
-                                                {dayjs(item.created_at).format('DD, MMMM YY')}
-                                            </Next.TableCell>
-                                            <Next.TableCell>{item.store?.code}</Next.TableCell>
-                                            <Next.TableCell>
-                                                {item.due_date
-                                                    ? dayjs(item.due_date).format('DD, MMMM YY')
-                                                    : 'General'}
-                                            </Next.TableCell>
-                                            <Next.TableCell>
-                                                {StatusBadger(item.status)}
-                                            </Next.TableCell>
-                                            <Next.TableCell>
-                                                ₹ {FormatNumber(item.cost)}
-                                            </Next.TableCell>
-                                            <Next.TableCell>
-                                                <Link
-                                                    href={
-                                                        '/admin/stores/' +
-                                                        item.store?.id +
-                                                        '/orders/' +
-                                                        item.code
-                                                    }
-                                                >
-                                                    <Button
-                                                        variant="secondary"
-                                                        color="gray"
-                                                        icon={ReceiptPercentIcon}
-                                                    >
-                                                        Show order
-                                                    </Button>
-                                                </Link>
-                                            </Next.TableCell>
-                                        </Next.TableRow>
-                                    )}
-                                </Next.TableBody>
-                            </Next.Table>
-                        </>
-                    )}
+                    <Next.Table
+                        onSortChange={setSortDescriptor}
+                        sortDescriptor={sortDescriptor}
+                        bottomContent={
+                            ordersResponse?.meta.last_page! > 1 && (
+                                <Flex justifyContent="center">
+                                    <Pagination
+                                        total={ordersResponse?.meta?.last_page!}
+                                        onChange={setPage}
+                                        page={page}
+                                    />
+                                </Flex>
+                            )
+                        }
+                        classNames={{
+                            table: "min-h-[420px]",
+                        }}
+                    >
+                        <Next.TableHeader>
+                            <Next.TableColumn key="code">Code</Next.TableColumn>
+                            <Next.TableColumn key="customer">Customer</Next.TableColumn>
+                            <Next.TableColumn key="created_at" allowsSorting>
+                                Order Date
+                            </Next.TableColumn>
+                            <Next.TableColumn key="store_code">Store Code</Next.TableColumn>
+                            <Next.TableColumn key="due_date" allowsSorting>
+                                Due Date
+                            </Next.TableColumn>
+                            <Next.TableColumn key="status">Status</Next.TableColumn>
+                            <Next.TableColumn key="cost" allowsSorting>
+                                Amount
+                            </Next.TableColumn>
+                            <Next.TableColumn key="action">Action</Next.TableColumn>
+                        </Next.TableHeader>
+                        <Next.TableBody
+                            items={ordersFetching ? [] : ordersResponse?.data}
+                            isLoading={ordersFetching}
+                            loadingContent={<div className='my-46'><Loading /></div>}
+                        >
+                            {(item) => (
+                                <Next.TableRow key={item.id}>
+                                    <Next.TableCell>{item.code}</Next.TableCell>
+                                    <Next.TableCell>{item.customer?.name}</Next.TableCell>
+                                    <Next.TableCell>
+                                        {dayjs(item.created_at).format('DD, MMMM YY')}
+                                    </Next.TableCell>
+                                    <Next.TableCell>{item.store?.code}</Next.TableCell>
+                                    <Next.TableCell>
+                                        {item.due_date
+                                            ? dayjs(item.due_date).format('DD, MMMM YY')
+                                            : 'General'}
+                                    </Next.TableCell>
+                                    <Next.TableCell>
+                                        {StatusBadger(item.status)}
+                                    </Next.TableCell>
+                                    <Next.TableCell>
+                                        ₹ {FormatNumber(item.cost)}
+                                    </Next.TableCell>
+                                    <Next.TableCell>
+                                        <Link
+                                            href={
+                                                '/admin/stores/' +
+                                                item.store?.id +
+                                                '/orders/' +
+                                                item.code
+                                            }
+                                        >
+                                            <Button
+                                                variant="secondary"
+                                                color="gray"
+                                                icon={ReceiptPercentIcon}
+                                            >
+                                                Show order
+                                            </Button>
+                                        </Link>
+                                    </Next.TableCell>
+                                </Next.TableRow>
+                            )}
+                        </Next.TableBody>
+                    </Next.Table>
                 </div>
             </div>
         </div>
