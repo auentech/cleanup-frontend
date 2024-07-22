@@ -5,12 +5,13 @@ import { FactoriesResponse, UserData } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import TableSkeleton from "@/components/table-skeleton"
 import { BeakerIcon } from "@heroicons/react/24/outline"
+import { useQuery } from "@tanstack/react-query"
 import { Title, Italic, Text, Card, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell, Button, TabGroup, TabList, Tab, TabPanels, TabPanel, Flex } from "@tremor/react"
 import { Waveform } from "@uiball/loaders"
 import { useSession } from "next-auth/react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 const LazyCreateFactory = dynamic(() => import('@/components/admin/create-factory'), {
     loading: () => (
@@ -29,19 +30,17 @@ const Factories = () => {
     const user = data?.user as UserData
 
     const [theIndex, setTheIndex] = useState<number>(0)
-    const [factories, setFactories] = useState<FactoriesResponse>()
 
-    useEffect(() => {
-        (async () => {
-            const response = await axios.get<FactoriesResponse>('/factories', {
-                params: {
-                    include: ['profile.state', 'profile.district']
-                }
-            })
-
-            setFactories(response.data)
-        })()
-    }, [])
+    const { data: factories, isLoading: factoriesLoading } = useQuery({
+        queryKey: ['factories'],
+        queryFn: ({ signal }) => axios.get<FactoriesResponse>('/factories', {
+            signal,
+            params: {
+                include: ['profile.state', 'profile.district']
+            },
+        }),
+        select: data => data.data,
+    })
 
     return (
         <div className="p-12">
@@ -68,8 +67,8 @@ const Factories = () => {
                         <TabPanels>
                             <TabPanel>
                                 <div className="mt-4">
-                                    {factories == undefined ? (
-                                        <TableSkeleton numCols={7} numRows={5} />
+                                    {factoriesLoading ? (
+                                        <TableSkeleton numCols={7} numRows={15} />
                                     ) : (
                                         <Table>
                                             <TableHead>
@@ -84,7 +83,7 @@ const Factories = () => {
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {factories.data.map(factory => (
+                                                {factories?.data.map(factory => (
                                                     <TableRow key={factory.id}>
                                                         <TableCell>{factory.code}</TableCell>
                                                         <TableCell>{factory.name}</TableCell>
