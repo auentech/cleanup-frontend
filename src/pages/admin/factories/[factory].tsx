@@ -3,36 +3,30 @@ import isUser from "@/common/middlewares/isUser"
 import { FactoryResponse } from "@/common/types"
 import AdminNavigation from "@/components/admin/admin-navigation"
 import { BeakerIcon } from "@heroicons/react/24/outline"
+import { useQuery } from "@tanstack/react-query"
 import { Title, Text, Flex, Badge, Card, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell, Button } from "@tremor/react"
 import dayjs from "dayjs"
 import Link from "next/link"
 import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
 
 const ShowFactory = () => {
     const axios = useAxios()
     const router = useRouter()
 
-    const [factory, setFactory] = useState<FactoryResponse>()
-
-    useEffect(() => {
-        const factoryID = router.query.factory
-
-        const initData = async () => {
-            const factoryResponse = await axios.get<FactoryResponse>('factories/' + factoryID, {
-                params: {
-                    include: [
-                        'profile.state',
-                        'profile.district',
-                        'deliveryChallans.store',
-                    ]
-                }
-            })
-            setFactory(factoryResponse.data)
-        }
-
-        initData()
-    }, [router])
+    const { data: factory, isLoading: factoryLoading } = useQuery({
+        queryKey: ['factories', router.query.factory],
+        queryFn: ({ signal }) => axios.get<FactoryResponse>('factories/' + router.query.factory, {
+            signal,
+            params: {
+                include: [
+                    'profile.state',
+                    'profile.district',
+                    'deliveryChallans.store',
+                ]
+            },
+        }),
+        select: data => data.data
+    })
 
     return (
         <div className="p-12">
