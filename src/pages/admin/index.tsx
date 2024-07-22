@@ -152,17 +152,14 @@ const AdminIndex = () => {
         isLoading: storesLoading,
         isError: storesError,
     } = useQuery({
-        initialData: keepPreviousData,
+        placeholderData: keepPreviousData,
         queryKey: ['admin store', storeSearchBounced],
         queryFn: ({ signal }) =>
             axios.get<StoresResponse>('search/store', {
                 params: { search: storeSearchBounced },
                 signal,
             }),
-        select: (data) => {
-            const typed = data as AxiosResponse<StoresResponse, any>
-            return typed.data
-        },
+        select: data => data.data,
     })
 
     const calculateCost = () => {
@@ -221,31 +218,31 @@ const AdminIndex = () => {
 
             <AdminNavigation />
 
-            <SearchSelect
-                className="mt-6"
-                placeholder="Search store"
-                icon={MagnifyingGlassIcon}
-                value={`${selectedStore?.id}`}
-                onValueChange={(v) =>
-                    setSelectedStore(lodashFind(stores.data, (store) => store.id == Number(v)))
-                }
-                onInput={(e) =>
-                    setStoreSearch(
-                        // @ts-ignore
-                        e.currentTarget.childNodes[0].childNodes[1].value,
-                    )
-                }
-            >
-                {storesLoading ? (
-                    <SearchSelectItem value="">Loading...</SearchSelectItem>
-                ) : (
-                    stores?.data?.map((store) => (
+            {storesLoading ? (
+                <Skeleton className="mt-6 w-full h-9 rounded-lg" />
+            ) : (
+                <SearchSelect
+                    className="mt-6"
+                    placeholder="Search store"
+                    icon={MagnifyingGlassIcon}
+                    value={`${selectedStore?.id}`}
+                    onValueChange={(v) =>
+                        setSelectedStore(lodashFind(stores?.data, (store) => store.id == Number(v)))
+                    }
+                    onInput={(e) =>
+                        setStoreSearch(
+                            // @ts-ignore
+                            e.currentTarget.childNodes[0].childNodes[1].value,
+                        )
+                    }
+                >
+                    {stores?.data?.map((store) => (
                         <SearchSelectItem key={store.id} value={`${store.id}`}>
                             {store.code} - {store.name}
                         </SearchSelectItem>
-                    ))
-                )}
-            </SearchSelect>
+                    ))}
+                </SearchSelect>
+            )}
 
             <div className="mt-4">
                 <Grid numItemsLg={3} className="gap-6">
