@@ -15,6 +15,7 @@ import dayjs from 'dayjs'
 import TableSkeleton from '@/components/table-skeleton'
 import { ArrowDownTrayIcon } from '@heroicons/react/24/solid'
 import { useSession } from 'next-auth/react'
+import FormatNumber from '@/common/number-formatter'
 
 type StoreClosingProps = {
     store: Store
@@ -65,9 +66,9 @@ const StoreClosings = ({ store }: StoreClosingProps) => {
                                         </TableCell>
                                         <TableCell>{closing.performer.name}</TableCell>
                                         <TableCell>
-                                            ₹ {closing.upi + closing.card + closing.cash}
+                                            ₹ {FormatNumber(closing.upi + closing.card + closing.cash)}
                                         </TableCell>
-                                        <TableCell>₹ {closing.expense}</TableCell>
+                                        <TableCell>₹ {FormatNumber(closing.expense)}</TableCell>
                                         <TableCell>{closing.remarks}</TableCell>
                                         <TableCell>
                                             <a
