@@ -19,6 +19,7 @@ import {
     TicketIcon,
     UsersIcon,
 } from '@heroicons/react/24/outline'
+import { useQuery } from '@tanstack/react-query'
 import {
     Accordion,
     AccordionBody,
@@ -45,7 +46,8 @@ import dayjs from 'dayjs'
 import loFilter from 'lodash/filter'
 import loSumBy from 'lodash/sumBy'
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useDebounce } from 'use-debounce'
 
 type StoreCount = {
     status: 'received' | 'in_process' | 'processed' | 'delivered'
@@ -79,39 +81,31 @@ const AdminReports = () => {
         to: dayjs().toDate(),
     })
     const [store, setStore] = useState<Store>()
-    const [stores, setStores] = useState<Store[]>()
     const [search, setSearch] = useState<string>('')
-    const [metrics, setMetrics] = useState<StoreReportsResponse>()
+    const [debouncedSearch] = useDebounce(search, 300)
 
-    useEffect(() => {
-        const searchStore = async () => {
-            const storesResponse = await axios.get<StoresResponse>('search/store', {
-                params: { search },
-            })
+    const { data: stores } = useQuery({
+        queryKey: ['search store', debouncedSearch],
+        queryFn: ({ signal }) => axios.get<StoresResponse>('search/store', {
+            signal,
+            params: { search },
+        }),
+        select: data => data.data.data
+    })
 
-            setStores(storesResponse.data.data)
-        }
-
-        searchStore()
-    }, [search])
-
-    useEffect(() => {
-        const initData = async () => {
-            const response = await axios.get<StoreReportsResponse>('reports/stores', {
-                params: {
-                    store_id: store?.id,
-                    from: range.from,
-                    to: range.to,
-                },
-            })
-
-            setMetrics(response.data)
-        }
-
-        if (range?.from != undefined) {
-            initData()
-        }
-    }, [store, range])
+    const { data: metrics } = useQuery({
+        queryKey: ['reports stores', store?.id, range.from, range.to],
+        queryFn: ({ signal }) => axios.get<StoreReportsResponse>('reports/stores', {
+            signal,
+            params: {
+                store_id: store?.id,
+                from: range.from,
+                to: range.to,
+            },
+        }),
+        select: data => data.data,
+        enabled: range.from != undefined,
+    })
 
     return (
         <div className="p-12">
