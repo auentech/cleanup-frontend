@@ -1,64 +1,56 @@
 import { Card, Col, Grid, Title, Text, TextInput, Flex, Button, Callout, Divider } from "@tremor/react"
 import { EnvelopeIcon, LockClosedIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import isEmail from 'validator/lib/isEmail'
 import isGuest from "@/common/middlewares/isGuest"
+import { SubmitHandler, useForm } from "react-hook-form"
+import { z } from "zod"
+import { useMutation } from "@tanstack/react-query"
+import { zodResolver } from "@hookform/resolvers/zod"
+
+const LoginSchema = z.object({
+    email: z.string().email(),
+    password: z.string(),
+})
+type LoginForm = z.infer<typeof LoginSchema>
 
 const Login = () => {
     const router = useRouter()
+    const { register, handleSubmit, setError, formState: { errors } } = useForm<LoginForm>({
+        resolver: zodResolver(LoginSchema),
+    })
 
-    const [email, setEmail] = useState<string>('')
-    const [password, setPassword] = useState<string>('')
-
-    const [emailError, setEmailError] = useState<string>('')
-    const [generalError, setGeneralError] = useState<string>('')
-    const [passwordError, setPasswordError] = useState<string>('')
-
-    const [loading, setLoading] = useState<boolean>(false)
-
-    const resetErrors = () => {
-        setEmailError('')
-        setGeneralError('')
-        setPasswordError('')
-    }
-
-    const handleLogin = async () => {
-        setLoading(true)
-        resetErrors()
-
-        if (!isEmail(email)) {
-            setEmailError('Please enter a valid email')
-            setLoading(false)
-
-            return
-        }
-
-        const response = await signIn('credentials', {
+    const loginMutation = useMutation({
+        mutationFn: ({ email, password }: LoginForm) => signIn('credentials', {
             email, password,
             redirect: false
         })
+    })
 
-        if (response?.ok) {
-            setLoading(false)
-            router.push('/redirector')
+    const handleLoginSubmit: SubmitHandler<LoginForm> = data => loginMutation.mutate(data, {
+        onSuccess: res => {
+            if (res?.ok) {
+                router.push('/redirector')
+                return
+            }
 
-            return
-        }
+            if (res?.error?.includes("selected email is invalid")) {
+                setError('email', { message: 'Account not found with this email' })
+                return
+            }
 
-        setGeneralError(response?.error as string)
-        setLoading(false)
-    }
+            setError('root.general', { message: res?.error! })
+        },
+    })
 
     return (
         <div className="p-12">
             <Grid numItemsSm={1} numItemsMd={12} numItemsLg={12}>
                 <Col numColSpanMd={2} numColSpanLg={3}></Col>
                 <Col numColSpanSm={1} numColSpanMd={8} numColSpanLg={6}>
-                    {generalError != '' && (
+                    {!!errors.root?.general.message && (
                         <Callout className="mb-6" color="red" title="Login error" icon={ExclamationTriangleIcon}>
-                            {generalError}
+                            {errors.root.general.message}
                         </Callout>
                     )}
 
@@ -66,40 +58,42 @@ const Login = () => {
                         <Title>Login to dashboard</Title>
                         <Text>Access the dashboard for Cleanup. Designed and developed by Auen Technologies</Text>
 
-                        <div className="mt-6">
-                            <Text>Email</Text>
-                            <TextInput
-                                onInput={e => setEmail(e.currentTarget.value)}
-                                icon={EnvelopeIcon}
-                                placeholder=""
-                                type="email"
-                                className="mt-2"
-                                error={emailError != ''}
-                                errorMessage={emailError} />
-                        </div>
+                        <form onSubmit={handleSubmit(handleLoginSubmit)}>
+                            <div className="mt-6">
+                                <Text>Email</Text>
+                                <TextInput
+                                    errorMessage={errors.email?.message}
+                                    error={!!errors.email?.message}
+                                    {...register('email')}
+                                    icon={EnvelopeIcon}
+                                    className="mt-2"
+                                    type="email"
+                                />
+                            </div>
 
-                        <div className="mt-3">
-                            <Text>Password</Text>
-                            <TextInput
-                                onInput={e => setPassword(e.currentTarget.value)}
-                                icon={LockClosedIcon}
-                                type="password"
-                                placeholder=""
-                                className="mt-2"
-                                error={passwordError != ''}
-                                errorMessage={passwordError} />
-                        </div>
+                            <div className="mt-3">
+                                <Text>Password</Text>
+                                <TextInput
+                                    errorMessage={errors.password?.message}
+                                    error={!!errors.password?.message}
+                                    {...register('password')}
+                                    icon={LockClosedIcon}
+                                    className="mt-2"
+                                    type="password"
+                                />
+                            </div>
 
-                        <Divider />
+                            <Divider />
 
-                        <Flex justifyContent="end" className="space-x-2 pt-4 mt-8">
-                            <Button
-                                size="xs"
-                                loadingText="Logging you in..."
-                                onClick={handleLogin}
-                                loading={loading}
-                            >Login to dashboard</Button>
-                        </Flex>
+                            <Flex justifyContent="end" className="space-x-2 pt-4 mt-8">
+                                <Button
+                                    loading={loginMutation.isPending}
+                                    loadingText="Logging you in..."
+                                    type="submit"
+                                    size="xs"
+                                >Login to dashboard</Button>
+                            </Flex>
+                        </form>
                     </Card>
                 </Col>
             </Grid>
