@@ -39,8 +39,9 @@ const Services = () => {
     const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
     const { isLoading, isError, data } = useQuery({
         queryKey: ['services'],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<ServicesResponse>('/services', {
+                signal,
                 params: {
                     include: 'garmentsCount',
                 },

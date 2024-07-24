@@ -54,8 +54,9 @@ const Garments = () => {
     const { service: serviceID } = router.query as GarmentsRouterQuery
     const { isLoading, isError, data } = useQuery({
         queryKey: ['services', serviceID],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<ServiceResponse>(`/services/${serviceID}`, {
+                signal,
                 params: {
                     include: 'garments',
                 },

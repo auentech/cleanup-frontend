@@ -56,20 +56,22 @@ const CreateReturn = () => {
     const getStores = async (
         search: string = '',
         page: number = 1,
+        signal: AbortSignal
     ): Promise<StoresResponse> => {
         const endpoint =
             search == '' ? `/stores?page=${page}` : `/search/store?page=${page}`
 
         const response = await axios.get<StoresResponse>(endpoint, {
+            signal,
             params: { search, include: ['profile.state', 'profile.district'] },
         })
 
-        return response.data as StoresResponse
+        return response.data
     }
 
     const { data: stores, isLoading: isStoresLoading } = useQuery({
         queryKey: ['packer create rc', debouncedSearch, page],
-        queryFn: () => getStores(debouncedSearch, page),
+        queryFn: ({ signal }) => getStores(debouncedSearch, page, signal),
     })
 
     const createRC = useMutation({
@@ -151,23 +153,23 @@ const CreateReturn = () => {
                         {store != undefined
                             ? ''
                             : stores?.data.map((store) => (
-                                  <ListItem key={store.id}>
-                                      <Text>
-                                          {store.code} - {store.name} -{' '}
-                                          {store.profile?.state?.name} -{' '}
-                                          {store.profile?.district?.name}
-                                      </Text>
-                                      <Button
-                                          size="xs"
-                                          variant="secondary"
-                                          color="gray"
-                                          icon={BuildingStorefrontIcon}
-                                          onClick={() => setStore(store)}
-                                      >
-                                          Select store
-                                      </Button>
-                                  </ListItem>
-                              ))}
+                                <ListItem key={store.id}>
+                                    <Text>
+                                        {store.code} - {store.name} -{' '}
+                                        {store.profile?.state?.name} -{' '}
+                                        {store.profile?.district?.name}
+                                    </Text>
+                                    <Button
+                                        size="xs"
+                                        variant="secondary"
+                                        color="gray"
+                                        icon={BuildingStorefrontIcon}
+                                        onClick={() => setStore(store)}
+                                    >
+                                        Select store
+                                    </Button>
+                                </ListItem>
+                            ))}
                     </List>
                 </>
             )}

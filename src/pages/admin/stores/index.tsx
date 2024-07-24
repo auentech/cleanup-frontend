@@ -55,9 +55,10 @@ const StoreIndex = () => {
         data: stores,
     } = useQuery({
         queryKey: ['stores'],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<StoresResponse>(
                 '/stores?include=profile,profile.state,profile.district',
+                { signal }
             ),
     })
 

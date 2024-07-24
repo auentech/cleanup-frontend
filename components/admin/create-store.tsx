@@ -65,7 +65,7 @@ const CreateStore = () => {
 
     const { data: operators, isLoading: operatorsLoading } = useQuery({
         queryKey: ['free operators'],
-        queryFn: () => axios.get<FreeOperatorsResponse>('/workers/free-operators'),
+        queryFn: ({ signal }) => axios.get<FreeOperatorsResponse>('/workers/free-operators', { signal }),
         select: data => data.data
     })
 

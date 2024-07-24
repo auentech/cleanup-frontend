@@ -97,8 +97,9 @@ const CreateOrder = ({ store }: CreateOrderType) => {
     } = useQuery({
         enabled: !showCustomerForm,
         queryKey: ['customers-search', bouncedCustomerSearch],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<UserSearchResponse>('/search/customer', {
+                signal,
                 params: {
                     search: bouncedCustomerSearch,
                 },
@@ -111,8 +112,9 @@ const CreateOrder = ({ store }: CreateOrderType) => {
         data: services,
     } = useQuery({
         queryKey: ['services', 'garments'],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<ServicesResponse>('/services', {
+                signal,
                 params: {
                     include: ['garments'],
                 },
@@ -484,10 +486,10 @@ const CreateOrder = ({ store }: CreateOrderType) => {
                                                 {service.service}
                                             </SearchSelectItem>
                                         )) || (
-                                            <SearchSelectItem value="">
-                                                Loading...
-                                            </SearchSelectItem>
-                                        )}
+                                                <SearchSelectItem value="">
+                                                    Loading...
+                                                </SearchSelectItem>
+                                            )}
                                     </SearchSelect>
                                 </Col>
                                 <Col numColSpan={5}>
