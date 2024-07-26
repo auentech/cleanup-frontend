@@ -263,7 +263,7 @@ const Workers = () => {
                             {theIndex == 1 && <LazyCreateWorker />}
                         </TabPanel>
                         <TabPanel>
-                            {theIndex == 2 && <LazyListCustomers />}
+                            {theIndex == 2 && <LazyListCustomers role='admin' />}
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>

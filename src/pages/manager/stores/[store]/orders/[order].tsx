@@ -9,7 +9,6 @@ import {
     UserData,
     Order,
 } from '@/common/types'
-import AdminNavigation from '@/components/admin/admin-navigation'
 import Timeline from '@/components/timeline/timeline'
 import TimelineItem from '@/components/timeline/timelineItem'
 import {
@@ -50,6 +49,8 @@ import sumBy from 'lodash/sumBy'
 import { useQuery } from '@tanstack/react-query'
 import TableSkeleton from '@/components/table-skeleton'
 import Loading from '@/components/loading'
+import FormatNumber from '@/common/number-formatter'
+import ManagerNavigation from '@/components/manager/manager-navigation'
 
 type Consolidate = {
     service: OrderService
@@ -70,7 +71,7 @@ const ShowOrder = () => {
     const [consolidate, setConsolidate] = useState<Consolidate[]>()
 
     const { data: order, isLoading: orderLoading } = useQuery({
-        queryKey: ['admin stores order', storeID, orderID],
+        queryKey: ['stores order', storeID, orderID],
         queryFn: ({ signal }) =>
             axios.get<OrderResponse>('/stores/' + storeID + '/orders/' + orderID, {
                 params: {
@@ -87,13 +88,13 @@ const ShowOrder = () => {
     })
 
     const { data: store } = useQuery({
-        queryKey: ['admin stores', storeID],
+        queryKey: ['stores', storeID],
         queryFn: ({ signal }) => axios.get<StoreResponse>('/stores/' + storeID, { signal }),
         select: (data) => data.data.data,
     })
 
     const { data: statuses, isLoading: statusesLoading } = useQuery({
-        queryKey: ['admin stores order status', orderID],
+        queryKey: ['stores order status', orderID],
         queryFn: ({ signal }) =>
             axios.get<OrderStatusesResponse>('/orders/' + orderID + '/status', {
                 params: {
@@ -142,7 +143,7 @@ const ShowOrder = () => {
                 </Subtitle>
             </div>
 
-            <AdminNavigation />
+            <ManagerNavigation />
 
             <Grid numItemsSm={2} numItemsLg={4} className="mt-6 gap-6">
                 {!orderLoading && <OrderKPICards order={order as Order} />}
@@ -177,7 +178,7 @@ const ShowOrder = () => {
                                         <TableCell>{item.garment.name}</TableCell>
                                         <TableCell>{item.quantity}</TableCell>
                                         <TableCell>₹ {item.garment.price_max}</TableCell>
-                                        <TableCell>₹ {item.total}</TableCell>
+                                        <TableCell>₹ {FormatNumber(item.total)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

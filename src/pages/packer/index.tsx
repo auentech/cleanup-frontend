@@ -27,12 +27,10 @@ import {
     Callout,
     Flex,
 } from '@tremor/react'
-import { AxiosResponse } from 'axios'
 import dayjs from 'dayjs'
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
-import Link from 'next/link'
 import { useState } from 'react'
 
 const LazyCreateReturn = dynamic(() => import('@/components/create-return'), {
@@ -52,10 +50,11 @@ const PackerHome = () => {
         isLoading,
         data: returnChallans,
     } = useQuery({
-        initialData: keepPreviousData,
+        placeholderData: keepPreviousData,
         queryKey: ['return-challans', page],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<ReturnChallansResponse>(`/return-challans?page=${page}`, {
+                signal,
                 params: {
                     include: [
                         'store',
@@ -64,11 +63,8 @@ const PackerHome = () => {
                     ],
                 },
             }),
+        select: data => data.data
     })
-
-    const typedReturnChallans = returnChallans as
-        | AxiosResponse<ReturnChallansResponse, any>
-        | undefined
 
     return (
         <div className="p-12">
@@ -129,7 +125,7 @@ const PackerHome = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {typedReturnChallans?.data.data.map(
+                                            {returnChallans?.data.map(
                                                 (challan) => (
                                                     <TableRow
                                                         key={challan.code}
@@ -210,14 +206,13 @@ const PackerHome = () => {
 
                                 <Flex justifyContent="end">
                                     {!isLoading &&
-                                        (typedReturnChallans?.data.meta
-                                            .last_page as number) > 1 && (
+                                        returnChallans?.meta
+                                            .last_page! > 1 && (
                                             <Pagination
                                                 className="mt-4"
                                                 total={
-                                                    typedReturnChallans?.data
-                                                        .meta
-                                                        .last_page as number
+                                                    returnChallans?.meta
+                                                        .last_page!
                                                 }
                                                 page={page}
                                                 onChange={setPage}

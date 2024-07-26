@@ -69,13 +69,14 @@ const OperatorIndex = () => {
     const closing = useDisclosure()
     const listClosing = useDisclosure()
 
-    const getOrders = async (search: string = '', page: number = 1): Promise<OrdersResponse> => {
+    const getOrders = async (search: string = '', page: number = 1, signal: AbortSignal): Promise<OrdersResponse> => {
         const endpoint =
             search == ''
                 ? `/stores/${user.store_id}/orders?page=${page}`
                 : `/search/store/${user.store_id}/order?page=${page}`
 
         const response = await axios.get<OrdersResponse>(endpoint, {
+            signal,
             params: {
                 search,
                 include: ['customer'],
@@ -88,13 +89,12 @@ const OperatorIndex = () => {
     const {
         isLoading: isOrdersLoading,
         isError: isOrdersError,
-        data: ordersUntyped,
+        data: orders,
     } = useQuery({
         queryKey: ['operator dashboard', user.store_id, bouncedOrderSearch, ordersPage],
-        queryFn: () => getOrders(bouncedOrderSearch, ordersPage),
-        initialData: keepPreviousData,
+        queryFn: ({ signal }) => getOrders(bouncedOrderSearch, ordersPage, signal),
+        placeholderData: keepPreviousData,
     })
-    const orders = ordersUntyped as OrdersResponse
 
     const {
         isLoading: isClosingsLoading,
@@ -103,8 +103,8 @@ const OperatorIndex = () => {
     } = useQuery({
         queryKey: ['closings', user.store_id, closingsPage],
         placeholderData: keepPreviousData,
-        queryFn: () =>
-            axios.get<ClosingsResponse>(`/stores/${user.store_id}/closing?page=${closingsPage}`),
+        queryFn: ({ signal }) =>
+            axios.get<ClosingsResponse>(`/stores/${user.store_id}/closing?page=${closingsPage}`, { signal }),
     })
 
     const {
@@ -113,8 +113,9 @@ const OperatorIndex = () => {
         data: store,
     } = useQuery({
         queryKey: ['stores', user.store_id],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<StoreResponse>('/stores/' + user.store_id, {
+                signal,
                 params: {
                     include: [
                         'profile.state',
@@ -130,8 +131,8 @@ const OperatorIndex = () => {
 
     const { isError: isCreateClosingError, data: createClosing } = useQuery({
         queryKey: ['closings', user.store_id, 'create'],
-        queryFn: () =>
-            axios.get<ClosingCreateResponse[]>('/stores/' + user.store_id + '/closing/create'),
+        queryFn: ({ signal }) =>
+            axios.get<ClosingCreateResponse[]>('/stores/' + user.store_id + '/closing/create', { signal }),
     })
 
     useEffect(() => {
@@ -238,10 +239,10 @@ const OperatorIndex = () => {
                                         role="operator"
                                     />
 
-                                    {orders.meta.last_page > 1 && (
+                                    {orders?.meta.last_page! > 1 && (
                                         <Flex justifyContent="end" className="mt-4">
                                             <Pagination
-                                                total={orders.meta.last_page}
+                                                total={orders?.meta.last_page!}
                                                 onChange={setOrdersPage}
                                                 page={ordersPage}
                                             />

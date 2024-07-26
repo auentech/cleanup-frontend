@@ -1,4 +1,4 @@
-import { UsersResponse } from '@/common/types'
+import { Role, UsersResponse } from '@/common/types'
 import {
     Button,
     Flex,
@@ -19,7 +19,11 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'use-debounce'
 import { Pagination } from '@nextui-org/react'
 
-const ListCustomers = () => {
+type ListCustomersProps = {
+    role: Role
+}
+
+const ListCustomers = (props: ListCustomersProps) => {
     const axios = useAxios()
 
     const [page, setPage] = useState<number>(1)
@@ -83,11 +87,7 @@ const ListCustomers = () => {
                                     </TableCell>
                                     <TableCell>
                                         <Link
-                                            href={
-                                                '/admin/users/' +
-                                                customer.id +
-                                                '/orders'
-                                            }
+                                            href={`/${props.role}/users/${customer.id}/orders`}
                                         >
                                             <Button
                                                 variant="secondary"

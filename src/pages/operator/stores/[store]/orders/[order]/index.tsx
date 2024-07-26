@@ -87,7 +87,7 @@ const ShowOrderInfo = () => {
         data: store,
     } = useQuery({
         queryKey: ['stores', storeID],
-        queryFn: () => axios.get<StoreResponse>('/stores/' + storeID),
+        queryFn: ({ signal }) => axios.get<StoreResponse>('/stores/' + storeID, { signal }),
     })
 
     const {
@@ -96,8 +96,9 @@ const ShowOrderInfo = () => {
         data: order,
     } = useQuery({
         queryKey: ['orders', orderID],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<OrderResponse>('/stores/' + storeID + '/orders/' + orderID, {
+                signal,
                 params: {
                     include: [
                         'customer.profile.state',
@@ -115,8 +116,9 @@ const ShowOrderInfo = () => {
         data: statuses,
     } = useQuery({
         queryKey: ['orders', orderID, 'status'],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axios.get<OrderStatusesResponse>('/orders/' + orderID + '/status', {
+                signal,
                 params: {
                     include: ['performer', 'performer.profile.state', 'performer.profile.district'],
                 },

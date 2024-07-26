@@ -7,8 +7,8 @@ import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import sumBy from "lodash/sumBy"
 import Link from "next/link"
-import ManagerNavigation from "@/components/manager/manager-navigation"
 import { useSession } from "next-auth/react"
+import ManagerNavigation from "@/components/manager/manager-navigation"
 
 const ShowChallan = () => {
     const axios = useAxios()
@@ -16,6 +16,7 @@ const ShowChallan = () => {
     const { data } = useSession()
 
     const auth = data?.user as UserData
+
     const storeID = router.query.store
     const challanID = router.query.challan
 

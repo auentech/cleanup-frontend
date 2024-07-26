@@ -25,7 +25,7 @@ import {
     TextInput,
 } from '@tremor/react'
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
     DocumentCheckIcon,
     UserIcon,
@@ -39,10 +39,15 @@ import {
     ModalContent,
     ModalFooter,
     ModalHeader,
+    Pagination,
     useDisclosure,
 } from '@nextui-org/react'
 import { useRouter } from 'next/router'
 import TableSkeleton from '@/components/table-skeleton'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
+import { z } from 'zod'
+import { Controller, SubmitHandler, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import ManagerNavigation from '@/components/manager/manager-navigation'
 
 const LazyCreateWorker = dynamic(
@@ -64,48 +69,78 @@ const LazyListCustomers = dynamic(() => import('@/components/admin/list-customer
     )
 })
 
+const UpdateWorkerSchema = z.object({
+    name: z.string().min(5),
+    email: z.string().email(),
+    phone: z.number(),
+    profile: z.object({
+        address: z.string(),
+        pincode: z.number(),
+        aadhaar: z.number(),
+        emergency_contact: z.number(),
+    })
+})
+type UpdateWorker = z.infer<typeof UpdateWorkerSchema>
+
 const Workers = () => {
     const axios = useAxios()
     const router = useRouter()
     const { data } = useSession()
     const user = data?.user as UserData
 
+    const [workerPage, setWorkerPage] = useState<number>(1)
     const [theIndex, setTheIndex] = useState<number>(0)
-    const [workers, setWorkers] = useState<UsersResponse>()
     const [worker, setWorker] = useState<UserData>()
 
-    const { isOpen, onOpen, onOpenChange } = useDisclosure()
+    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
 
     const showWorker = (workerData: UserData) => {
         setWorker(workerData)
         onOpen()
     }
 
-    const editWorker = async (workerData: UserData) => {
-        const workerResponse = await axios.put('/workers/' + workerData.id)
-        console.log(workerResponse)
-    }
+    const { data: workers, isFetching: workersLoading } = useQuery({
+        queryKey: ['workers', workerPage],
+        queryFn: ({ signal }) => axios.get<UsersResponse>('/workers', {
+            signal,
+            params: {
+                page: workerPage,
+                include: ['profile.state', 'profile.district'],
+            },
+        }),
+        select: data => data.data,
+        placeholderData: keepPreviousData,
+    })
 
-    const disableUser = async (theUser: UserData) => {
-        const disableUserResponse = await axios.delete<BackendGeneralResponse>(
-            '/user/' + theUser.id,
-        )
+    const { register, reset, handleSubmit, control, formState: { errors } } = useForm<UpdateWorker>({
+        values: {
+            name: worker?.name!,
+            email: worker?.email!,
+            phone: worker?.phone!,
+            profile: {
+                address: worker?.profile?.address!,
+                aadhaar: worker?.profile?.aadhaar!,
+                pincode: worker?.profile?.pincode!,
+                emergency_contact: worker?.profile?.emergency_contact!,
+            }
+        },
+        resolver: zodResolver(UpdateWorkerSchema),
+    })
 
-        alert(disableUserResponse.data.message)
-        router.reload()
-    }
+    const disableWorkerMutation = useMutation({
+        mutationFn: (data: UserData) => axios.delete<BackendGeneralResponse>('/user/' + data.id)
+    })
+    const updateWorkerMutation = useMutation({
+        mutationFn: (data: UpdateWorker) => axios.put('/workers/' + worker?.id, data)
+    })
 
-    useEffect(() => {
-        ; (async () => {
-            const response = await axios.get<UsersResponse>('/workers', {
-                params: {
-                    include: ['profile.state', 'profile.district'],
-                },
-            })
-
-            setWorkers(response.data)
-        })()
-    }, [])
+    const updateWorker: SubmitHandler<UpdateWorker> = data => updateWorkerMutation.mutate(data, {
+        onSuccess: () => {
+            reset()
+            onClose()
+            alert('Worker updated successfully')
+        }
+    })
 
     return (
         <div className="p-12">
@@ -132,8 +167,8 @@ const Workers = () => {
                     <TabPanels>
                         <TabPanel>
                             <div className="mt-4">
-                                {workers == undefined ? (
-                                    <TableSkeleton numCols={6} numRows={5} />
+                                {workersLoading ? (
+                                    <TableSkeleton numCols={6} numRows={30} />
                                 ) : (
                                     <Table className="mt-4">
                                         <TableHead>
@@ -159,7 +194,7 @@ const Workers = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {workers.data.map((worker) => (
+                                            {workers?.data.map((worker) => (
                                                 <TableRow key={worker.id}>
                                                     <TableCell>
                                                         {worker.name}
@@ -205,13 +240,21 @@ const Workers = () => {
                                         </TableBody>
                                     </Table>
                                 )}
+
+                                {workers?.meta.last_page! > 1 && (
+                                    <Pagination
+                                        total={workers?.meta.last_page!}
+                                        page={workerPage}
+                                        onChange={setWorkerPage}
+                                    />
+                                )}
                             </div>
                         </TabPanel>
                         <TabPanel>
                             {theIndex == 1 && <LazyCreateWorker />}
                         </TabPanel>
                         <TabPanel>
-                            {theIndex == 2 && <LazyListCustomers />}
+                            {theIndex == 2 && <LazyListCustomers role='manager' />}
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>
@@ -225,104 +268,154 @@ const Workers = () => {
                 onOpenChange={onOpenChange}
             >
                 <ModalContent>
-                    <ModalHeader>
-                        <Title>Edit user</Title>
-                    </ModalHeader>
-                    <ModalBody>
-                        <div className="pb-4">
-                            <div className="mt-4">
-                                <Text>User name</Text>
-                                <TextInput
-                                    className="mt-2"
-                                    value={worker?.name}
-                                />
-                            </div>
+                    <form onSubmit={handleSubmit(updateWorker)}>
+                        <ModalHeader>
+                            <Title>Edit user</Title>
+                        </ModalHeader>
+                        <ModalBody>
+                            <div className="pb-4">
+                                <div className="mt-4">
+                                    <Text>User name</Text>
+                                    <TextInput
+                                        className="mt-2"
+                                        {...register('name')}
+                                        disabled={updateWorkerMutation.isPending}
+                                    />
+                                </div>
 
-                            <div className="mt-4">
-                                <Text>User email</Text>
-                                <TextInput
-                                    type="email"
-                                    className="mt-2"
-                                    value={worker?.email}
-                                />
-                            </div>
+                                <div className="mt-4">
+                                    <Text>User email</Text>
+                                    <TextInput
+                                        type="email"
+                                        className="mt-2"
+                                        {...register('email')}
+                                        disabled={updateWorkerMutation.isPending}
+                                    />
+                                </div>
 
-                            <div className="mt-4">
-                                <Text>User phone</Text>
-                                <NumberInput
-                                    className="mt-2"
-                                    enableStepper={false}
-                                    value={worker?.phone}
-                                />
-                            </div>
+                                <div className="mt-4">
+                                    <Text>User phone</Text>
+                                    <Controller
+                                        control={control}
+                                        name='phone'
+                                        render={({ field }) => (
+                                            <NumberInput
+                                                {...field}
+                                                className="mt-2"
+                                                enableStepper={false}
+                                                disabled={updateWorkerMutation.isPending}
+                                                onChange={v => { }}
+                                                onValueChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                </div>
 
-                            <div className="mt-4">
-                                <Text>User address</Text>
-                                <TextInput
-                                    className="mt-2"
-                                    value={worker?.profile?.address}
-                                />
-                            </div>
+                                <div className="mt-4">
+                                    <Text>User address</Text>
+                                    <TextInput
+                                        className="mt-2"
+                                        {...register('profile.address')}
+                                        disabled={updateWorkerMutation.isPending}
+                                    />
+                                </div>
 
-                            <div className="mt-4">
-                                <Text>User pincode</Text>
-                                <NumberInput
-                                    className="mt-2"
-                                    enableStepper={false}
-                                    value={worker?.profile?.pincode}
-                                />
-                            </div>
+                                <div className="mt-4">
+                                    <Text>User pincode</Text>
+                                    <Controller
+                                        control={control}
+                                        name='profile.pincode'
+                                        render={({ field }) => (
+                                            <NumberInput
+                                                {...field}
+                                                className="mt-2"
+                                                enableStepper={false}
+                                                disabled={updateWorkerMutation.isPending}
+                                                onChange={v => { }}
+                                                onValueChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                </div>
 
-                            <div className="mt-4">
-                                <Text>User aadhaar</Text>
-                                <NumberInput
-                                    className="mt-2"
-                                    enableStepper={false}
-                                    value={worker?.profile?.aadhaar}
-                                />
-                            </div>
+                                <div className="mt-4">
+                                    <Text>User aadhaar</Text>
+                                    <Controller
+                                        control={control}
+                                        name='profile.aadhaar'
+                                        render={({ field }) => (
+                                            <NumberInput
+                                                {...field}
+                                                className="mt-2"
+                                                enableStepper={false}
+                                                disabled={updateWorkerMutation.isPending}
+                                                onChange={v => { }}
+                                                onValueChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                </div>
 
-                            <div className="mt-4">
-                                <Text>User emergency contact</Text>
-                                <NumberInput
-                                    className="mt-2"
-                                    enableStepper={false}
-                                    value={worker?.profile?.emergency_contact}
-                                />
+                                <div className="mt-4">
+                                    <Text>User emergency contact</Text>
+                                    <Controller
+                                        control={control}
+                                        name='profile.emergency_contact'
+                                        render={({ field }) => (
+                                            <NumberInput
+                                                {...field}
+                                                className="mt-2"
+                                                enableStepper={false}
+                                                disabled={updateWorkerMutation.isPending}
+                                                onChange={v => { }}
+                                                onValueChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    </ModalBody>
-                    <ModalFooter>
-                        {worker?.role == 'customer' && (
+                        </ModalBody>
+                        <ModalFooter>
+                            {worker?.role == 'customer' && (
+                                <Button
+                                    variant="secondary"
+                                    color="gray"
+                                    onClick={(_) =>
+                                        router.push(
+                                            '/manager/users/' + worker.id + '/orders',
+                                        )
+                                    }
+                                >
+                                    Show orders
+                                </Button>
+                            )}
                             <Button
+                                color="red"
+                                icon={XMarkIcon}
                                 variant="secondary"
-                                color="gray"
-                                onClick={(_) =>
-                                    router.push(
-                                        '/manager/users/' + worker.id + '/orders',
-                                    )
-                                }
+                                loadingText='Disabling user...'
+                                loading={disableWorkerMutation.isPending}
+                                onClick={_ => disableWorkerMutation.mutate(worker!, {
+                                    onSuccess: () => {
+                                        onClose()
+                                        alert('Disabled user successfully')
+                                    }
+                                })}
                             >
-                                Show orders
+                                Disable user
                             </Button>
-                        )}
-                        <Button
-                            color="red"
-                            variant="secondary"
-                            icon={XMarkIcon}
-                            onClick={(_) => disableUser(worker as UserData)}
-                        >
-                            Disable user
-                        </Button>
-                        <Button
-                            color="blue"
-                            variant="primary"
-                            icon={DocumentCheckIcon}
-                            onClick={_ => editWorker(worker as UserData)}
-                        >
-                            Save changes
-                        </Button>
-                    </ModalFooter>
+                            <Button
+                                color="blue"
+                                type='submit'
+                                variant="primary"
+                                icon={DocumentCheckIcon}
+                                loading={updateWorkerMutation.isPending}
+                                loadingText='Updating user...'
+                            >
+                                Save changes
+                            </Button>
+                        </ModalFooter>
+                    </form>
                 </ModalContent>
             </Modal>
         </div>

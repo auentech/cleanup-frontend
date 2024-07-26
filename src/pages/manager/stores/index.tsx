@@ -1,27 +1,47 @@
-import useAxios from "@/common/axios"
-import Logout from "@/common/logout"
-import isUser from "@/common/middlewares/isUser"
-import { StoresResponse, UserData } from "@/common/types"
-import { BuildingStorefrontIcon } from "@heroicons/react/24/outline"
-import { Button, Card, Flex, Italic, Tab, TabGroup, TabList, TabPanel, TabPanels, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react"
-import { Waveform } from "@uiball/loaders"
-import { useSession } from "next-auth/react"
-import Link from "next/link"
-import { useState, useEffect } from "react"
-import dynamic from "next/dynamic"
-import ManagerNavigation from "@/components/manager/manager-navigation"
-import TableSkeleton from "@/components/table-skeleton"
+import useAxios from '@/common/axios'
+import Logout from '@/common/logout'
+import isUser from '@/common/middlewares/isUser'
+import { StoresResponse, UserData } from '@/common/types'
+import { BuildingStorefrontIcon } from '@heroicons/react/24/outline'
+import {
+    Button,
+    Callout,
+    Card,
+    Flex,
+    Italic,
+    Tab,
+    TabGroup,
+    TabList,
+    TabPanel,
+    TabPanels,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeaderCell,
+    TableRow,
+    Text,
+    Title,
+} from '@tremor/react'
+import { Waveform } from '@uiball/loaders'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+import { useState } from 'react'
+import dynamic from 'next/dynamic'
+import TableSkeleton from '@/components/table-skeleton'
+import { useQuery } from '@tanstack/react-query'
+import ManagerNavigation from '@/components/manager/manager-navigation'
 
-const LazyCreateStore = dynamic(() => import('@/components/admin/create-store'), {
-    loading: () => (
-        <Flex alignItems="center" justifyContent="center">
-            <Waveform
-                size={20}
-                color="#3b82f6"
-            />
-        </Flex>
-    )
-})
+const LazyCreateStore = dynamic(
+    () => import('@/components/admin/create-store'),
+    {
+        loading: () => (
+            <Flex alignItems="center" justifyContent="center">
+                <Waveform size={20} color="#3b82f6" />
+            </Flex>
+        ),
+    },
+)
 
 const StoreIndex = () => {
     const { data } = useSession()
@@ -29,22 +49,24 @@ const StoreIndex = () => {
 
     const user = data?.user as UserData
     const [theIndex, setTheIndex] = useState<number>(0)
-    const [stores, setStores] = useState<StoresResponse | undefined>(undefined)
-
-    useEffect(() => {
-        const getStores = async () => {
-            const response = await axios.get<StoresResponse>('/stores?include=profile,profile.state,profile.district')
-            setStores(response.data)
-        }
-
-        getStores()
-    }, [])
+    const {
+        isError,
+        isLoading,
+        data: stores,
+    } = useQuery({
+        queryKey: ['stores'],
+        queryFn: ({ signal }) =>
+            axios.get<StoresResponse>(
+                '/stores?include=profile,profile.state,profile.district',
+                { signal }
+            ),
+    })
 
     return (
         <div className="p-12">
             <Title>Welcome, {user.name}</Title>
             <Text>
-                Manager dashboard for Cleanup {' '}
+                Manager dashboard for Cleanup{' '}
                 <Italic style={{ color: '#ef4444', cursor: 'pointer' }}>
                     <Logout />
                 </Italic>
@@ -63,33 +85,92 @@ const StoreIndex = () => {
                     <TabPanels>
                         <TabPanel>
                             <div className="mt-4">
-                                {stores === undefined ? (
+                                {isError && (
+                                    <Callout
+                                        color="red"
+                                        title="Oops, something went wrong"
+                                    >
+                                        Unable to load list of stores. Please
+                                        reload.
+                                    </Callout>
+                                )}
+                                {isLoading ? (
                                     <TableSkeleton numCols={7} numRows={5} />
                                 ) : (
-                                    <Table className="mt-4">
+                                    <Table>
                                         <TableHead>
                                             <TableRow>
-                                                <TableHeaderCell>Store Code</TableHeaderCell>
-                                                <TableHeaderCell>Name</TableHeaderCell>
-                                                <TableHeaderCell>Address</TableHeaderCell>
-                                                <TableHeaderCell>Pincode</TableHeaderCell>
-                                                <TableHeaderCell>State</TableHeaderCell>
-                                                <TableHeaderCell>District</TableHeaderCell>
-                                                <TableHeaderCell>Action</TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Store Code
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Name
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Address
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Pincode
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    State
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    District
+                                                </TableHeaderCell>
+                                                <TableHeaderCell>
+                                                    Action
+                                                </TableHeaderCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {stores.data.map(store => (
+                                            {stores?.data.data.map((store) => (
                                                 <TableRow key={store.id}>
-                                                    <TableCell>{store.code}</TableCell>
-                                                    <TableCell>{store.name}</TableCell>
-                                                    <TableCell>{store?.profile?.address}</TableCell>
-                                                    <TableCell>{store?.profile?.pincode}</TableCell>
-                                                    <TableCell>{store?.profile?.state.name}</TableCell>
-                                                    <TableCell>{store?.profile?.district.name}</TableCell>
                                                     <TableCell>
-                                                        <Link href={'/manager/stores/' + store.id}>
-                                                            <Button icon={BuildingStorefrontIcon} size="xs" variant="secondary" color="gray">
+                                                        {store.code}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {store.name}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {
+                                                            store?.profile
+                                                                ?.address
+                                                        }
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {
+                                                            store?.profile
+                                                                ?.pincode
+                                                        }
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {
+                                                            store?.profile
+                                                                ?.state.name
+                                                        }
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {
+                                                            store?.profile
+                                                                ?.district.name
+                                                        }
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Link
+                                                            href={
+                                                                '/manager/stores/' +
+                                                                store.id
+                                                            }
+                                                        >
+                                                            <Button
+                                                                icon={
+                                                                    BuildingStorefrontIcon
+                                                                }
+                                                                size="xs"
+                                                                variant="secondary"
+                                                                color="gray"
+                                                            >
                                                                 Show store
                                                             </Button>
                                                         </Link>

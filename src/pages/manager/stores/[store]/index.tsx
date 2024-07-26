@@ -76,7 +76,7 @@ const ShowStore = () => {
         isLoading: isOrdersLoading,
         isError: isOrdersError,
     } = useQuery({
-        initialData: keepPreviousData,
+        placeholderData: keepPreviousData,
         queryKey: ['store', router.query.store, 'orders', page],
         queryFn: ({ signal }) =>
             axios.get<OrdersResponse>('/stores/' + router.query.store + '/orders', {
@@ -89,10 +89,7 @@ const ShowStore = () => {
                 },
                 signal,
             }),
-        select: (data) => {
-            const res = data as AxiosResponse<OrdersResponse, any>
-            return res.data
-        },
+        select: data => data.data,
     })
 
     return (
@@ -143,10 +140,10 @@ const ShowStore = () => {
                                                     role="manager"
                                                 />
 
-                                                {orders?.meta.last_page > 1 && (
+                                                {orders?.meta.last_page! > 1 && (
                                                     <Flex justifyContent="end" className="mt-4">
                                                         <Pagination
-                                                            total={orders.meta.last_page}
+                                                            total={orders?.meta.last_page!}
                                                             onChange={setPage}
                                                             page={page}
                                                         />
