@@ -71,7 +71,7 @@ type StoreOperator = {
     id: number
     user_id: number
     store_id: number
-    user: UserData
+    user?: UserData
     store: Store
     created_at: string
     updated_at: string
@@ -150,7 +150,7 @@ export type DistrictsResponse = {
 }
 
 export type FreeOperatorsResponse = {
-    data: UserData[]
+    data?: UserData[]
 }
 
 export type CreateStoreError = {

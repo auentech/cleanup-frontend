@@ -129,7 +129,7 @@ const CreateStore = () => {
                                     className='mt-2'
                                     disabled={createStoreMutation.isPending}
                                 >
-                                    {operators?.data.map(op => (
+                                    {operators?.data?.map(op => (
                                         <SearchSelectItem key={op.id} value={op.id + ''}>
                                             {op.name} - {op.email} - {op.phone}
                                         </SearchSelectItem>

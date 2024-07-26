@@ -1,304 +1,296 @@
 import useAxios from '@/common/axios'
 import {
-    CreateStoreError,
-    StatesResponse,
-    FreeOperatorsResponse,
-    DistrictsResponse,
-    StoreResponse,
     BackendGeneralResponse,
+    DistrictsResponse,
+    FreeOperatorsResponse,
+    StatesResponse,
+    StoreResponse,
 } from '@/common/types'
 import {
     GlobeAsiaAustraliaIcon,
-    ArrowPathIcon,
 } from '@heroicons/react/24/outline'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Skeleton } from '@nextui-org/react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-    Text,
-    MultiSelect,
-    MultiSelectItem,
-    TextInput,
-    SearchSelect,
-    SearchSelectItem,
+    Button,
     Divider,
     Flex,
-    Button,
+    MultiSelect,
+    MultiSelectItem,
     NumberInput,
+    SearchSelect,
+    SearchSelectItem,
+    Text,
+    TextInput,
 } from '@tremor/react'
-import lodashMap from 'lodash/map'
 import { useRouter } from 'next/router'
-import { useState, useEffect } from 'react'
+import { Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form'
+import { toast } from 'react-toastify'
+import { z } from 'zod'
+
+const EditStoreProfileSchema = z.object({
+    address: z.string(),
+    pincode: z.number(),
+    state: z.string(),
+    district: z.string(),
+    emergency_contact: z.number()
+})
+
+const EditStoreSchema = z.object({
+    name: z.string(),
+    code: z.string(),
+    operators: z.string().array().min(1),
+    profile: EditStoreProfileSchema,
+})
+
+type EditStoreForm = z.infer<typeof EditStoreSchema>
 
 const EditStore = () => {
     const axios = useAxios()
     const router = useRouter()
+    const client = useQueryClient()
 
-    const [store, setStore] = useState<StoreResponse>()
-    const [loading, setLoading] = useState<boolean>(false)
-    const [errors, setErrors] = useState<CreateStoreError>()
+    const {
+        data: store,
+        isLoading: isStoreLoading,
+        isError: isStoreError,
+    } = useQuery({
+        queryKey: ['store', router.query.store],
+        queryFn: ({ signal }) =>
+            axios.get<StoreResponse>('/stores/' + router.query.store, {
+                params: {
+                    include: [
+                        'profile.state',
+                        'profile.district',
 
-    const [currentStoreOps, setCurrentStoreOps] = useState<string[]>()
-    const [storeOperators, setStoreOperators] = useState<string[]>()
+                        'operators.user',
+                        'operators.user.profile.state',
+                        'operators.user.profile.district',
+                    ],
+                },
+                signal,
+            }),
+        select: (data) => data.data,
+    })
 
-    const [storeName, setStoreName] = useState<string>('')
-    const [address, setAddress] = useState<string>('')
-    const [code, setCode] = useState<string>('')
-    const [pincode, setPincode] = useState<string>('')
-    const [state, setState] = useState<string>('')
-    const [district, setDistrict] = useState<string>('')
-    const [phone, setPhone] = useState<number>(0)
+    const { data: freeOperators, isLoading: loadingFreeOperators } = useQuery({
+        queryKey: ['free operators'],
+        queryFn: ({ signal }) => axios.get<FreeOperatorsResponse>('/workers/free-operators', { signal }),
+        select: data => data.data,
+    })
 
-    const [states, setStates] = useState<StatesResponse>()
-    const [operators, setOperators] = useState<FreeOperatorsResponse>()
-    const [districts, setDistricts] = useState<DistrictsResponse>()
+    const { data: states, isLoading: statesLoading } = useQuery({
+        queryKey: ['states'],
+        queryFn: ({ signal }) => axios.get<StatesResponse>('/states/', { signal }),
+        select: data => data.data
+    })
 
-    useEffect(() => {
-        const initOperators = async () => {
-            if (store == undefined) return
-            const opsResponse = await axios.get<FreeOperatorsResponse>(
-                '/workers/free-operators',
-            )
-
-            const currentOperators = lodashMap(
-                store?.data.operators,
-                (ops) => ops.user,
-            )
-            if (opsResponse.data.data.length > 0) {
-                opsResponse.data.data.forEach((user) => {
-                    currentOperators.push(user)
-                })
-
-                setOperators({
-                    data: currentOperators,
-                })
-
-                return
+    const { register, control, handleSubmit, formState: { errors } } = useForm<EditStoreForm>({
+        values: {
+            name: store?.data.name!,
+            code: store?.data.code.split('-')?.[1]!,
+            operators: store?.data.operators?.map(op => op.user_id + '')!,
+            profile: {
+                address: store?.data.profile?.address!,
+                pincode: store?.data.profile?.pincode!,
+                state: store?.data.profile?.state.id + '',
+                district: store?.data.profile?.district.id + '',
+                emergency_contact: store?.data.profile?.emergency_contact!,
             }
+        },
+        resolver: zodResolver(EditStoreSchema)
+    })
 
-            setOperators({ data: currentOperators })
-        }
+    const stateSelected = useWatch({ control, name: 'profile.state' })
+    const { data: districts, isLoading: districtsLoading } = useQuery({
+        queryKey: ['states', stateSelected, 'districts'],
+        queryFn: ({ signal }) => axios.get<DistrictsResponse>('/states/' + stateSelected, { signal }),
+        select: data => data.data,
+        enabled: !!stateSelected && stateSelected != undefined
+    })
 
-        initOperators()
-    }, [store])
-
-    useEffect(() => {
-        if (operators == undefined) return
-        setCurrentStoreOps(
-            lodashMap(store?.data.operators, (ops) => ops.user_id + ''),
+    const storeEditMutation = useMutation({
+        mutationFn: (data: EditStoreForm) => axios.patch<BackendGeneralResponse>(
+            '/stores/' + store?.data.id, data
         )
-        setStoreOperators(lodashMap(operators.data, (ops) => ops.id + ''))
-    }, [operators])
-
-    useEffect(() => {
-        ;(async () => {
-            const response = await axios.get<StatesResponse>('/states/')
-            setStates(response.data)
-
-            const storeResponse = await axios.get<StoreResponse>(
-                '/stores/' + router.query.store,
-                {
-                    params: {
-                        include: [
-                            'profile.state',
-                            'profile.district',
-
-                            'operators.user',
-                            'operators.user.profile.state',
-                            'operators.user.profile.district',
-                        ],
-                    },
-                },
-            )
-
-            setStore(storeResponse.data)
-            setStoreName(storeResponse.data.data.name)
-            setAddress(storeResponse.data.data.profile?.address as string)
-            setCode(storeResponse.data.data.code.split('-')[1])
-            setPincode(storeResponse.data.data?.profile?.pincode + '')
-            setState(storeResponse.data.data.profile?.state.id + '')
-            setDistrict(storeResponse.data.data.profile?.district.id + '')
-            setPhone(storeResponse.data.data.profile?.emergency_contact || 0)
-        })()
-    }, [])
-
-    useEffect(() => {
-        const fetchDistricts = async () => {
-            const response = await axios.get<DistrictsResponse>(
-                '/states/' + state,
-            )
-            setDistricts(response.data)
+    })
+    const handleStoreEdit: SubmitHandler<EditStoreForm> = data => storeEditMutation.mutate(data, {
+        onSuccess: () => {
+            client.invalidateQueries({ queryKey: ['free operators'] })
+            client.invalidateQueries({ queryKey: ['store', router.query.store] })
+            toast.success("Store edited successfully")
         }
-
-        if (state != '') {
-            fetchDistricts()
-        }
-    }, [state])
-
-    const handleStoreEdit = async () => {
-        setLoading(true)
-
-        try {
-            const storeEditResponse = await axios.patch<BackendGeneralResponse>(
-                'stores/' + store?.data.id,
-                {
-                    operators: storeOperators,
-                    name: storeName,
-                    code: code,
-                    profile: {
-                        address,
-                        pincode,
-                        state,
-                        district,
-                        emergency_contact: phone,
-                    },
-                },
-            )
-
-            alert(storeEditResponse.data.message)
-            router.reload()
-        } finally {
-            setLoading(false)
-        }
-    }
+    })
 
     return (
-        <>
-            {currentStoreOps != undefined ? (
-                <div className="mt-4">
-                    <Text>Operators</Text>
-                    <MultiSelect
-                        onValueChange={setStoreOperators}
-                        defaultValue={currentStoreOps}
-                    >
-                        {operators != undefined ? (
-                            operators.data.map((theOperator) => (
-                                <MultiSelectItem
-                                    value={theOperator.id + ''}
-                                    key={theOperator.id}
-                                >
-                                    {theOperator.name} - {theOperator.email} -{' '}
-                                    {theOperator.phone}
-                                </MultiSelectItem>
-                            ))
-                        ) : (
-                            <MultiSelectItem value="">
-                                No free operators...
-                            </MultiSelectItem>
+        <form onSubmit={handleSubmit(handleStoreEdit)}>
+            <div className="mt-4">
+                <Text>Operators</Text>
+                {isStoreLoading || loadingFreeOperators ? (
+                    <Skeleton className='mt-2 w-full h-9 rounded-lg' />
+                ) : (
+                    <Controller
+                        control={control}
+                        name='operators'
+                        render={({ field }) => (
+                            <MultiSelect
+                                {...field}
+                                className='mt-2'
+                                onChange={v => { }}
+                                onValueChange={field.onChange}
+                                disabled={storeEditMutation.isPending}
+                                defaultValue={store?.data.operators?.map(op => op.user_id + '')}
+                            >
+                                {store?.data.operators?.map(op => (
+                                    <MultiSelectItem key={op.user_id} value={op.user_id + ''}>
+                                        {[op.user?.name, op.user?.email, op.user?.phone].join(' - ')}
+                                    </MultiSelectItem>
+                                ))}
+
+                                {freeOperators?.data?.map(op => (
+                                    <MultiSelectItem key={op.id} value={op.id + ''}>
+                                        {[op.name, op.email, op.phone].join(' - ')}
+                                    </MultiSelectItem>
+                                ))}
+                            </MultiSelect>
                         )}
-                    </MultiSelect>
-                </div>
-            ) : (
-                <div className="mt-4">
-                    <Text>Loading operators, please wait...</Text>
-                </div>
-            )}
+                    />
+                )}
+            </div>
 
             <div className="mt-4">
                 <Text>Store Name</Text>
-                <TextInput
-                    value={storeName}
-                    onInput={(e) => setStoreName(e.currentTarget.value)}
-                    error={errors?.errors.name != undefined}
-                    errorMessage="Store name is required"
-                    className="mt-2"
-                />
+                {isStoreLoading ? (
+                    <Skeleton className='mt-2 w-full h-9 rounded-lg' />
+                ) : (
+                    <TextInput className="mt-2" {...register('name')} disabled={storeEditMutation.isPending} />
+                )}
             </div>
 
             <div className="mt-4">
                 <Text>Store Phone</Text>
-                <NumberInput
-                    value={phone}
-                    onValueChange={setPhone}
-                    error={errors?.errors.name != undefined}
-                    errorMessage="Store phone is required"
-                    className="mt-2"
-                />
+                {isStoreLoading ? (
+                    <Skeleton className='mt-2 w-full h-9 rounded-lg' />
+                ) : (
+                    <Controller
+                        control={control}
+                        name='profile.emergency_contact'
+                        render={({ field }) => (
+                            <NumberInput
+                                {...field}
+                                className='mt-2'
+                                onChange={v => { }}
+                                enableStepper={false}
+                                onValueChange={field.onChange}
+                                disabled={storeEditMutation.isPending}
+                            />
+                        )}
+                    />
+                )}
             </div>
 
             <div className="mt-4">
                 <Text>Store Address</Text>
-                <TextInput
-                    value={address}
-                    onInput={(e) => setAddress(e.currentTarget.value)}
-                    error={errors?.errors['profile.address'] != undefined}
-                    errorMessage="Store address is required"
-                    className="mt-2"
-                />
+                {isStoreLoading ? (
+                    <Skeleton className='mt-2 w-full h-9 rounded-lg' />
+                ) : (
+                    <TextInput className="mt-2" {...register('profile.address')} disabled={storeEditMutation.isPending} />
+                )}
             </div>
 
             <div className="mt-4">
                 <Text>Store custom code</Text>
-                <TextInput
-                    value={code}
-                    onInput={(e) => setCode(e.currentTarget.value)}
-                    error={errors?.errors.custom_code != undefined}
-                    errorMessage="Custom code for store is required"
-                    className="mt-2"
-                />
+                {isStoreLoading ? (
+                    <Skeleton className='mt-2 w-full h-9 rounded-lg' />
+                ) : (
+                    <TextInput className="mt-2" {...register('code')} disabled={storeEditMutation.isPending} />
+                )}
             </div>
 
             <div className="mt-4">
                 <Text>Store Pincode</Text>
-                <TextInput
-                    value={pincode}
-                    onInput={(e) => setPincode(e.currentTarget.value)}
-                    error={errors?.errors['profile.pincode'] != undefined}
-                    errorMessage="Store pincode is required"
-                    className="mt-2"
-                />
+                {isStoreLoading ? (
+                    <Skeleton className='mt-2 w-full h-9 rounded-lg' />
+                ) : (
+                    <Controller
+                        control={control}
+                        name='profile.emergency_contact'
+                        render={({ field }) => (
+                            <NumberInput
+                                {...field}
+                                className='mt-2'
+                                onChange={v => { }}
+                                enableStepper={false}
+                                onValueChange={field.onChange}
+                                disabled={storeEditMutation.isPending}
+                            />
+                        )}
+                    />
+                )}
             </div>
 
-            {states != undefined && store != undefined && (
-                <div className="mt-4">
-                    <Text>Store State</Text>
-                    <SearchSelect
-                        defaultValue={store?.data?.profile?.state.id + ''}
-                        className="mt-2"
-                        onValueChange={(value) => setState(value)}
-                    >
-                        {states.data.map((theState) => (
-                            <SearchSelectItem
-                                value={theState.id + ''}
-                                key={theState.id}
-                                icon={GlobeAsiaAustraliaIcon}
+            <div className="mt-4">
+                <Text>Store State</Text>
+                {isStoreLoading || statesLoading ? (
+                    <Skeleton className='mt-2 w-full h-9 rounded-lg' />
+                ) : (
+                    <Controller
+                        control={control}
+                        name='profile.state'
+                        render={({ field }) => (
+                            <SearchSelect
+                                {...field}
+                                className='mt-2'
+                                onChange={v => { }}
+                                onValueChange={field.onChange}
+                                disabled={storeEditMutation.isPending}
+                                defaultValue={store?.data.profile?.state.id + ''}
                             >
-                                {theState.name}
-                            </SearchSelectItem>
-                        ))}
-                    </SearchSelect>
-                    {errors?.errors['profile.state'] && (
-                        <Text color="red" className="mt-1">
-                            Please select a state
-                        </Text>
-                    )}
-                </div>
-            )}
+                                {states?.data.map(state => (
+                                    <SearchSelectItem
+                                        key={state.id}
+                                        value={state.id + ''}
+                                        icon={GlobeAsiaAustraliaIcon}
+                                    >
+                                        {state.name}
+                                    </SearchSelectItem>
+                                ))}
+                            </SearchSelect>
+                        )}
+                    />
+                )}
+            </div>
 
             <div className="mt-4">
                 <Text>Store District</Text>
-                <SearchSelect
-                    defaultValue={store?.data?.profile?.district.id + ''}
-                    className="mt-2"
-                    onValueChange={(value) => setDistrict(value)}
-                >
-                    {districts != undefined ? (
-                        districts.data.districts.map((theDistrict) => (
-                            <SearchSelectItem
-                                value={theDistrict.id + ''}
-                                key={theDistrict.id}
-                                icon={GlobeAsiaAustraliaIcon}
+                {isStoreLoading || districtsLoading ? (
+                    <Skeleton className='mt-2 w-full h-9 rounded-lg' />
+                ) : (
+                    <Controller
+                        control={control}
+                        name='profile.district'
+                        render={({ field }) => (
+                            <SearchSelect
+                                {...field}
+                                className='mt-2'
+                                onChange={v => { }}
+                                onValueChange={field.onChange}
+                                disabled={storeEditMutation.isPending}
+                                defaultValue={store?.data.profile?.district.id + ''}
                             >
-                                {theDistrict.name}
-                            </SearchSelectItem>
-                        ))
-                    ) : (
-                        <SearchSelectItem value="" icon={ArrowPathIcon}>
-                            Loading...
-                        </SearchSelectItem>
-                    )}
-                </SearchSelect>
-                {errors?.errors['profile.district'] && (
-                    <Text color="red" className="mt-1">
-                        Please select a district
-                    </Text>
+                                {districts?.data.districts.map(district => (
+                                    <SearchSelectItem
+                                        key={district.id}
+                                        value={district.id + ''}
+                                        icon={GlobeAsiaAustraliaIcon}
+                                    >
+                                        {district.name}
+                                    </SearchSelectItem>
+                                ))}
+                            </SearchSelect>
+                        )}
+                    />
                 )}
             </div>
 
@@ -307,14 +299,14 @@ const EditStore = () => {
             <Flex justifyContent="end" className="space-x-2">
                 <Button
                     size="xs"
-                    loading={loading}
+                    type='submit'
                     loadingText="Editing store..."
-                    onClick={handleStoreEdit}
+                    loading={storeEditMutation.isPending}
                 >
                     Edit store
                 </Button>
             </Flex>
-        </>
+        </form>
     )
 }
 
