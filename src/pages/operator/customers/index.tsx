@@ -5,9 +5,10 @@ import OperatorNavigation from '@/components/operator/operator-navigation'
 import TableSkeleton from '@/components/table-skeleton'
 import {
     MagnifyingGlassIcon,
-    ShoppingBagIcon,
-    UserIcon,
+    ShoppingBagIcon
 } from '@heroicons/react/24/outline'
+import { Pagination } from '@nextui-org/react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
     Card,
     Title,
@@ -20,33 +21,35 @@ import {
     TableCell,
     Button,
     TableBody,
+    Flex,
 } from '@tremor/react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useDebounce } from 'use-debounce'
 
 const CustomersList = () => {
     const axios = useAxios()
 
-    const [customers, setCustomers] = useState<UsersResponse>()
+    const [page, setPage] = useState<number>(0)
     const [customerSearch, setCustomerSearch] = useState<string>('')
+    const [bouncedSearch] = useDebounce(customerSearch, 300)
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            const UsersResponse = await axios.get<UsersResponse>(
-                '/search/customer',
-                {
-                    params: {
-                        store: true,
-                        search: customerSearch,
-                    },
+    const { data: customers, isLoading: customersLoading, isFetching: customersFetching } = useQuery({
+        queryKey: ['customers', bouncedSearch, page],
+        queryFn: ({ signal }) => axios.get<UsersResponse>(
+            '/search/customer',
+            {
+                signal,
+                params: {
+                    page,
+                    store: true,
+                    search: customerSearch,
                 },
-            )
-
-            setCustomers(UsersResponse.data)
-        }
-
-        fetchUsers()
-    }, [customerSearch])
+            },
+        ),
+        select: data => data.data,
+        placeholderData: keepPreviousData,
+    })
 
     return (
         <div className="p-12">
@@ -70,58 +73,72 @@ const CustomersList = () => {
                         placeholder="Search customers..."
                     />
 
-                    {customers == undefined ? (
-                        <TableSkeleton numCols={7} numRows={5} />
-                    ) : (
-                        <Table className="mt-2">
-                            <TableHead>
-                                <TableRow>
-                                    <TableHeaderCell>Name</TableHeaderCell>
-                                    <TableHeaderCell>Email</TableHeaderCell>
-                                    <TableHeaderCell>Phone</TableHeaderCell>
-                                    <TableHeaderCell>Pincode</TableHeaderCell>
-                                    <TableHeaderCell>State</TableHeaderCell>
-                                    <TableHeaderCell>District</TableHeaderCell>
-                                    <TableHeaderCell>Action</TableHeaderCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {customers?.data.map((customer) => (
-                                    <TableRow key={customer.id}>
-                                        <TableCell>{customer.name}</TableCell>
-                                        <TableCell>{customer.email}</TableCell>
-                                        <TableCell>{customer.phone}</TableCell>
-                                        <TableCell>
-                                            {customer.profile?.pincode}
-                                        </TableCell>
-                                        <TableCell>
-                                            {customer.profile?.state.name}
-                                        </TableCell>
-                                        <TableCell>
-                                            {customer.profile?.district.name}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Link
-                                                href={
-                                                    '/operator/customers/' +
-                                                    customer.id +
-                                                    '/orders'
-                                                }
-                                            >
-                                                <Button
-                                                    variant="secondary"
-                                                    color="gray"
-                                                    icon={ShoppingBagIcon}
-                                                >
-                                                    Show orders
-                                                </Button>
-                                            </Link>
-                                        </TableCell>
+                    <div className="mt-2">
+                        {customersFetching ? (
+                            <TableSkeleton numCols={7} numRows={15} />
+                        ) : (
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableHeaderCell>Name</TableHeaderCell>
+                                        <TableHeaderCell>Email</TableHeaderCell>
+                                        <TableHeaderCell>Phone</TableHeaderCell>
+                                        <TableHeaderCell>Pincode</TableHeaderCell>
+                                        <TableHeaderCell>State</TableHeaderCell>
+                                        <TableHeaderCell>District</TableHeaderCell>
+                                        <TableHeaderCell>Action</TableHeaderCell>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
+                                </TableHead>
+                                <TableBody>
+                                    {customers?.data.map((customer) => (
+                                        <TableRow key={customer.id}>
+                                            <TableCell>{customer.name}</TableCell>
+                                            <TableCell>{customer.email}</TableCell>
+                                            <TableCell>{customer.phone}</TableCell>
+                                            <TableCell>
+                                                {customer.profile?.pincode}
+                                            </TableCell>
+                                            <TableCell>
+                                                {customer.profile?.state.name}
+                                            </TableCell>
+                                            <TableCell>
+                                                {customer.profile?.district.name}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Link
+                                                    href={
+                                                        '/operator/customers/' +
+                                                        customer.id +
+                                                        '/orders'
+                                                    }
+                                                >
+                                                    <Button
+                                                        variant="secondary"
+                                                        color="gray"
+                                                        icon={ShoppingBagIcon}
+                                                    >
+                                                        Show orders
+                                                    </Button>
+                                                </Link>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        )}
+
+                        {!customersLoading && (
+                            customers?.meta.last_page! > 1 && (
+                                <Flex justifyContent='center'>
+                                    <Pagination
+                                        page={page}
+                                        onChange={setPage}
+                                        total={customers?.meta.last_page!}
+                                    />
+                                </Flex>
+                            )
+                        )}
+                    </div>
                 </Card>
             </div>
         </div>
