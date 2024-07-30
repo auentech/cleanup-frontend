@@ -4,6 +4,8 @@ import { OrdersResponse, UserData } from '@/common/types'
 import OperatorNavigation from '@/components/operator/operator-navigation'
 import TableSkeleton from '@/components/table-skeleton'
 import { ReceiptPercentIcon } from '@heroicons/react/24/outline'
+import { Pagination } from '@nextui-org/react'
+import { useQuery } from '@tanstack/react-query'
 import {
     Button,
     Card,
@@ -53,34 +55,31 @@ const ListRewash = () => {
     const user = data?.user as UserData
     const query = router.query as RewashOrderQuery
 
+    const [page, setPage] = useState<number>(1)
     const [index, setIndex] = useState<number>(0)
-    const [orders, setOrders] = useState<OrdersResponse>()
+
+    const { data: orders, isLoading: ordersLoading } = useQuery({
+        queryKey: ['rewashes', user.store_id, 'page'],
+        queryFn: () => axios.get<OrdersResponse>(
+            '/stores/' + user.store_id + '/orders',
+            {
+                params: {
+                    include: ['customer', 'rewash'],
+                    filter: {
+                        rewash: 'yes',
+                    },
+                    page,
+                },
+            },
+        ),
+        enabled: !!user.store_id,
+        select: data => data.data
+    })
 
     useEffect(() => {
-        const initData = async () => {
-            const storeID = user.store_id
-
-            if (query.order) {
-                setIndex(1)
-                return
-            }
-
-            const ordersResponse = await axios.get<OrdersResponse>(
-                '/stores/' + storeID + '/orders',
-                {
-                    params: {
-                        include: ['customer', 'rewash'],
-                        filter: {
-                            rewash: 'yes',
-                        },
-                    },
-                },
-            )
-
-            setOrders(ordersResponse.data)
+        if (query.order) {
+            setIndex(1)
         }
-
-        initData()
     }, [])
 
     return (
@@ -107,7 +106,7 @@ const ListRewash = () => {
                         <TabPanels>
                             <TabPanel>
                                 <div className="mt-4">
-                                    {orders == undefined ? (
+                                    {orders == undefined || ordersLoading ? (
                                         <TableSkeleton
                                             numCols={7}
                                             numRows={5}
@@ -140,7 +139,7 @@ const ListRewash = () => {
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {orders?.data.map((order) => (
+                                                {orders.data.map((order) => (
                                                     <TableRow key={order.id}>
                                                         <TableCell>
                                                             {order.code}
@@ -209,6 +208,19 @@ const ListRewash = () => {
                                         </Table>
                                     )}
                                 </div>
+
+                                {!ordersLoading && (
+                                    orders?.meta.last_page! > 1 && (
+                                        <Flex justifyContent='center'>
+                                            <Pagination
+                                                page={page}
+                                                className='mt-2'
+                                                onChange={setPage}
+                                                total={orders?.meta.last_page!}
+                                            />
+                                        </Flex>
+                                    )
+                                )}
                             </TabPanel>
                             <TabPanel>
                                 {index == 1 && (

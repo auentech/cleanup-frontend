@@ -30,6 +30,7 @@ import {
 } from '@tremor/react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { useDebounce } from 'use-debounce'
 
 type CreateRewashType = {
     user: UserData
@@ -45,7 +46,9 @@ const CreateRewash = ({ user }: CreateRewashType) => {
 
     const query = router.query as CreateRewashQuery
 
-    const [search, setSearch] = useState<string>()
+    const [search, setSearch] = useState<string>('')
+    const [bouncedSearch] = useDebounce(search, 300)
+
     const [orders, setOrders] = useState<OrdersResponse>()
 
     const [selectedOrder, setSelectedOrder] = useState<Order>()
@@ -72,7 +75,7 @@ const CreateRewash = ({ user }: CreateRewashType) => {
         }
 
         fetchOrders()
-    }, [search])
+    }, [bouncedSearch])
 
     useEffect(() => {
         if (!query?.order) {
