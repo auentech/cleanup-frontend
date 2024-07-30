@@ -2,7 +2,6 @@ import useAxios from '@/common/axios'
 import isUser from '@/common/middlewares/isUser'
 import {
     DeliveryChallanResponse,
-    LoginResponse,
     UserData,
 } from '@/common/types'
 import OperatorNavigation from '@/components/operator/operator-navigation'
@@ -32,11 +31,13 @@ import {
     TableCell,
 } from '@tremor/react'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
 import sumBy from 'lodash/sumBy'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import dayjs from 'dayjs'
+import { useQuery } from '@tanstack/react-query'
+import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Skeleton } from '@nextui-org/react'
+import TableSkeleton from '@/components/table-skeleton'
 
 const ShowChallan = () => {
     const axios = useAxios()
@@ -44,28 +45,21 @@ const ShowChallan = () => {
     const { data } = useSession()
 
     const user = data?.user as UserData
-
-    const auth = data?.user as UserData
     const challanID = router.query.challan
 
-    const [challan, setChallan] = useState<DeliveryChallanResponse>()
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const challanResponse = await axios.get<DeliveryChallanResponse>(
-                '/stores/' + user.store_id + '/challans/' + challanID,
-                {
-                    params: {
-                        include: ['store', 'orders'],
-                    },
+    const { data: challan, isLoading: challanLoading } = useQuery({
+        queryKey: ['delivery challans', user.store_id, challanID],
+        queryFn: ({ signal }) => axios.get<DeliveryChallanResponse>(
+            '/stores/' + user.store_id + '/challans/' + challanID,
+            {
+                signal,
+                params: {
+                    include: ['store', 'orders'],
                 },
-            )
-
-            setChallan(challanResponse.data)
-        }
-
-        fetchData()
-    }, [])
+            },
+        ),
+        select: data => data.data,
+    })
 
     return (
         <div className="p-12">
@@ -86,7 +80,9 @@ const ShowChallan = () => {
                             />
                             <div className="truncate">
                                 <Title>Code</Title>
-                                <Metric>{challan?.data.code}</Metric>
+                                {challanLoading ? <Skeleton className='h-9 rounded-lg w-full' /> : (
+                                    <Metric>{challan?.data.code}</Metric>
+                                )}
                             </div>
                         </Flex>
                     </Card>
@@ -101,9 +97,11 @@ const ShowChallan = () => {
                             />
                             <div className="truncate">
                                 <Title>Cost</Title>
-                                <Metric>
-                                    ₹ {sumBy(challan?.data.orders, 'cost')}
-                                </Metric>
+                                {challanLoading ? <Skeleton className='h-9 rounded-lg w-full' /> : (
+                                    <Metric>
+                                        ₹ {sumBy(challan?.data.orders, 'cost')}
+                                    </Metric>
+                                )}
                             </div>
                         </Flex>
                     </Card>
@@ -118,7 +116,9 @@ const ShowChallan = () => {
                             />
                             <div className="truncate">
                                 <Title>Store</Title>
-                                <Metric>{challan?.data.store?.name}</Metric>
+                                {challanLoading ? <Skeleton className='h-9 rounded-lg w-full' /> : (
+                                    <Metric>{challan?.data.store?.name}</Metric>
+                                )}
                             </div>
                         </Flex>
                     </Card>
@@ -133,9 +133,11 @@ const ShowChallan = () => {
                             />
                             <div className="truncate">
                                 <Title>Clothes</Title>
-                                <Metric>
-                                    {sumBy(challan?.data.orders, 'count')}
-                                </Metric>
+                                {challanLoading ? <Skeleton className='h-9 rounded-lg w-full' /> : (
+                                    <Metric>
+                                        {sumBy(challan?.data.orders, 'count')}
+                                    </Metric>
+                                )}
                             </div>
                         </Flex>
                     </Card>
@@ -149,92 +151,95 @@ const ShowChallan = () => {
                     <Title>Challan items</Title>
                     <Text>All orders added to this delivery challan</Text>
 
-                    <Table className="mt-4">
-                        <TableHead>
-                            <TableRow>
-                                <TableHeaderCell>Order code</TableHeaderCell>
-                                <TableHeaderCell>
-                                    No. of garments
-                                </TableHeaderCell>
-                                <TableHeaderCell>Due date</TableHeaderCell>
-                                <TableHeaderCell>Package</TableHeaderCell>
-                                <TableHeaderCell>Action</TableHeaderCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {challan?.data.orders?.map((order) => (
-                                <TableRow key={order.id}>
-                                    <TableCell>{order.code}</TableCell>
-                                    <TableCell>{order.count}</TableCell>
-                                    <TableCell>
-                                        {order.due_date
-                                            ? dayjs(order.due_date).format(
-                                                  'DD, MMMM YY',
-                                              )
-                                            : 'General'}
-                                    </TableCell>
-                                    <TableCell>{order.package}</TableCell>
-                                    <TableCell>
-                                        <Link
-                                            href={
-                                                '/operator/stores/' +
-                                                challan.data.store?.id +
-                                                '/orders/' +
-                                                order.code
-                                            }
-                                        >
-                                            <Button
-                                                icon={ArchiveBoxIcon}
-                                                variant="secondary"
-                                            >
-                                                Show order
-                                            </Button>
-                                        </Link>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <div className="mt-4">
+                        {challanLoading ? <TableSkeleton numRows={15} numCols={5} /> : (
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableHeaderCell>Order code</TableHeaderCell>
+                                        <TableHeaderCell>
+                                            No. of garments
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>Due date</TableHeaderCell>
+                                        <TableHeaderCell>Package</TableHeaderCell>
+                                        <TableHeaderCell>Action</TableHeaderCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {challan?.data.orders?.map((order) => (
+                                        <TableRow key={order.id}>
+                                            <TableCell>{order.code}</TableCell>
+                                            <TableCell>{order.count}</TableCell>
+                                            <TableCell>
+                                                {order.due_date
+                                                    ? dayjs(order.due_date).format(
+                                                        'DD, MMMM YY',
+                                                    )
+                                                    : 'General'}
+                                            </TableCell>
+                                            <TableCell>{order.package}</TableCell>
+                                            <TableCell>
+                                                <Link
+                                                    href={
+                                                        '/operator/stores/' +
+                                                        challan.data.store?.id +
+                                                        '/orders/' +
+                                                        order.code
+                                                    }
+                                                >
+                                                    <Button
+                                                        icon={ArchiveBoxIcon}
+                                                        variant="secondary"
+                                                    >
+                                                        Show order
+                                                    </Button>
+                                                </Link>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        )}
+                    </div>
+
 
                     <Divider />
 
+
+
                     <Flex justifyContent="end" className="gap-6">
-                        <a
-                            target="_blank"
-                            href={
-                                process.env.NEXT_PUBLIC_BACKEND_URL +
-                                'api/stores/' +
-                                user.store_id +
-                                '/challans/' +
-                                challanID +
-                                '/excel?token=' +
-                                auth.token
-                            }
-                        >
-                            <Button
-                                color="gray"
-                                variant="secondary"
-                                icon={ReceiptPercentIcon}
-                            >
-                                Export excel
-                            </Button>
-                        </a>
-                        <a
-                            target="_blank"
-                            href={
-                                process.env.NEXT_PUBLIC_BACKEND_URL +
-                                'api/stores/' +
-                                user.store_id +
-                                '/challans/' +
-                                challanID +
-                                '/pdf?token=' +
-                                auth.token
-                            }
-                        >
-                            <Button icon={PrinterIcon} variant="secondary">
-                                Export print
-                            </Button>
-                        </a>
+                        <Dropdown showArrow>
+                            <DropdownTrigger>
+                                <Button variant='secondary' color='blue'>Export</Button>
+                            </DropdownTrigger>
+                            <DropdownMenu>
+                                <DropdownItem as="a" target="_blank"
+                                    href={
+                                        process.env.NEXT_PUBLIC_BACKEND_URL +
+                                        'api/stores/' +
+                                        user.store_id +
+                                        '/challans/' +
+                                        challanID +
+                                        '/excel?token=' +
+                                        user.token
+                                    }
+                                    startContent={<ReceiptPercentIcon height={20} width={20} />}
+                                    key="excel">Export as excel</DropdownItem>
+
+                                <DropdownItem as="a" target="_blank"
+                                    href={
+                                        process.env.NEXT_PUBLIC_BACKEND_URL +
+                                        'api/stores/' +
+                                        user.store_id +
+                                        '/challans/' +
+                                        challanID +
+                                        '/pdf?token=' +
+                                        user.token
+                                    }
+                                    startContent={<PrinterIcon height={20} width={20} />}
+                                    key="pdf">Export as PDF</DropdownItem>
+                            </DropdownMenu>
+                        </Dropdown>
                     </Flex>
                 </Card>
             </div>
