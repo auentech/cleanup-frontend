@@ -50,7 +50,7 @@ import OrderRemarks from '@/components/store/order/remarks'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@nextui-org/modal'
-import { useDisclosure } from '@nextui-org/react'
+import { Skeleton, useDisclosure } from '@nextui-org/react'
 import groupBy from 'lodash/groupBy'
 import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
@@ -209,9 +209,7 @@ const ShowOrderInfo = () => {
             <OperatorNavigation />
 
             {isOrderLoading ? (
-                <Card className="mt-6">
-                    <Loading />
-                </Card>
+                <Skeleton className='mt-6 h-28 rounded-lg w-full' />
             ) : (
                 <Grid numItemsSm={2} numItemsLg={4} className="mt-6 gap-6">
                     <OrderKPICards order={order?.data.data as Order} />
