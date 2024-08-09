@@ -15,6 +15,7 @@ import {
     ArrowLeftIcon,
     BuildingStorefrontIcon,
     CameraIcon,
+    EyeIcon,
     ForwardIcon,
     ReceiptPercentIcon,
     ShoppingBagIcon,
@@ -58,6 +59,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import TableSkeleton from '@/components/table-skeleton'
 import Loading from '@/components/loading'
 import { toast } from 'react-toastify'
+import Image from 'next/image'
 
 type Consolidate = {
     service: OrderService
@@ -79,6 +81,7 @@ const ShowOrderInfo = () => {
     const [balanceMode, setBalanceMode] = useState<PaymentMode>('Cash')
     const [consolidate, setConsolidate] = useState<Consolidate[]>()
 
+    const qrModal = useDisclosure()
     const deliveryModal = useDisclosure()
 
     const {
@@ -335,6 +338,9 @@ const ShowOrderInfo = () => {
                                     Download QR Codes
                                 </Button>
                             </a>
+                            <Button className='w-full' variant="secondary" icon={EyeIcon} onClick={qrModal.onOpen}>
+                                Show QR Code
+                            </Button>
                             <Link
                                 href={`/operator/stores/${storeID}/orders/${orderID}/edit`}
                                 className="w-full"
@@ -523,6 +529,34 @@ const ShowOrderInfo = () => {
                                     onClick={(_) => deliverOrder.mutate()}
                                 >
                                     Mark as delivered
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
+
+            <Modal isOpen={qrModal.isOpen} onOpenChange={qrModal.onOpenChange}>
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader>
+                                <Title>QR Code</Title>
+                            </ModalHeader>
+                            <ModalBody>
+                                <Image src={
+                                    process.env.NEXT_PUBLIC_BACKEND_URL +
+                                    'api/stores/' +
+                                    storeID +
+                                    '/orders/' +
+                                    orderID +
+                                    '/qr.png?token=' +
+                                    user.token
+                                } alt="QR Code" width={300} height={300} />
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button variant="secondary" color='red' icon={XMarkIcon} onClick={onClose}>
+                                    Close
                                 </Button>
                             </ModalFooter>
                         </>
